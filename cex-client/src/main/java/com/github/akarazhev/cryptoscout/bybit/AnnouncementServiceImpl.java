@@ -42,7 +42,7 @@ final class AnnouncementServiceImpl implements AnnouncementService {
 
     private int getTotal() {
         var entity = restTemplate.getForEntity(serviceBybitHost + apiBybitAnnouncements, Response.class,
-                Map.of("locale", "en-US", "page", 1, "limit", 1));
+                getParameters(1, 1));
         if (entity.getStatusCode().is2xxSuccessful()) {
             var response = entity.getBody();
             if (Objects.requireNonNull(response).retCode() == 0) {
@@ -55,7 +55,7 @@ final class AnnouncementServiceImpl implements AnnouncementService {
 
     private List<Announcement> getAnnouncements(int page, int limit) {
         var entity = restTemplate.getForEntity(serviceBybitHost + apiBybitAnnouncements, Response.class,
-                Map.of("locale", "en-US", "page", page, "limit", limit));
+                getParameters(page, limit));
         if (entity.getStatusCode().is2xxSuccessful()) {
             var response = entity.getBody();
             if (Objects.requireNonNull(response).retCode() == 0) {
@@ -64,5 +64,9 @@ final class AnnouncementServiceImpl implements AnnouncementService {
         }
 
         return List.of();
+    }
+
+    private Map<String, Object> getParameters(int page, int limit) {
+        return Map.of("locale", "en-US", "page", page, "limit", limit);
     }
 }
