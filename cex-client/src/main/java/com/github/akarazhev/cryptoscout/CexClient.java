@@ -6,10 +6,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class CexClient {
+class CexClient {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CexClient.class, args);
-	}
-
+    public static void main(final String[] args) {
+        SpringApplication.run(CexClient.class, args);
+    }
 }
