@@ -16,17 +16,19 @@ import java.util.stream.Stream;
 @Service
 final class AnnouncementServiceImpl implements AnnouncementService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnnouncementServiceImpl.class);
+    private static final String BY_TYPE_API = "/v5/announcements/index?locale={locale}&type={type}&page={page}&limit={limit}";
+    private static final String BY_TAG_API = "/v5/announcements/index?locale={locale}&tag={tag}&page={page}&limit={limit}";
     private final RestTemplate restTemplate;
-    private final String serviceBybitHost;
-    private final String apiBybitAnnouncements;
+    private final String host;
+    private final String locale;
 
     public AnnouncementServiceImpl(final RestTemplateBuilder builder,
-                                   @Value("${service.bybit.host}") final String serviceBybitHost,
-                                   @Value("${api.bybit.announcements}") final String apiBybitAnnouncements) {
+                                   @Value("${bybit.host}") final String host,
+                                   @Value("${bybit.announcements.locale}") final String locale) {
         this.restTemplate = builder.build();
-        this.serviceBybitHost = serviceBybitHost;
-        this.apiBybitAnnouncements = apiBybitAnnouncements;
-        LOGGER.info("Bybit announcement service initialized with host: {}", serviceBybitHost);
+        this.host = host;
+        this.locale = locale;
+        LOGGER.info("Bybit announcement service initialized with host: {} and locale: {}", host, locale);
     }
 
     @Override
@@ -41,7 +43,7 @@ final class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     private int getTotal() {
-        var entity = restTemplate.getForEntity(serviceBybitHost + apiBybitAnnouncements, Response.class,
+        var entity = restTemplate.getForEntity(host + BY_TAG_API, Response.class,
                 getParameters(1, 1));
         if (entity.getStatusCode().is2xxSuccessful()) {
             var response = entity.getBody();
@@ -54,7 +56,7 @@ final class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     private List<Announcement> getAnnouncements(int page, int limit) {
-        var entity = restTemplate.getForEntity(serviceBybitHost + apiBybitAnnouncements, Response.class,
+        var entity = restTemplate.getForEntity(host + BY_TAG_API, Response.class,
                 getParameters(page, limit));
         if (entity.getStatusCode().is2xxSuccessful()) {
             var response = entity.getBody();
@@ -67,6 +69,6 @@ final class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     private Map<String, Object> getParameters(int page, int limit) {
-        return Map.of("locale", "en-US", "page", page, "limit", limit);
+        return Map.of("locale", locale, "tag", "Launchpool", "page", page, "limit", limit);
     }
 }
