@@ -17,9 +17,6 @@ final class Scheduler {
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
         LOGGER.info("Running scheduled task at {}", new java.util.Date());
-        bybitEventSource.getEvents().forEach(e -> {
-            LOGGER.info("{}, {}, {}: {} {} => {}", e.publishTime(), e.time(), e.startTime(), e.endTime(), e.title(),
-                    e.description());
-        });
+        bybitEventSource.getEvents().forEach(e -> LOGGER.info(e.toString()));
     }
 }
