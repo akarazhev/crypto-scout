@@ -9,10 +9,8 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -20,11 +18,11 @@ import java.util.stream.Stream;
 class BybitEventSource implements EventSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitEventSource.class);
     private static final int PAGE_SIZE = 1000;
+
     private final RestTemplate restTemplate;
     private final String url;
     private final String locale;
-    private final String[] tags;
-    private final String[] types;
+    private final List<AnnouncementFetcher> fetchers;
 
     public BybitEventSource(final RestTemplateBuilder builder,
                             @Value("${bybit.announcements.url}") final String url,
@@ -34,99 +32,34 @@ class BybitEventSource implements EventSource {
         this.restTemplate = builder.build();
         this.url = url.trim();
         this.locale = locale.trim();
-        this.tags = tags.trim().split(",");
-        this.types = types.trim().split(",");
-        LOGGER.info("Initializing BybitEventSource with locale: '{}', tags: '{}', types: '{}'", locale, tags, types);
+        this.fetchers = createFetchers(tags.trim().split(","), types.trim().split(","));
+        LOGGER.info("Initializing BybitEventSource with locale: '{}', types: '{}', tags: '{}'", locale, types, tags);
+    }
+
+    private List<AnnouncementFetcher> createFetchers(final String[] tags, final String[] types) {
+        final var fetchers = new ArrayList<AnnouncementFetcher>();
+        for (final var tag : tags) {
+            fetchers.add(new TagAnnouncementFetcher(restTemplate, url, locale, tag));
+        }
+
+        for (final var type : types) {
+            fetchers.add(new TypeAnnouncementFetcher(restTemplate, url, locale, type));
+        }
+
+        return fetchers;
     }
 
     @Override
     public Stream<Event> getEvents() {
-        final var events = new LinkedList<Event>();
-        for (final var tag : tags) {
-            IntStream.rangeClosed(1, (int) Math.ceil((double) getTotalByTag(tag) / PAGE_SIZE))
-                    .boxed()
-                    .flatMap(page -> getByTag(tag, page).stream())
-                    .map(this::getEvent)
-                    .forEach(events::add);
-        }
-
-        for (final var type : types) {
-            IntStream.rangeClosed(1, (int) Math.ceil((double) getTotalByType(type) / PAGE_SIZE))
-                    .boxed()
-                    .flatMap(page -> getByType(type, page).stream())
-                    .map(this::getEvent)
-                    .forEach(events::add);
-        }
-
-        return events.stream();
+        return fetchers.parallelStream().flatMap(this::getEventsFromFetcher);
     }
 
-    private int getTotalByTag(final String tag) {
-        var entity = restTemplate.getForEntity(url + pathWithTag(), Response.class,
-                getTagAndPagination(tag, 1, 1));
-        if (entity.getStatusCode().is2xxSuccessful()) {
-            var response = entity.getBody();
-            if (Objects.requireNonNull(response).retCode() == 0) {
-                return response.result().total();
-            }
-        }
-
-        return 0;
-    }
-
-    private int getTotalByType(final String type) {
-        var entity = restTemplate.getForEntity(url + pathWithType(), Response.class,
-                getTypeAndPagination(type, 1, 1));
-        if (entity.getStatusCode().is2xxSuccessful()) {
-            var response = entity.getBody();
-            if (Objects.requireNonNull(response).retCode() == 0) {
-                return response.result().total();
-            }
-        }
-
-        return 0;
-    }
-
-    private List<Announcement> getByTag(final String tag, int page) {
-        var entity = restTemplate.getForEntity(url + pathWithTag(), Response.class,
-                getTagAndPagination(tag, page, BybitEventSource.PAGE_SIZE));
-        if (entity.getStatusCode().is2xxSuccessful()) {
-            var response = entity.getBody();
-            if (Objects.requireNonNull(response).retCode() == 0) {
-                return response.result().list();
-            }
-        }
-
-        return List.of();
-    }
-
-    private List<Announcement> getByType(final String type, int page) {
-        var entity = restTemplate.getForEntity(url + pathWithType(), Response.class,
-                getTypeAndPagination(type, page, BybitEventSource.PAGE_SIZE));
-        if (entity.getStatusCode().is2xxSuccessful()) {
-            var response = entity.getBody();
-            if (Objects.requireNonNull(response).retCode() == 0) {
-                return response.result().list();
-            }
-        }
-
-        return List.of();
-    }
-
-    private String pathWithTag() {
-        return "?locale={locale}&tag={tag}&page={page}&limit={limit}";
-    }
-
-    private String pathWithType() {
-        return "?locale={locale}&type={type}&page={page}&limit={limit}";
-    }
-
-    private Map<String, Object> getTagAndPagination(final String tag, final int page, final int limit) {
-        return Map.of("locale", locale, "tag", tag, "page", page, "limit", limit);
-    }
-
-    private Map<String, Object> getTypeAndPagination(final String type, int page, int limit) {
-        return Map.of("locale", locale, "type", type, "page", page, "limit", limit);
+    private Stream<Event> getEventsFromFetcher(final AnnouncementFetcher fetcher) {
+        final var total = fetcher.getTotal();
+        return IntStream.rangeClosed(1, (int) Math.ceil((double) total / PAGE_SIZE))
+                .boxed()
+                .flatMap(page -> fetcher.fetch(page).stream())
+                .map(this::getEvent);
     }
 
     private Event getEvent(final Announcement announcement) {
