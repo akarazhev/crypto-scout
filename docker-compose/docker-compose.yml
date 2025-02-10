@@ -1,6 +1,16 @@
 version: "3"
 
 services:
+  cex-client:
+    build:
+     context: ../cex-client
+     dockerfile: Dockerfile
+    container_name: crypto-scout-cex-client
+    depends_on:
+      - rabbitmq
+    networks:
+      - crypto-scout
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: crypto-scout-mq
