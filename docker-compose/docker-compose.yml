@@ -36,6 +36,25 @@ services:
     restart: on-failure
     entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar cex-client.jar" ]
 
+  event-collector:
+    build:
+      context: ../event-collector
+      dockerfile: Dockerfile
+    container_name: crypto-scout-event-collector
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar event-collector.jar" ]
+
 volumes:
   rabbitmq_data:
 
