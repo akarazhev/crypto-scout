@@ -1,16 +1,6 @@
-version: "3"
+version: "3.9"
 
 services:
-  cex-client:
-    build:
-     context: ../cex-client
-     dockerfile: Dockerfile
-    container_name: crypto-scout-cex-client
-    depends_on:
-      - rabbitmq
-    networks:
-      - crypto-scout
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: crypto-scout-mq
@@ -21,6 +11,30 @@ services:
       - "rabbitmq_data:/var/lib/rabbitmq"
     networks:
       - crypto-scout
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cex-client:
+    build:
+      context: ../cex-client
+      dockerfile: Dockerfile
+    container_name: crypto-scout-cex-client
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar cex-client.jar" ]
 
 volumes:
   rabbitmq_data:
