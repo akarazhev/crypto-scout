@@ -14,7 +14,12 @@ public record Event(Platform platform,
                     String url
 ) {
     public enum Platform {
-        BYBIT
+        BYBIT;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     @Override

@@ -13,10 +13,15 @@ final class Scheduler {
     @Autowired
     @Qualifier("bybitEventSource")
     private EventSource bybitEventSource;
+    @Autowired
+    private EventExchange eventExchangeService;
 
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
         LOGGER.info("Running scheduled task at {}", new java.util.Date());
-        bybitEventSource.getEvents().forEach(e -> LOGGER.info(e.toString()));
+        bybitEventSource.getEvents().forEach(e -> {
+            eventExchangeService.publish(e);
+            LOGGER.info(e.toString());
+        });
     }
 }
