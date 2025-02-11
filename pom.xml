@@ -10,6 +10,7 @@
 
     <modules>
         <module>cex-client</module>
+        <module>event-collector</module>
     </modules>
 
 </project>
