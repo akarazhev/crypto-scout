@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Service
-class BybitEventSource implements EventSource {
+final class BybitEventSource implements EventSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitEventSource.class);
     private static final int PAGE_SIZE = 1000;
 

@@ -4,7 +4,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-class TypeAnnouncementFetcher extends BaseAnnouncementFetcher {
+final class TypeAnnouncementFetcher extends BaseAnnouncementFetcher {
 
     TypeAnnouncementFetcher(final RestTemplate restTemplate, final String url, final String locale, final String type) {
         super(restTemplate, url, locale, type);
