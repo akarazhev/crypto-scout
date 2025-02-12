@@ -8,7 +8,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - "rabbitmq_data:/var/lib/rabbitmq"
+      - "./data/rabbitmq:/var/lib/rabbitmq"
     networks:
       - crypto-scout
     healthcheck:
@@ -54,9 +54,6 @@ services:
       - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
     restart: on-failure
     entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar event-collector.jar" ]
-
-volumes:
-  rabbitmq_data:
 
 networks:
   crypto-scout:
