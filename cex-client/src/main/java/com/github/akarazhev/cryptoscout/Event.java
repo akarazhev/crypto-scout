@@ -3,13 +3,13 @@ package com.github.akarazhev.cryptoscout;
 import java.util.List;
 
 public record Event(Platform platform,
-                    long time,
+                    long eventTime,
                     long publishTime,
                     long startTime,
                     long endTime,
                     String title,
                     String description,
-                    String type,
+                    String eventType,
                     List<String> tags,
                     String url
 ) {
@@ -26,13 +26,13 @@ public record Event(Platform platform,
     public String toString() {
         return "Event{" +
                 "platform=" + platform +
-                ", time=" + time +
+                ", eventTime=" + eventTime +
                 ", publishTime=" + publishTime +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", type='" + type + '\'' +
+                ", eventType='" + eventType + '\'' +
                 ", tags=" + tags +
                 ", url='" + url + '\'' +
                 '}';

@@ -16,6 +16,6 @@ final class EventExchangeService implements EventExchange {
 
     @Override
     public void publish(final Event event) {
-        amqpTemplate.convertAndSend(name, "announcement." + event.platform() + "." + event.type(), event);
+        amqpTemplate.convertAndSend(name, "announcement." + event.platform() + "." + event.eventType(), event);
     }
 }
