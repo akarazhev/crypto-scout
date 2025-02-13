@@ -7,8 +7,7 @@ SET search_path TO cryptoscout;
 -- Create tables
 CREATE TABLE bybit_events (
     id SERIAL PRIMARY KEY,
-    platform VARCHAR(50) NOT NULL,
-    event_time BIGINT NOT NULL,
+    publishTime BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     event_type VARCHAR(50) NOT NULL,
@@ -18,9 +17,8 @@ CREATE TABLE bybit_events (
 );
 
 -- Create indexes for frequently queried columns
-CREATE INDEX idx_events_platform ON events(platform);
 CREATE INDEX idx_events_type ON events(event_type);
-CREATE INDEX idx_events_time ON events(event_time);
+CREATE INDEX idx_events_time ON events(publishTime);
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON SCHEMA cryptoscout TO sa;
