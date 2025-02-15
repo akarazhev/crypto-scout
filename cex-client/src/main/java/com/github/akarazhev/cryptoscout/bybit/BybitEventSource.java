@@ -63,7 +63,8 @@ final class BybitEventSource implements EventSource {
     }
 
     private Event getEvent(final Announcement announcement) {
-        return new Event(Event.Platform.BYBIT, announcement.publishTime(), announcement.title(),
+        return new Event(Event.Platform.BYBIT, announcement.publishTime(), announcement.publishTime(),
+                announcement.startDateTimestamp(), announcement.endDateTimestamp(), announcement.title(),
                 announcement.description(), announcement.type().key(), announcement.tags(), announcement.url());
     }
 }

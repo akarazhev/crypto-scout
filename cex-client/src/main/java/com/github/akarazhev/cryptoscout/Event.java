@@ -4,6 +4,9 @@ import java.util.List;
 
 public record Event(Platform platform,
                     long publishTime,
+                    long publishTime,
+                    long startTime,
+                    long endTime,
                     String title,
                     String description,
                     String eventType,
@@ -24,6 +27,9 @@ public record Event(Platform platform,
         return "Event{" +
                 "platform=" + platform +
                 ", publishTime=" + publishTime +
+                ", publishTime=" + publishTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", eventType='" + eventType + '\'' +
