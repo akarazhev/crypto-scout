@@ -76,6 +76,9 @@ services:
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
       - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cryptoscout
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=sa
     restart: on-failure
     entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar event-collector.jar" ]
 
