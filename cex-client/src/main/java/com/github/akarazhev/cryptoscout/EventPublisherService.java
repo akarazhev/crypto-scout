@@ -16,6 +16,6 @@ final class EventPublisherService implements EventPublisher {
 
     @Override
     public void publish(final Event event) {
-        amqpTemplate.convertAndSend(name, "announcement." + event.platform() + "." + event.eventType(), event);
+        amqpTemplate.convertAndSend(name, "announcement." + event.platform(), event);
     }
 }
