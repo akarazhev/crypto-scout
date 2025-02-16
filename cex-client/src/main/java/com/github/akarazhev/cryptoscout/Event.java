@@ -1,18 +1,8 @@
 package com.github.akarazhev.cryptoscout;
 
-import java.util.List;
+import com.github.akarazhev.cryptoscout.bybit.Announcement;
 
-public record Event(Platform platform,
-                    long publishTime,
-                    long publishTime,
-                    long startTime,
-                    long endTime,
-                    String title,
-                    String description,
-                    String eventType,
-                    List<String> tags,
-                    String url
-) {
+public record Event(Platform platform, String eventType, Announcement announcement) {
     public enum Platform {
         BYBIT;
 
@@ -26,15 +16,8 @@ public record Event(Platform platform,
     public String toString() {
         return "Event{" +
                 "platform=" + platform +
-                ", publishTime=" + publishTime +
-                ", publishTime=" + publishTime +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
                 ", eventType='" + eventType + '\'' +
-                ", tags=" + tags +
-                ", url='" + url + '\'' +
+                ", announcement=" + announcement +
                 '}';
     }
 }
