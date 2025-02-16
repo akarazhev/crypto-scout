@@ -5,11 +5,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-final class EventExchangeService implements EventExchange {
+final class EventPublisherService implements EventPublisher {
     private final AmqpTemplate amqpTemplate;
     private final String name;
 
-    public EventExchangeService(final AmqpTemplate amqpTemplate, @Value("${amqp.exchange.announcements}") final String name) {
+    public EventPublisherService(final AmqpTemplate amqpTemplate, @Value("${amqp.exchange.announcements}") final String name) {
         this.amqpTemplate = amqpTemplate;
         this.name = name;
     }

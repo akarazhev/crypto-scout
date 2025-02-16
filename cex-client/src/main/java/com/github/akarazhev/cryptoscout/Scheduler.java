@@ -10,18 +10,18 @@ import org.springframework.stereotype.Service;
 final class Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
     private final EventSource bybitEventSource;
-    private final EventExchange eventExchange;
+    private final EventPublisher eventPublisher;
 
-    public Scheduler(@Qualifier("bybitEventSource") final EventSource bybitEventSource, final EventExchange eventExchange) {
+    public Scheduler(@Qualifier("bybitEventSource") final EventSource bybitEventSource, final EventPublisher eventPublisher) {
         this.bybitEventSource = bybitEventSource;
-        this.eventExchange = eventExchange;
+        this.eventPublisher = eventPublisher;
     }
 
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
         LOGGER.info("Running scheduled task at {}", new java.util.Date());
         bybitEventSource.getEvents().forEach(e -> {
-            eventExchange.publish(e);
+            eventPublisher.publish(e);
             LOGGER.info(e.toString());
         });
     }
