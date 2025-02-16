@@ -9,6 +9,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>crypto-scout-lib</module>
         <module>cex-client</module>
         <module>event-collector</module>
     </modules>
