@@ -5,9 +5,12 @@ CREATE SCHEMA IF NOT EXISTS cryptoscout;
 SET search_path TO cryptoscout;
 
 -- Create tables
-CREATE TABLE bybit_events (
+CREATE TABLE IF NOT EXISTS bybit_events (
     id SERIAL PRIMARY KEY,
-    publishTime BIGINT NOT NULL,
+    event_time BIGINT NOT NULL,
+    publish_time BIGINT NOT NULL,
+    start_time BIGINT NOT NULL,
+    end_time BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     event_type VARCHAR(50) NOT NULL,
@@ -17,8 +20,8 @@ CREATE TABLE bybit_events (
 );
 
 -- Create indexes for frequently queried columns
-CREATE INDEX idx_events_type ON events(event_type);
-CREATE INDEX idx_events_time ON events(publishTime);
+CREATE INDEX IF NOT EXISTS idx_bybit_events_time ON bybit_events(event_time, publish_time, start_time, end_time);
+CREATE INDEX IF NOT EXISTS idx_bybit_events_type ON bybit_events(event_type);
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON SCHEMA cryptoscout TO sa;
