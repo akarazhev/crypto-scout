@@ -30,7 +30,6 @@
     </scm>
     <properties>
         <java.version>23</java.version>
-        <jackson-module-parameter-names.version>2.18.2</jackson-module-parameter-names.version>
     </properties>
     <dependencies>
         <dependency>
@@ -45,7 +44,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-parameter-names</artifactId>
-            <version>${jackson-module-parameter-names.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
