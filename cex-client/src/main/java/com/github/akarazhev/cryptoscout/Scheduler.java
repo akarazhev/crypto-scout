@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Service
 final class Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
@@ -19,7 +21,11 @@ final class Scheduler {
 
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
-        LOGGER.info("Running scheduled task at {}", new java.util.Date());
-        bybitEventSource.getEvents().forEach(eventPublisher::publish);
+        AtomicInteger published = new AtomicInteger(0);
+        bybitEventSource.getEvents().forEach(event -> {
+            eventPublisher.publish(event);
+            published.incrementAndGet();
+        });
+        LOGGER.info("Running scheduled task published {} events", published);
     }
 }
