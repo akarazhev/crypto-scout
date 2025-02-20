@@ -25,7 +25,8 @@ class BybitServiceImpl implements BybitService {
             throw new IllegalArgumentException("Announcement cannot be null");
         }
 
-        if (repository.existsByEventTime(announcement.dateTimestamp())) {
+        if (repository.existsByEventTimeAndPublishTimeAndStartTimeAndEndTime(announcement.dateTimestamp(),
+                announcement.publishTime(), announcement.startDateTimestamp(), announcement.endDateTimestamp())) {
             return Optional.empty();
         }
 

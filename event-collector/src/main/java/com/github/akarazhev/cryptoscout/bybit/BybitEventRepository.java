@@ -4,5 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 
 interface BybitEventRepository extends CrudRepository<BybitEvent, Long> {
 
-    boolean existsByEventTime(Long eventTime);
+    boolean existsByEventTimeAndPublishTimeAndStartTimeAndEndTime(Long eventTime, Long publishTime, Long startTime,
+                                                                  Long endTime);
 }
