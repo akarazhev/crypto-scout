@@ -12,6 +12,7 @@
         <module>crypto-scout-lib</module>
         <module>cex-client</module>
         <module>event-collector</module>
+        <module>telegram-bot</module>
     </modules>
 
 </project>
