@@ -8,9 +8,6 @@ SET search_path TO cryptoscout;
 CREATE TABLE IF NOT EXISTS bybit_event (
     id SERIAL PRIMARY KEY,
     event_time BIGINT NOT NULL,
-    publish_time BIGINT NOT NULL,
-    start_time BIGINT NOT NULL,
-    end_time BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     event_type VARCHAR(50) NOT NULL,
@@ -20,7 +17,8 @@ CREATE TABLE IF NOT EXISTS bybit_event (
 );
 
 -- Create indexes for frequently queried columns
-CREATE INDEX IF NOT EXISTS idx_bybit_event_time ON bybit_event(event_time, publish_time, start_time, end_time);
+CREATE INDEX IF NOT EXISTS idx_bybit_event_time ON bybit_event(event_time);
+CREATE INDEX IF NOT EXISTS idx_bybit_title ON bybit_event(title);
 CREATE INDEX IF NOT EXISTS idx_bybit_event_type ON bybit_event(event_type);
 
 -- Grant privileges
