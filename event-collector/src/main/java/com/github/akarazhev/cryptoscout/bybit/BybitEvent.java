@@ -21,15 +21,6 @@ public class BybitEvent {
     @Column(name = "event_time", nullable = false)
     private Long eventTime;
 
-    @Column(name = "publish_time", nullable = false)
-    private Long publishTime;
-
-    @Column(name = "start_time", nullable = false)
-    private Long startTime;
-
-    @Column(name = "end_time", nullable = false)
-    private Long endTime;
-
     @Column(nullable = false)
     private String title;
 
@@ -66,30 +57,6 @@ public class BybitEvent {
 
     public void setEventTime(Long eventTime) {
         this.eventTime = eventTime;
-    }
-
-    public Long getPublishTime() {
-        return publishTime;
-    }
-
-    public void setPublishTime(Long publishTime) {
-        this.publishTime = publishTime;
-    }
-
-    public Long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(Long startTime) {
-        this.startTime = startTime;
-    }
-
-    public Long getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Long endTime) {
-        this.endTime = endTime;
     }
 
     public String getTitle() {
@@ -145,9 +112,6 @@ public class BybitEvent {
         return "BybitEvent{" +
                 "id=" + id +
                 ", eventTime=" + eventTime +
-                ", publishTime=" + publishTime +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", eventType='" + eventType + '\'' +
