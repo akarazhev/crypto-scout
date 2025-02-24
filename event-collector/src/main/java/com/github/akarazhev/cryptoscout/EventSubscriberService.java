@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 final class EventSubscriberService implements EventSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventSubscriberService.class);
-    private BybitService bybitService;
+    private final BybitService bybitService;
 
     public EventSubscriberService(final BybitService bybitService) {
         this.bybitService = bybitService;
