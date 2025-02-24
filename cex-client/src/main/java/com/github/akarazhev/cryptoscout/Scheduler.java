@@ -21,7 +21,7 @@ final class Scheduler {
 
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
-        AtomicInteger published = new AtomicInteger(0);
+        final var published = new AtomicInteger(0);
         bybitEventSource.getEvents().forEach(event -> {
             eventPublisher.publish(event);
             published.incrementAndGet();
