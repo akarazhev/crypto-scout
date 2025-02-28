@@ -1,5 +1,6 @@
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.service;
 
+import com.github.akarazhev.cryptoscout.Event;
 import com.github.akarazhev.cryptoscout.bybit.BybitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
