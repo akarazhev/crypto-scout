@@ -1,5 +1,6 @@
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.service;
 
+import com.github.akarazhev.cryptoscout.Event;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

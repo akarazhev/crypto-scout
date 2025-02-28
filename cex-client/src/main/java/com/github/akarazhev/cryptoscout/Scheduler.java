@@ -1,5 +1,6 @@
 package com.github.akarazhev.cryptoscout;
 
+import com.github.akarazhev.cryptoscout.service.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
