@@ -43,7 +43,7 @@ abstract class BaseAnnouncementFetcher implements AnnouncementFetcher {
                 }
             }
             LOGGER.warn("Failed to fetch announcements. Status: {}", entity.getStatusCode());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Error fetching announcements", e);
         }
 
