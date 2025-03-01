@@ -1,0 +1,23 @@
+package com.github.akarazhev.cryptoscout.command;
+
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+@Component
+final class HelpCommand extends InvokeCommand {
+
+    @Override
+    public String getCommandName() {
+        return "/help";
+    }
+
+    @Override
+    public void execute(final long chatId, final String args, final TelegramClient client) {
+        final var helpText = """
+                Available commands:
+                /help - Show this help message
+                /launchpad [days] - Get information about a launch pad for days
+                /launchpool [days] - Get information about a launch pool for days""";
+        sendMessage(chatId, helpText, client);
+    }
+}
