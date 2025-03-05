@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,7 +38,7 @@ class BybitServiceImpl implements BybitService {
     }
 
     @Override
-    public Collection<Event> getEvents(final String type, final long eventTime) {
+    public List<Event> getEvents(final String type, final long eventTime) {
         return repository.findByTypeAndEventTimeAfter(type, eventTime)
                 .stream()
                 .map(e -> new Event(Event.Platform.BYBIT, e.getEventTime(), e.getType(), e.getTitle(),

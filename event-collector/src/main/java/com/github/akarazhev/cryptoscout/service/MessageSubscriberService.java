@@ -33,10 +33,10 @@ final class MessageSubscriberService implements MessageSubscriber {
                 Message.Action.LAUNCH_PAD.equals(message.action()) ? "Launchpad" : null;
         final var eventTime = (Long) message.data()[0];
         if (type != null && eventTime != null) {
-            bybitService.getEvents(type, eventTime).forEach(event -> {
-                final var data = new Message(message.chatId(), message.action(), new Object[]{event});
-                amqpTemplate.convertAndSend(exchange, routing, data);
-            });
+            final var events = bybitService.getEvents(type, eventTime);
+            final var data = new Object[events.size()];
+            System.arraycopy(events.toArray(), 0, data, 0, events.size());
+            amqpTemplate.convertAndSend(exchange, routing, new Message(message.chatId(), message.action(), data));
         } else {
             LOGGER.warn("Invalid message: {}", message);
         }
