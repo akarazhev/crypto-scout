@@ -9,6 +9,8 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,7 @@ import java.time.Duration;
 class AmqpConfig {
 
     @Bean
+    @Qualifier("announcementsExchange")
     public TopicExchange announcementsTopicExchange(@Value("${amqp.exchange.announcements}") final String name) {
         return ExchangeBuilder.topicExchange(name).durable(true).build();
     }
@@ -34,10 +37,32 @@ class AmqpConfig {
     }
 
     @Bean
-    public Binding announcementsBybitBinding(final Queue announcementsQueue, final TopicExchange announcementsExchange) {
+    public Binding announcementsBinding(final Queue announcementsQueue,
+                                        @Qualifier("announcementsExchange") final TopicExchange announcementsExchange) {
         return BindingBuilder.bind(announcementsQueue)
                 .to(announcementsExchange)
                 .with("announcements.cex");
+    }
+
+    @Bean
+    @Qualifier("messagesExchange")
+    public TopicExchange messagesTopicExchange(@Value("${amqp.exchange.messages}") final String name) {
+        return ExchangeBuilder.topicExchange(name).durable(true).build();
+    }
+
+    @Bean
+    public Queue messagesQueue(@Value("${amqp.queue.messages}") final String queueName) {
+        return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
+                .maxLength(2500)
+                .build();
+    }
+
+    @Bean
+    public Binding messagesBinding(final Queue messagesQueue,
+                                   @Qualifier("messagesExchange") final TopicExchange messagesExchange) {
+        return BindingBuilder.bind(messagesQueue)
+                .to(messagesExchange)
+                .with("messages.action.result");
     }
 
     @Bean
@@ -52,5 +77,10 @@ class AmqpConfig {
     @Bean
     public RabbitListenerConfigurer rabbitListenerConfigurer(final MessageHandlerMethodFactory messageHandlerMethodFactory) {
         return (c) -> c.setMessageHandlerMethodFactory(messageHandlerMethodFactory);
+    }
+
+    @Bean
+    public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 }

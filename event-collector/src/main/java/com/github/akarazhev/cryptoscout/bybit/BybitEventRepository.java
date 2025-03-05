@@ -8,5 +8,5 @@ interface BybitEventRepository extends CrudRepository<BybitEvent, Long> {
 
     boolean existsByTitle(final String title);
 
-    Collection<BybitEvent> findByEventTimeAfter(final long eventTime);
+    Collection<BybitEvent> findByTypeAndEventTimeAfter(final String type, final long eventTime);
 }

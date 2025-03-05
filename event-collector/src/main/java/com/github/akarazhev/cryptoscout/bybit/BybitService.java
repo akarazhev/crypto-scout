@@ -9,5 +9,5 @@ public interface BybitService {
 
     Optional<Long> save(final Event event);
 
-    Collection<Event> getEvents(final long afterTimestamp);
+    Collection<Event> getEvents(final String type, final long eventTime);
 }
