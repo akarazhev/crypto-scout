@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Define the compose files
-RABBITMQ_COMPOSE="./rabbitmq/docker-compose.yml"
-POSTGRES_COMPOSE="./postgres/docker-compose.yml"
+RABBITMQ_COMPOSE=$(realpath "./rabbitmq/docker-compose.yml")
+POSTGRES_COMPOSE=$(realpath "./postgres/docker-compose.yml")
 
 # Function to start services
 start_services() {
