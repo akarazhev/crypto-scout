@@ -37,7 +37,7 @@ class AmqpConfig {
     public Binding announcementsBybitBinding(final Queue announcementsQueue, final TopicExchange announcementsExchange) {
         return BindingBuilder.bind(announcementsQueue)
                 .to(announcementsExchange)
-                .with("announcement.bybit");
+                .with("announcements.cex");
     }
 
     @Bean

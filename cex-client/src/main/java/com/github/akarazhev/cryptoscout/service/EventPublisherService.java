@@ -8,15 +8,18 @@ import org.springframework.stereotype.Service;
 @Service
 final class EventPublisherService implements EventPublisher {
     private final AmqpTemplate amqpTemplate;
-    private final String name;
+    private final String exchange;
+    private final String routing;
 
-    public EventPublisherService(final AmqpTemplate amqpTemplate, @Value("${amqp.exchange.announcements}") final String name) {
+    public EventPublisherService(final AmqpTemplate amqpTemplate, @Value("${amqp.exchange.announcements}") final String exchange,
+                                 @Value("${amqp.routing.announcements}") final String routing) {
         this.amqpTemplate = amqpTemplate;
-        this.name = name;
+        this.exchange = exchange;
+        this.routing = routing;
     }
 
     @Override
     public void publish(final Event event) {
-        amqpTemplate.convertAndSend(name, "announcement." + event.platform(), event);
+        amqpTemplate.convertAndSend(exchange, routing, event);
     }
 }
