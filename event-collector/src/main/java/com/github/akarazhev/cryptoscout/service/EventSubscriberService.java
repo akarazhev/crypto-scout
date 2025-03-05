@@ -20,7 +20,7 @@ final class EventSubscriberService implements EventSubscriber {
     @Override
     public void subscribe(final Event event) {
         if (Event.Platform.BYBIT.equals(event.platform())) {
-            bybitService.save(event.eventType(), event.announcement());
+            bybitService.save(event);
         }
     }
 }

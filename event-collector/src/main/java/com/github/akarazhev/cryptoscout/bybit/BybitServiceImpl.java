@@ -1,5 +1,6 @@
 package com.github.akarazhev.cryptoscout.bybit;
 
+import com.github.akarazhev.cryptoscout.Event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,27 +17,22 @@ class BybitServiceImpl implements BybitService {
 
     @Transactional
     @Override
-    public Optional<Long> save(final String eventType, final Announcement announcement) {
-        if (eventType == null) {
-            throw new IllegalArgumentException("Event type cannot be null");
+    public Optional<Long> save(final Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null");
         }
 
-        if (announcement == null) {
-            throw new IllegalArgumentException("Announcement cannot be null");
-        }
-
-        if (repository.existsByTitle(announcement.title())) {
+        if (repository.existsByTitle(event.title())) {
             return Optional.empty();
         }
 
-        final var event = new BybitEvent();
-        event.setEventType(eventType);
-        event.setTitle(announcement.title());
-        event.setDescription(announcement.description());
-        event.setTags(announcement.tags().toArray(new String[0]));
-        event.setUrl(announcement.url());
-        event.setEventTime(announcement.dateTimestamp());
-        event.setCreatedAt(Instant.now());
-        return Optional.of(repository.save(event).getId());
+        final var bybitEvent = new BybitEvent();
+        bybitEvent.setType(event.type());
+        bybitEvent.setTitle(event.title());
+        bybitEvent.setDescription(event.description());
+        bybitEvent.setUrl(event.url());
+        bybitEvent.setEventTime(event.eventTime());
+        bybitEvent.setCreatedAt(Instant.now());
+        return Optional.of(repository.save(bybitEvent).getId());
     }
 }

@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.util.Arrays;
 
 @Entity
 @Table(name = "bybit_event", schema = "cryptoscout")
@@ -27,11 +26,8 @@ public class BybitEvent {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "event_type", nullable = false, length = 50)
-    private String eventType;
-
-    @Column(columnDefinition = "TEXT[]")
-    private String[] tags;
+    @Column(nullable = false, length = 50)
+    private String type;
 
     private String url;
 
@@ -75,20 +71,12 @@ public class BybitEvent {
         this.description = description;
     }
 
-    public String getEventType() {
-        return eventType;
+    public String getType() {
+        return type;
     }
 
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
-
-    public String[] getTags() {
-        return tags;
-    }
-
-    public void setTags(String[] tags) {
-        this.tags = tags;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getUrl() {
@@ -114,8 +102,7 @@ public class BybitEvent {
                 ", eventTime=" + eventTime +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", eventType='" + eventType + '\'' +
-                ", tags=" + Arrays.toString(tags) +
+                ", type='" + type + '\'' +
                 ", url='" + url + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
