@@ -20,32 +20,10 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 
 import java.time.Duration;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_ANNOUNCEMENTS;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_COMMAND;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_RESULT;
 
 @Configuration
 class AmqpConfig {
-
-    @Bean
-    @Qualifier("announcementsExchange")
-    public TopicExchange announcementsTopicExchange(@Value("${amqp.exchange.announcements}") final String name) {
-        return ExchangeBuilder.topicExchange(name).durable(true).build();
-    }
-
-    @Bean
-    public Queue announcementsQueue(@Value("${amqp.queue.announcements}") final String queueName) {
-        return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
-                .maxLength(2500)
-                .build();
-    }
-
-    @Bean
-    public Binding announcementsBinding(final Queue announcementsQueue,
-                                        @Qualifier("announcementsExchange") final TopicExchange announcementsExchange) {
-        return BindingBuilder.bind(announcementsQueue)
-                .to(announcementsExchange)
-                .with(AMQP_ROUTING_ANNOUNCEMENTS);
-    }
 
     @Bean
     @Qualifier("messagesExchange")
@@ -65,7 +43,7 @@ class AmqpConfig {
                                    @Qualifier("messagesExchange") final TopicExchange messagesExchange) {
         return BindingBuilder.bind(messagesQueue)
                 .to(messagesExchange)
-                .with(AMQP_ROUTING_MESSAGES_COMMAND);
+                .with(AMQP_ROUTING_MESSAGES_RESULT);
     }
 
     @Bean

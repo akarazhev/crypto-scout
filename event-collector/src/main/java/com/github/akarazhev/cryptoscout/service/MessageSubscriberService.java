@@ -9,21 +9,20 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_RESULT;
+
 @Service
 final class MessageSubscriberService implements MessageSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageSubscriberService.class);
     private final BybitService bybitService;
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
-    private final String routing;
 
     public MessageSubscriberService(final BybitService bybitService, final AmqpTemplate amqpTemplate,
-                                    @Value("${amqp.exchange.messages}") final String exchange,
-                                    @Value("${amqp.routing.messages}") final String routing) {
+                                    @Value("${amqp.exchange.messages}") final String exchange) {
         this.bybitService = bybitService;
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
-        this.routing = routing;
     }
 
     @RabbitListener(queues = "${amqp.queue.messages}")
@@ -36,7 +35,7 @@ final class MessageSubscriberService implements MessageSubscriber {
             final var events = bybitService.getEvents(type, eventTime);
             final var data = new Object[events.size()];
             System.arraycopy(events.toArray(), 0, data, 0, events.size());
-            amqpTemplate.convertAndSend(exchange, routing, new Message(message.chatId(), message.action(), data));
+            amqpTemplate.convertAndSend(exchange, AMQP_ROUTING_MESSAGES_RESULT, new Message(message.chatId(), message.action(), data));
         } else {
             LOGGER.warn("Invalid message: {}", message);
         }
