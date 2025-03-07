@@ -21,7 +21,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 import java.time.Duration;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_ANNOUNCEMENTS;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_COMMAND;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_COMMANDS;
 
 @Configuration
 class AmqpConfig {
@@ -29,6 +29,18 @@ class AmqpConfig {
     @Bean
     @Qualifier("announcementsExchange")
     public TopicExchange announcementsTopicExchange(@Value("${amqp.exchange.announcements}") final String name) {
+        return ExchangeBuilder.topicExchange(name).durable(true).build();
+    }
+
+    @Bean
+    @Qualifier("commandsExchange")
+    public TopicExchange commandsTopicExchange(@Value("${amqp.exchange.commands}") final String name) {
+        return ExchangeBuilder.topicExchange(name).durable(true).build();
+    }
+
+    @Bean
+    @Qualifier("resultsExchange")
+    public TopicExchange resultsTopicExchange(@Value("${amqp.exchange.results}") final String name) {
         return ExchangeBuilder.topicExchange(name).durable(true).build();
     }
 
@@ -48,24 +60,18 @@ class AmqpConfig {
     }
 
     @Bean
-    @Qualifier("messagesExchange")
-    public TopicExchange messagesTopicExchange(@Value("${amqp.exchange.messages}") final String name) {
-        return ExchangeBuilder.topicExchange(name).durable(true).build();
-    }
-
-    @Bean
-    public Queue messagesQueue(@Value("${amqp.queue.messages}") final String queueName) {
+    public Queue commandsQueue(@Value("${amqp.queue.commands}") final String queueName) {
         return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
                 .build();
     }
 
     @Bean
-    public Binding messagesBinding(final Queue messagesQueue,
-                                   @Qualifier("messagesExchange") final TopicExchange messagesExchange) {
-        return BindingBuilder.bind(messagesQueue)
-                .to(messagesExchange)
-                .with(AMQP_ROUTING_MESSAGES_COMMAND);
+    public Binding commandsBinding(final Queue commandsQueue,
+                                   @Qualifier("commandsExchange") final TopicExchange commandsExchange) {
+        return BindingBuilder.bind(commandsQueue)
+                .to(commandsExchange)
+                .with(AMQP_ROUTING_COMMANDS);
     }
 
     @Bean

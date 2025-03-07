@@ -9,7 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_RESULT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_RESULTS;
 
 @Service
 final class MessageSubscriberService implements MessageSubscriber {
@@ -19,23 +19,22 @@ final class MessageSubscriberService implements MessageSubscriber {
     private final String exchange;
 
     public MessageSubscriberService(final BybitService bybitService, final AmqpTemplate amqpTemplate,
-                                    @Value("${amqp.exchange.messages}") final String exchange) {
+                                    @Value("${amqp.exchange.results}") final String exchange) {
         this.bybitService = bybitService;
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
     }
 
-    @RabbitListener(queues = "${amqp.queue.messages}")
+    @RabbitListener(queues = "${amqp.queue.commands}")
     @Override
     public void subscribe(final Message message) {
-        final var type = Message.Action.LAUNCH_POOL.equals(message.action()) ? "PoolLaunch" :
+        final var type = Message.Action.LAUNCH_POOL.equals(message.action()) ? "Launchpool" :
                 Message.Action.LAUNCH_PAD.equals(message.action()) ? "Launchpad" : null;
-        final var eventTime = (Long) message.data()[0];
-        if (type != null && eventTime != null) {
-            final var events = bybitService.getEvents(type, eventTime);
+        if (type != null && message.data().length > 0) {
+            final var events = bybitService.getEvents(type, (Long) message.data()[0]);
             final var data = new Object[events.size()];
             System.arraycopy(events.toArray(), 0, data, 0, events.size());
-            amqpTemplate.convertAndSend(exchange, AMQP_ROUTING_MESSAGES_RESULT, new Message(message.chatId(), message.action(), data));
+            amqpTemplate.convertAndSend(exchange, AMQP_ROUTING_RESULTS, new Message(message.chatId(), message.action(), data));
         } else {
             LOGGER.warn("Invalid message: {}", message);
         }

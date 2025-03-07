@@ -20,30 +20,42 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 
 import java.time.Duration;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_MESSAGES_RESULT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_COMMANDS;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_RESULTS;
 
 @Configuration
 class AmqpConfig {
 
     @Bean
-    @Qualifier("messagesExchange")
-    public TopicExchange messagesTopicExchange(@Value("${amqp.exchange.messages}") final String name) {
+    @Qualifier("announcementsExchange")
+    public TopicExchange announcementsTopicExchange(@Value("${amqp.exchange.announcements}") final String name) {
         return ExchangeBuilder.topicExchange(name).durable(true).build();
     }
 
     @Bean
-    public Queue messagesQueue(@Value("${amqp.queue.messages}") final String queueName) {
+    @Qualifier("commandsExchange")
+    public TopicExchange commandsTopicExchange(@Value("${amqp.exchange.commands}") final String name) {
+        return ExchangeBuilder.topicExchange(name).durable(true).build();
+    }
+
+    @Bean
+    @Qualifier("resultsExchange")
+    public TopicExchange resultsTopicExchange(@Value("${amqp.exchange.results}") final String name) {
+        return ExchangeBuilder.topicExchange(name).durable(true).build();
+    }
+
+    @Bean
+    public Queue resultsQueue(@Value("${amqp.queue.results}") final String queueName) {
         return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
                 .build();
     }
 
     @Bean
-    public Binding messagesBinding(final Queue messagesQueue,
-                                   @Qualifier("messagesExchange") final TopicExchange messagesExchange) {
-        return BindingBuilder.bind(messagesQueue)
-                .to(messagesExchange)
-                .with(AMQP_ROUTING_MESSAGES_RESULT);
+    public Binding resultsBinding(final Queue resultsQueue, @Qualifier("resultsExchange") final TopicExchange resultsExchange) {
+        return BindingBuilder.bind(resultsQueue)
+                .to(resultsExchange)
+                .with(AMQP_ROUTING_RESULTS);
     }
 
     @Bean
