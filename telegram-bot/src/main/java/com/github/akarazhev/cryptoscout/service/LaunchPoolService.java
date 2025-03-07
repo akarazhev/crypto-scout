@@ -1,6 +1,9 @@
 package com.github.akarazhev.cryptoscout.service;
 
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.AsyncAmqpTemplate;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -9,12 +12,12 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 final class LaunchPoolService implements LaunchPool {
-    private final AmqpTemplate amqpTemplate;
+    private final AsyncAmqpTemplate asyncRabbitTemplate;
     private final String exchange;
 
     public LaunchPoolService(final AmqpTemplate amqpTemplate,
                              @Value("${amqp.exchange.messages}") final String exchange) {
-        this.amqpTemplate = amqpTemplate;
+        this.asyncRabbitTemplate = new AsyncRabbitTemplate((RabbitTemplate) amqpTemplate);
         this.exchange = exchange;
     }
 

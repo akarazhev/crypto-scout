@@ -21,7 +21,7 @@ final class LaunchPadCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        var days = getDays(args);
+        final var days = getDays(args);
         sendMessage(chatId, "Fetching launch pad information for " + days + " day(s)...", client);
         final var future = launchPad.getLaunchPads(chatId, days);
         future.thenAccept(launchPads -> Arrays.stream(launchPads)
