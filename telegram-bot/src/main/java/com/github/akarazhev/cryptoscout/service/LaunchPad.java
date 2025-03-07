@@ -4,5 +4,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LaunchPad {
 
-    CompletableFuture<String> getLaunchPadInfo(final int days);
+    CompletableFuture<String[]> getLaunchPads(final long chatId, final int days);
 }

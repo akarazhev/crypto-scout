@@ -4,6 +4,8 @@ import com.github.akarazhev.cryptoscout.service.LaunchPool;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import java.util.Arrays;
+
 @Component
 final class LaunchPoolCommand extends InvokeCommand {
     private final LaunchPool launchPool;
@@ -19,13 +21,25 @@ final class LaunchPoolCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        if (args.isEmpty()) {
-            sendMessage(chatId, "Please provide a period in days.", client);
-            return;
+        final var days = getDays(args);
+        sendMessage(chatId, "Fetching launch pool information for " + args + " day(s)...", client);
+        final var future = launchPool.getLaunchPools(chatId, days);
+        future.thenAccept(launchPools -> Arrays.stream(launchPools)
+                .forEach(launchPool -> sendMessage(chatId, launchPool, client)));
+    }
+
+    private int getDays(final String args) {
+        var days = 14;
+        if (!args.isEmpty()) {
+            try {
+                days = Integer.parseInt(args);
+                if (days < 1) {
+                    days = 14;
+                }
+            } catch (NumberFormatException _) {
+            }
         }
 
-        sendMessage(chatId, "Fetching launch pool information for " + args + " day(s)...", client);
-        final var launchPoolFuture = launchPool.getLaunchPoolInfo(Integer.parseInt(args));
-        launchPoolFuture.thenAccept(info -> sendMessage(chatId, info, client));
+        return days;
     }
 }

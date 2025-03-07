@@ -4,5 +4,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LaunchPool {
 
-    CompletableFuture<String> getLaunchPoolInfo(final int days);
+    CompletableFuture<String[]> getLaunchPools(final long chatId, final int days);
 }

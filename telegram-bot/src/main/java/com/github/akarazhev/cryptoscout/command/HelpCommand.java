@@ -16,8 +16,8 @@ final class HelpCommand extends InvokeCommand {
         final var helpText = """
                 Available commands:
                 /help - Show this help message
-                /launchpad [days] - Get information about a launch pad for days
-                /launchpool [days] - Get information about a launch pool for days""";
+                /launchpad [days] - Get information about a launch pad for days. Default value is 14
+                /launchpool [days] - Get information about a launch pool for days. Default value is 14""";
         sendMessage(chatId, helpText, client);
     }
 }
