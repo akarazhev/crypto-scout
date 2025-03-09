@@ -1,6 +1,5 @@
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.cryptoscout.service.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,18 +12,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
     private final EventSource bybitEventSource;
-    private final EventPublisher eventPublisher;
+    private final Publisher<Event> publisher;
 
-    public Scheduler(@Qualifier("bybitEventSource") final EventSource bybitEventSource, final EventPublisher eventPublisher) {
+    public Scheduler(@Qualifier("bybitEventSource") final EventSource bybitEventSource, final Publisher<Event> publisher) {
         this.bybitEventSource = bybitEventSource;
-        this.eventPublisher = eventPublisher;
+        this.publisher = publisher;
     }
 
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void perform() {
         final var published = new AtomicInteger(0);
         bybitEventSource.getEvents().forEach(event -> {
-            eventPublisher.publish(event);
+            publisher.publish(event);
             published.incrementAndGet();
         });
         LOGGER.info("Running scheduled task published {} events", published);
