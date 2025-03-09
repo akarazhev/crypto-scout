@@ -1,4 +1,4 @@
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.command;
 
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 

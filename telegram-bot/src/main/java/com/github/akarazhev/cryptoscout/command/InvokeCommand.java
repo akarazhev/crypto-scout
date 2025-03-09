@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-public abstract class InvokeCommand implements Command {
+abstract class InvokeCommand implements Command {
     private final static Logger LOGGER = LoggerFactory.getLogger(InvokeCommand.class);
 
     protected void sendMessage(final long chatId, final String text, final TelegramClient client) {

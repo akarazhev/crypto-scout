@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 final class HelpCommand extends InvokeCommand {
 
     @Override
-    public String getCommandName() {
+    public String getName() {
         return "/help";
     }
 

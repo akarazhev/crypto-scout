@@ -2,9 +2,9 @@ package com.github.akarazhev.cryptoscout.command;
 
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-public interface Command {
+interface Command {
 
-    String getCommandName();
+    String getName();
 
     void execute(final long chatId, final String args, final TelegramClient client);
 }

@@ -20,8 +20,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 
 import java.time.Duration;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_COMMANDS;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_RESULTS;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_RESULTS;
 
 @Configuration
 class AmqpConfig {
@@ -55,7 +54,7 @@ class AmqpConfig {
     public Binding resultsBinding(final Queue resultsQueue, @Qualifier("resultsExchange") final TopicExchange resultsExchange) {
         return BindingBuilder.bind(resultsQueue)
                 .to(resultsExchange)
-                .with(AMQP_ROUTING_RESULTS);
+                .with(ROUTING_RESULTS);
     }
 
     @Bean

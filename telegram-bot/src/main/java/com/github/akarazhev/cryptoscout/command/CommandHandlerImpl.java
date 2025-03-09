@@ -1,6 +1,5 @@
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.command;
 
-import com.github.akarazhev.cryptoscout.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,14 +12,14 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-final class CommandHandlerService implements CommandHandler {
-    private final static Logger LOGGER = LoggerFactory.getLogger(CommandHandlerService.class);
+final class CommandHandlerImpl implements CommandHandler {
+    private final static Logger LOGGER = LoggerFactory.getLogger(CommandHandlerImpl.class);
     private final Map<String, Command> commands;
 
-    public CommandHandlerService(final List<Command> commandList) {
+    public CommandHandlerImpl(final List<Command> commandList) {
         commands = new HashMap<>();
         for (final var command : commandList) {
-            commands.put(command.getCommandName(), command);
+            commands.put(command.getName(), command);
         }
     }
 
