@@ -1,6 +1,7 @@
 package com.github.akarazhev.cryptoscout.service;
 
 import com.github.akarazhev.cryptoscout.Message;
+import com.github.akarazhev.cryptoscout.Subscriber;
 import com.github.akarazhev.cryptoscout.bybit.BybitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,14 +13,14 @@ import org.springframework.stereotype.Service;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_RESULTS;
 
 @Service
-final class MessageSubscriberService implements MessageSubscriber {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageSubscriberService.class);
+final class SubscriberService implements Subscriber<Message> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubscriberService.class);
     private final BybitService bybitService;
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
 
-    public MessageSubscriberService(final BybitService bybitService, final AmqpTemplate amqpTemplate,
-                                    @Value("${amqp.exchange.results}") final String exchange) {
+    public SubscriberService(final BybitService bybitService, final AmqpTemplate amqpTemplate,
+                             @Value("${amqp.exchange.results}") final String exchange) {
         this.bybitService = bybitService;
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
