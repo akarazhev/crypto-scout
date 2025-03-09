@@ -11,7 +11,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "bybit_event", schema = "cryptoscout")
-public class BybitEvent {
+final class BybitEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
