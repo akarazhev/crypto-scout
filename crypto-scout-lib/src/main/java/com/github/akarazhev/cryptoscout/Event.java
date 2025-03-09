@@ -2,13 +2,19 @@ package com.github.akarazhev.cryptoscout;
 
 import java.util.Objects;
 
+import static com.github.akarazhev.cryptoscout.Utils.formatEventTime;
+
 public record Event(Platform platform, long eventTime, String type, String title, String description, String url) {
     public enum Platform {
         BYBIT;
 
         @Override
         public String toString() {
-            return name().toLowerCase();
+            if (name().isEmpty()) {
+                return name();
+            }
+
+            return name().substring(0, 1).toUpperCase() + name().substring(1).toLowerCase();
         }
     }
 
@@ -34,13 +40,23 @@ public record Event(Platform platform, long eventTime, String type, String title
 
     @Override
     public String toString() {
-        return "Event{" +
-                "platform=" + platform +
-                ", eventTime=" + eventTime +
-                ", type='" + type + '\'' +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", url='" + url + '\'' +
-                '}';
+        return String.format("""
+        🌐 Platform: #%s
+        
+        📅 Event: %s
+        🕒 Time: %s
+        🏷️ Type: #%s
+        
+        📝 Description: %s
+        
+        🔗 More info: %s
+        """,
+                platform,
+                title,
+                formatEventTime(eventTime),
+                type,
+                description,
+                url
+        );
     }
 }

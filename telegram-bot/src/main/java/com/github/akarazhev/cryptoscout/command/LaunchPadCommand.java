@@ -1,9 +1,10 @@
 package com.github.akarazhev.cryptoscout.command;
 
 import com.github.akarazhev.cryptoscout.CryptoScout;
-import com.github.akarazhev.cryptoscout.Utils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import static com.github.akarazhev.cryptoscout.Utils.argsToDays;
 
 @Component
 final class LaunchPadCommand extends InvokeCommand {
@@ -20,7 +21,7 @@ final class LaunchPadCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        cryptoScout.getLaunchPads(chatId, Utils.asDays(args))
+        cryptoScout.getLaunchPads(chatId, argsToDays(args))
                 .thenAccept(launchPads -> sendMessage(chatId, launchPads, client));
     }
 }

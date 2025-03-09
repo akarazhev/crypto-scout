@@ -6,7 +6,7 @@ public final class Utils {
         throw new UnsupportedOperationException();
     }
 
-    public static int asDays(final String args) {
+    public static int argsToDays(final String args) {
         var days = 14;
         if (!args.isEmpty()) {
             try {
@@ -19,5 +19,11 @@ public final class Utils {
         }
 
         return days;
+    }
+
+    public static String formatEventTime(final long eventTime) {
+        // You'll need to implement this method to format the eventTime as needed
+        // For example, converting the long to a readable date-time string
+        return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(eventTime));
     }
 }

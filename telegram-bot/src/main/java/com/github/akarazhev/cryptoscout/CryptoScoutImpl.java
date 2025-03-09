@@ -65,9 +65,7 @@ final class CryptoScoutImpl implements CryptoScout {
     private String processData(final Message<List<Event>> message) {
         final var response = new StringJoiner("\n\n");
         if (!message.data().isEmpty()) {
-            for (int i = 0; i < message.data().size(); i++) {
-                response.add(message.data().get(i).toString());
-            }
+            message.data().forEach(event -> response.add(event.toString()));
         } else {
             response.add(Message.Action.LAUNCH_POOL.equals(message.action()) ? "No launch pools found" :
                     Message.Action.LAUNCH_PAD.equals(message.action()) ? "No launch pads found" :
