@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -34,7 +35,7 @@ final class CryptoScoutImpl implements CryptoScout {
         pending.put(new MessageKey(chatId, Message.Action.LAUNCH_PAD), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
-                new Message(chatId, Message.Action.LAUNCH_PAD, new Object[]{startDate}));
+                new Message<>(chatId, Message.Action.LAUNCH_PAD, startDate));
         return future;
     }
 
@@ -44,13 +45,13 @@ final class CryptoScoutImpl implements CryptoScout {
         pending.put(new MessageKey(chatId, Message.Action.LAUNCH_POOL), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
-                new Message(chatId, Message.Action.LAUNCH_POOL, new Object[]{startDate}));
+                new Message<>(chatId, Message.Action.LAUNCH_POOL, startDate));
         return future;
     }
 
     @RabbitListener(queues = "${amqp.queue.results}")
     @Override
-    public void subscribe(final Message message) {
+    public void subscribe(final Message<List<Event>> message) {
         final var future = pending.remove(new MessageKey(message.chatId(), message.action()));
         if (future != null) {
             if (message.action() != null && message.data() != null) {
@@ -61,11 +62,11 @@ final class CryptoScoutImpl implements CryptoScout {
         }
     }
 
-    private String processData(final Message message) {
+    private String processData(final Message<List<Event>> message) {
         final var response = new StringJoiner("\n\n");
-        if (message.data().length > 0) {
-            for (int i = 0; i < message.data().length; i++) {
-                response.add(message.data()[i].toString());
+        if (!message.data().isEmpty()) {
+            for (int i = 0; i < message.data().size(); i++) {
+                response.add(message.data().get(i).toString());
             }
         } else {
             response.add(Message.Action.LAUNCH_POOL.equals(message.action()) ? "No launch pools found" :

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_RESULTS;
 
 @Service
-final class CommandSubscriber implements Subscriber<Message> {
+final class CommandSubscriber implements Subscriber<Message<Long>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandSubscriber.class);
     private final BybitService bybitService;
     private final AmqpTemplate amqpTemplate;
@@ -26,14 +26,13 @@ final class CommandSubscriber implements Subscriber<Message> {
 
     @RabbitListener(queues = "${amqp.queue.commands}")
     @Override
-    public void subscribe(final Message message) {
-        final var type = Message.Action.LAUNCH_POOL.equals(message.action()) ? "Launchpool" :
-                Message.Action.LAUNCH_PAD.equals(message.action()) ? "Launchpad" : null;
-        if (type != null && message.data().length > 0) {
-            final var events = bybitService.getEvents(type, (Long) message.data()[0]);
-            final var data = new Object[events.size()];
-            System.arraycopy(events.toArray(), 0, data, 0, events.size());
-            amqpTemplate.convertAndSend(exchange, ROUTING_RESULTS, new Message(message.chatId(), message.action(), data));
+    public void subscribe(final Message<Long> message) {
+        final var action = message.action();
+        final var type = Message.Action.LAUNCH_POOL.equals(action) ? "Launchpool" :
+                Message.Action.LAUNCH_PAD.equals(action) ? "Launchpad" : null;
+        if (type != null && message.data() != null) {
+            final var events = bybitService.getEvents(type, message.data());
+            amqpTemplate.convertAndSend(exchange, ROUTING_RESULTS, new Message<>(message.chatId(), action, events));
         } else {
             LOGGER.warn("Invalid message: {}", message);
         }
