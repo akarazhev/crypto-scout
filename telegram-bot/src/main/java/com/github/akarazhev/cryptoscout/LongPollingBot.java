@@ -1,6 +1,6 @@
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.cryptoscout.command.CommandHandler;
+import com.github.akarazhev.cryptoscout.command.Commander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +19,12 @@ final class LongPollingBot implements SpringLongPollingBot, LongPollingSingleThr
     private final static Logger LOGGER = LoggerFactory.getLogger(LongPollingBot.class);
     private final TelegramClient client;
     private final String token;
-    private final CommandHandler commandHandler;
+    private final Commander commander;
 
-    public LongPollingBot(@Value("${telegram.bot.token}") final String token, final CommandHandler commandHandler) {
+    public LongPollingBot(@Value("${telegram.bot.token}") final String token, final Commander commander) {
         this.token = token;
         this.client = new OkHttpTelegramClient(getBotToken());
-        this.commandHandler = commandHandler;
+        this.commander = commander;
     }
 
     @Override
@@ -42,7 +42,7 @@ final class LongPollingBot implements SpringLongPollingBot, LongPollingSingleThr
         if (update.hasMessage() && update.getMessage().hasText()) {
             final var messageText = update.getMessage().getText();
             final var chatId = update.getMessage().getChatId();
-            commandHandler.handle(messageText, chatId, client);
+            commander.execute(messageText, chatId, client);
         }
     }
 
