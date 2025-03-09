@@ -4,7 +4,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP_ROUTING_ANNOUNCEMENTS;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_ANNOUNCEMENTS;
 
 @Service
 final class EventPublisher implements Publisher<Event> {
@@ -18,6 +18,6 @@ final class EventPublisher implements Publisher<Event> {
 
     @Override
     public void publish(final Event event) {
-        amqpTemplate.convertAndSend(exchange, AMQP_ROUTING_ANNOUNCEMENTS, event);
+        amqpTemplate.convertAndSend(exchange, ROUTING_ANNOUNCEMENTS, event);
     }
 }
