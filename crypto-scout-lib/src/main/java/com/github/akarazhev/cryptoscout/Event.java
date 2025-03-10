@@ -2,7 +2,7 @@ package com.github.akarazhev.cryptoscout;
 
 import java.util.Objects;
 
-import static com.github.akarazhev.cryptoscout.Utils.formatEventTime;
+import static com.github.akarazhev.cryptoscout.Utils.Formatter.format;
 
 public record Event(Platform platform, long eventTime, String type, String title, String description, String url) {
     public enum Platform {
@@ -53,7 +53,7 @@ public record Event(Platform platform, long eventTime, String type, String title
         """,
                 platform,
                 title,
-                formatEventTime(eventTime),
+                format(eventTime),
                 type,
                 description,
                 url
