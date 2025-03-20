@@ -46,6 +46,7 @@ final class LaunchPadCommand extends InvokeCommand {
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
         cryptoScout.getLaunchPads(chatId, asDays(args))
-                .thenAccept(launchPads -> sendMessage(chatId, launchPads, client));
+                .thenAccept(launchPads ->
+                        launchPads.forEach(launchPad -> sendMessage(chatId, launchPad, client)));
     }
 }

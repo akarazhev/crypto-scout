@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,19 +45,21 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
 final class CryptoScoutImpl implements CryptoScout {
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
-    private final Map<MessageKey, CompletableFuture<String>> pending;
+    private final Map<MessageKey, List<String>> results;
+    private final Map<MessageKey, CompletableFuture<List<String>>> futures;
 
     public CryptoScoutImpl(final AmqpTemplate amqpTemplate,
                            @Value("${amqp.exchange.commands}") final String exchange) {
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
-        this.pending = new ConcurrentHashMap<>();
+        this.results = new ConcurrentHashMap<>();
+        this.futures = new ConcurrentHashMap<>();
     }
 
     @Override
-    public CompletableFuture<String> getLaunchPads(long chatId, int days) {
-        final CompletableFuture<String> future = new CompletableFuture<>();
-        pending.put(new MessageKey(chatId, Message.Action.LAUNCH_PAD), future);
+    public CompletableFuture<List<String>> getLaunchPads(long chatId, int days) {
+        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+        futures.put(new MessageKey(chatId, Message.Action.LAUNCH_PAD), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
                 new Message<>(chatId, Message.Action.LAUNCH_PAD, startDate));
@@ -64,9 +67,9 @@ final class CryptoScoutImpl implements CryptoScout {
     }
 
     @Override
-    public CompletableFuture<String> getLaunchPools(long chatId, int days) {
-        final CompletableFuture<String> future = new CompletableFuture<>();
-        pending.put(new MessageKey(chatId, Message.Action.LAUNCH_POOL), future);
+    public CompletableFuture<List<String>> getLaunchPools(long chatId, int days) {
+        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+        futures.put(new MessageKey(chatId, Message.Action.LAUNCH_POOL), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
                 new Message<>(chatId, Message.Action.LAUNCH_POOL, startDate));
@@ -75,21 +78,34 @@ final class CryptoScoutImpl implements CryptoScout {
 
     @RabbitListener(queues = "${amqp.queue.results}")
     @Override
-    public void subscribe(final Message<List<Event>> message) {
-        final var future = pending.remove(new MessageKey(message.chatId(), message.action()));
+    public void subscribe(final Message<Envelope<Event>> message) {
+        final var key = new MessageKey(message.chatId(), message.action());
+        final var future = futures.get(key);
         if (future != null) {
-            if (message.action() != null && message.data() != null) {
-                future.complete(processData(message));
+            final var envelope = message.data();
+            if (message.action() != null && envelope != null) {
+                var data = results.get(key);
+                if (data == null) {
+                    data = new LinkedList<>();
+                }
+
+                data.add(processData(message));
+                results.put(key, data);
+
+                if (envelope.current() + 1 == envelope.total()) {
+                    future.complete(results.remove(key));
+                }
             } else {
                 future.completeExceptionally(new IllegalArgumentException("Invalid or unsupported message received"));
             }
         }
     }
 
-    private String processData(final Message<List<Event>> message) {
+    private String processData(final Message<Envelope<Event>> message) {
+        final var envelope = message.data();
         final var response = new StringJoiner("\n\n");
-        if (!message.data().isEmpty()) {
-            message.data().forEach(event -> response.add(event.toString()));
+        if (envelope.current() > 0) {
+            response.add(envelope.data().toString());
         } else {
             response.add(Message.Action.LAUNCH_POOL.equals(message.action()) ? "No launch pools found" :
                     Message.Action.LAUNCH_PAD.equals(message.action()) ? "No launch pads found" :

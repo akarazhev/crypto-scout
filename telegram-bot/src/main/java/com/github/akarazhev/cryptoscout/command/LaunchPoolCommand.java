@@ -46,6 +46,7 @@ final class LaunchPoolCommand extends InvokeCommand {
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
         cryptoScout.getLaunchPools(chatId, asDays(args))
-                .thenAccept(launchPools -> sendMessage(chatId, launchPools, client));
+                .thenAccept(launchPools ->
+                        launchPools.forEach(pool -> sendMessage(chatId, pool, client)));
     }
 }
