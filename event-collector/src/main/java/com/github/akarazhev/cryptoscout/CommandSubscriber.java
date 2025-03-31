@@ -55,8 +55,12 @@ final class CommandSubscriber implements Subscriber<Message<Long>> {
         final var type = Message.Action.LAUNCH_POOL.equals(action) ? "Launchpool" :
                 Message.Action.LAUNCH_PAD.equals(action) ? "Launchpad" : null;
         if (type != null && message.data() != null) {
+            Envelope<Event> envelope;
             final var events = bybitService.getEvents(type, message.data());
-            amqpTemplate.convertAndSend(exchange, ROUTING_RESULTS, new Message<>(message.chatId(), action, events));
+            for (var i = 1; i <= events.size(); i++) {
+                envelope = new Envelope<>(i, events.size(), events.get(i - 1));
+                amqpTemplate.convertAndSend(exchange, ROUTING_RESULTS, new Message<>(message.chatId(), action, envelope));
+            }
         } else {
             LOGGER.warn("Invalid message: {}", message);
         }

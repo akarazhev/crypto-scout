@@ -24,6 +24,8 @@
 
 package com.github.akarazhev.cryptoscout;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,13 +33,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
 
@@ -45,20 +48,22 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
 final class CryptoScoutImpl implements CryptoScout {
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
-    private final Map<MessageKey, List<String>> results;
-    private final Map<MessageKey, CompletableFuture<List<String>>> futures;
+    private final Cache<MessageKey, Collection<String>> results;
+    private final Map<MessageKey, CompletableFuture<Collection<String>>> futures;
 
     public CryptoScoutImpl(final AmqpTemplate amqpTemplate,
                            @Value("${amqp.exchange.commands}") final String exchange) {
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
-        this.results = new ConcurrentHashMap<>();
+        this.results = Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build();
         this.futures = new ConcurrentHashMap<>();
     }
 
     @Override
-    public CompletableFuture<List<String>> getLaunchPads(long chatId, int days) {
-        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+    public CompletableFuture<Collection<String>> getLaunchPads(long chatId, int days) {
+        final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
         futures.put(new MessageKey(chatId, Message.Action.LAUNCH_PAD), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
@@ -67,8 +72,8 @@ final class CryptoScoutImpl implements CryptoScout {
     }
 
     @Override
-    public CompletableFuture<List<String>> getLaunchPools(long chatId, int days) {
-        final CompletableFuture<List<String>> future = new CompletableFuture<>();
+    public CompletableFuture<Collection<String>> getLaunchPools(long chatId, int days) {
+        final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
         futures.put(new MessageKey(chatId, Message.Action.LAUNCH_POOL), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
@@ -84,7 +89,7 @@ final class CryptoScoutImpl implements CryptoScout {
         if (future != null) {
             final var envelope = message.data();
             if (message.action() != null && envelope != null) {
-                var data = results.get(key);
+                var data = results.getIfPresent(key);
                 if (data == null) {
                     data = new LinkedList<>();
                 }
@@ -92,11 +97,15 @@ final class CryptoScoutImpl implements CryptoScout {
                 data.add(processData(message));
                 results.put(key, data);
 
-                if (envelope.current() + 1 == envelope.total()) {
-                    future.complete(results.remove(key));
+                if (envelope.current() == envelope.total()) {
+                    future.complete(results.getIfPresent(key));
+                    results.invalidate(key);
+                    futures.remove(key);
                 }
             } else {
                 future.completeExceptionally(new IllegalArgumentException("Invalid or unsupported message received"));
+                futures.remove(key);
+                results.invalidate(key);
             }
         }
     }
