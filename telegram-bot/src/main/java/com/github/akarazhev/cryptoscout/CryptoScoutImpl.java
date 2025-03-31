@@ -47,6 +47,7 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
 
 @Service
 final class CryptoScoutImpl implements CryptoScout {
+    private final static int TIME_OUT_SECONDS = 30;
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
     private final Cache<MessageKey, Collection<String>> results;
@@ -57,12 +58,13 @@ final class CryptoScoutImpl implements CryptoScout {
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
         this.results = Caffeine.newBuilder()
-                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .expireAfterWrite(TIME_OUT_SECONDS, TimeUnit.SECONDS)
                 .evictionListener((key, value, cause) -> {
                     if (cause.wasEvicted()) {
                         CompletableFuture<Collection<String>> future = futures.remove(key);
                         if (future != null && !future.isDone()) {
-                            future.completeExceptionally(new TimeoutException("Request timed out after 30 seconds"));
+                            future.completeExceptionally(new TimeoutException("Request timed out after " +
+                                    TIME_OUT_SECONDS + " seconds"));
                         }
                     }
                 })
