@@ -41,6 +41,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
 
@@ -49,16 +50,23 @@ final class CryptoScoutImpl implements CryptoScout {
     private final AmqpTemplate amqpTemplate;
     private final String exchange;
     private final Cache<MessageKey, Collection<String>> results;
-    private final Map<MessageKey, CompletableFuture<Collection<String>>> futures;
+    private final Map<MessageKey, CompletableFuture<Collection<String>>> futures = new ConcurrentHashMap<>();
 
     public CryptoScoutImpl(final AmqpTemplate amqpTemplate,
                            @Value("${amqp.exchange.commands}") final String exchange) {
         this.amqpTemplate = amqpTemplate;
         this.exchange = exchange;
         this.results = Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .expireAfterWrite(30, TimeUnit.SECONDS)
+                .evictionListener((key, value, cause) -> {
+                    if (cause.wasEvicted()) {
+                        CompletableFuture<Collection<String>> future = futures.remove(key);
+                        if (future != null && !future.isDone()) {
+                            future.completeExceptionally(new TimeoutException("Request timed out after 30 seconds"));
+                        }
+                    }
+                })
                 .build();
-        this.futures = new ConcurrentHashMap<>();
     }
 
     @Override

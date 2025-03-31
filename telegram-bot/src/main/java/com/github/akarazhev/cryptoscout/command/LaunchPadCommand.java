@@ -25,6 +25,8 @@
 package com.github.akarazhev.cryptoscout.command;
 
 import com.github.akarazhev.cryptoscout.CryptoScout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -33,6 +35,7 @@ import static com.github.akarazhev.cryptoscout.Utils.Arguments.asDays;
 @Component
 final class LaunchPadCommand extends InvokeCommand {
     private final CryptoScout cryptoScout;
+    private static final Logger LOGGER = LoggerFactory.getLogger(LaunchPadCommand.class);
 
     public LaunchPadCommand(final CryptoScout cryptoScout) {
         this.cryptoScout = cryptoScout;
@@ -47,6 +50,11 @@ final class LaunchPadCommand extends InvokeCommand {
     public void execute(final long chatId, final String args, final TelegramClient client) {
         cryptoScout.getLaunchPads(chatId, asDays(args))
                 .thenAccept(launchPads ->
-                        launchPads.forEach(launchPad -> sendMessage(chatId, launchPad, client)));
+                        launchPads.forEach(launchPad -> sendMessage(chatId, launchPad, client)))
+                .exceptionally(ex -> {
+                    sendMessage(chatId, "Error fetching launch pads: " + ex.getMessage(), client);
+                    LOGGER.error("Error fetching launch pads", ex);
+                    return null;
+                });
     }
 }
