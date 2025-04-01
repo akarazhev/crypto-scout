@@ -48,9 +48,15 @@ final class LaunchPoolCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        cryptoScout.getLaunchPools(chatId, asDays(args))
-                .thenAccept(launchPools ->
-                        launchPools.forEach(pool -> sendMessage(chatId, pool, client)))
+        int days = asDays(args);
+        cryptoScout.getLaunchPools(chatId, days)
+                .thenAccept(pools -> {
+                    if (pools.isEmpty()) {
+                        sendMessage(chatId, "No launch pools found for the last " + days + " days.", client);
+                    } else {
+                        pools.forEach(pool -> sendMessage(chatId, pool, client));
+                    }
+                })
                 .exceptionally(ex -> {
                     sendMessage(chatId, "Error fetching launch pools: " + ex.getMessage(), client);
                     LOGGER.error("Error fetching launch pools", ex);

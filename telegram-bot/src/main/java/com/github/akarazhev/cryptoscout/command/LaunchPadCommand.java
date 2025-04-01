@@ -48,9 +48,15 @@ final class LaunchPadCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        cryptoScout.getLaunchPads(chatId, asDays(args))
-                .thenAccept(launchPads ->
-                        launchPads.forEach(launchPad -> sendMessage(chatId, launchPad, client)))
+        int days = asDays(args);
+        cryptoScout.getLaunchPads(chatId, days)
+                .thenAccept(pads -> {
+                    if (pads.isEmpty()) {
+                        sendMessage(chatId, "No launch pads found for the last " + days + " days.", client);
+                    } else {
+                        pads.forEach(pad -> sendMessage(chatId, pad, client));
+                    }
+                })
                 .exceptionally(ex -> {
                     sendMessage(chatId, "Error fetching launch pads: " + ex.getMessage(), client);
                     LOGGER.error("Error fetching launch pads", ex);
