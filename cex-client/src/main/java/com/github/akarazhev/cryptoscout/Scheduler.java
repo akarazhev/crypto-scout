@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 @Service
 final class Scheduler {
@@ -43,13 +43,10 @@ final class Scheduler {
         this.publisher = publisher;
     }
 
-    @Scheduled(fixedRate = 60000) // Runs every 60 seconds
+    @Scheduled(fixedRate = 3600000) // Runs every hour (60 * 60 * 1000 ms)
     public void perform() {
-        final var published = new AtomicInteger(0);
-        bybitEventSource.getEvents().forEach(event -> {
-            publisher.publish(event);
-            published.incrementAndGet();
-        });
-        LOGGER.info("Running scheduled task published {} events", published);
+        List<Event> events = bybitEventSource.getEvents().toList();
+        events.forEach(publisher::publish);
+        LOGGER.info("Published {} events", events.size());
     }
 }
