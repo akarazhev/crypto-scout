@@ -33,5 +33,7 @@ public interface CryptoScout {
 
     CompletableFuture<Collection<String>> getLaunchPools(final long chatId, final int days);
 
+    CompletableFuture<Collection<String>> getByVotes(final long chatId, final int days);
+
     void subscribe(final Message<Envelope<Event>> message);
 }

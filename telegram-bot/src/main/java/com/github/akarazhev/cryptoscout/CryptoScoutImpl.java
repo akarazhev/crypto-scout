@@ -91,6 +91,16 @@ final class CryptoScoutImpl implements CryptoScout {
         return future;
     }
 
+    @Override
+    public CompletableFuture<Collection<String>> getByVotes(long chatId, int days) {
+        final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
+        futures.put(MessageKey.of(chatId, Message.Action.BY_VOTES), future);
+        final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
+        amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
+                new Message<>(chatId, Message.Action.BY_VOTES, startDate));
+        return future;
+    }
+
     @RabbitListener(queues = "${amqp.queue.results}")
     @Override
     public void subscribe(final Message<Envelope<Event>> message) {
@@ -128,7 +138,8 @@ final class CryptoScoutImpl implements CryptoScout {
         } else {
             response.add(Message.Action.LAUNCH_POOL.equals(message.action()) ? "No launch pools found" :
                     Message.Action.LAUNCH_PAD.equals(message.action()) ? "No launch pads found" :
-                            "No results found");
+                            Message.Action.BY_VOTES.equals(message.action()) ? "No events by votes found" :
+                                    "No results found");
         }
 
         return response.toString();

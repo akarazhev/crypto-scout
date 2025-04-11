@@ -24,26 +24,43 @@
 
 package com.github.akarazhev.cryptoscout.command;
 
+import com.github.akarazhev.cryptoscout.CryptoScout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import static com.github.akarazhev.cryptoscout.Utils.Arguments.asDays;
+
 @Component
-final class HelpCommand extends InvokeCommand {
+final class ByVotesCommand extends InvokeCommand {
+    private final CryptoScout cryptoScout;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ByVotesCommand.class);
+
+    public ByVotesCommand(final CryptoScout cryptoScout) {
+        this.cryptoScout = cryptoScout;
+    }
 
     @Override
     public String getName() {
-        return "/help";
+        return "/byvotes";
     }
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        final var help = """
-                Available commands:
-                /launchpad [days] - Get information about a launch pad for days. Default value is 14.
-                /launchpool [days] - Get information about a launch pool for days. Default value is 14.
-                /byvotes [days] - Get information about events by votes for days. Default value is 14.
-                /help - Show this help message.
-                """;
-        sendMessage(chatId, help, client);
+        int days = asDays(args);
+        cryptoScout.getByVotes(chatId, days)
+                .thenAccept(votes -> {
+                    if (votes.isEmpty()) {
+                        sendMessage(chatId, "No by votes found for the last " + days + " days.", client);
+                    } else {
+                        votes.forEach(vote -> sendMessage(chatId, vote, client));
+                    }
+                })
+                .exceptionally(ex -> {
+                    sendMessage(chatId, "Error fetching by votes: " + ex.getMessage(), client);
+                    LOGGER.error("Error fetching by votes", ex);
+                    return null;
+                });
     }
 }
