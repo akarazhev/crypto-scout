@@ -74,7 +74,7 @@ final class CryptoScoutImpl implements CryptoScout {
     @Override
     public CompletableFuture<Collection<String>> getLaunchPads(long chatId, int days) {
         final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
-        futures.put(new MessageKey(chatId, Message.Action.LAUNCH_PAD), future);
+        futures.put(MessageKey.of(chatId, Message.Action.LAUNCH_PAD), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
                 new Message<>(chatId, Message.Action.LAUNCH_PAD, startDate));
@@ -84,7 +84,7 @@ final class CryptoScoutImpl implements CryptoScout {
     @Override
     public CompletableFuture<Collection<String>> getLaunchPools(long chatId, int days) {
         final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
-        futures.put(new MessageKey(chatId, Message.Action.LAUNCH_POOL), future);
+        futures.put(MessageKey.of(chatId, Message.Action.LAUNCH_POOL), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
         amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
                 new Message<>(chatId, Message.Action.LAUNCH_POOL, startDate));
@@ -94,7 +94,7 @@ final class CryptoScoutImpl implements CryptoScout {
     @RabbitListener(queues = "${amqp.queue.results}")
     @Override
     public void subscribe(final Message<Envelope<Event>> message) {
-        final var key = new MessageKey(message.chatId(), message.action());
+        final var key = MessageKey.of(message.chatId(), message.action());
         final var future = futures.get(key);
         if (future != null) {
             final var envelope = message.data();
@@ -135,6 +135,11 @@ final class CryptoScoutImpl implements CryptoScout {
     }
 
     private record MessageKey(long chatId, Message.Action action) {
+
+        public static MessageKey of(final long chatId, final Message.Action action) {
+            return new MessageKey(chatId, action);
+        }
+
         @Override
         public boolean equals(final Object o) {
             if (o == null || getClass() != o.getClass()) {
