@@ -63,7 +63,7 @@ class BybitServiceImpl implements BybitService {
 
     @Override
     public List<Event> getEvents(final String type, final long eventTime) {
-        return repository.findByTypeAndEventTimeAfter(type, eventTime)
+        return repository.findByTypeAndEventTimeAfterOrderByEventTimeDesc(type, eventTime)
                 .stream()
                 .map(e -> new Event(Event.Platform.BYBIT, e.getEventTime(), e.getType(), e.getTitle(),
                         e.getDescription(), e.getUrl()))

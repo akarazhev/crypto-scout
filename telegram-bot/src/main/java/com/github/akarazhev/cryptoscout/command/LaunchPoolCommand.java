@@ -25,6 +25,8 @@
 package com.github.akarazhev.cryptoscout.command;
 
 import com.github.akarazhev.cryptoscout.CryptoScout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -33,6 +35,7 @@ import static com.github.akarazhev.cryptoscout.Utils.Arguments.asDays;
 @Component
 final class LaunchPoolCommand extends InvokeCommand {
     private final CryptoScout cryptoScout;
+    private static final Logger LOGGER = LoggerFactory.getLogger(LaunchPoolCommand.class);
 
     public LaunchPoolCommand(final CryptoScout cryptoScout) {
         this.cryptoScout = cryptoScout;
@@ -45,8 +48,19 @@ final class LaunchPoolCommand extends InvokeCommand {
 
     @Override
     public void execute(final long chatId, final String args, final TelegramClient client) {
-        cryptoScout.getLaunchPools(chatId, asDays(args))
-                .thenAccept(launchPools ->
-                        launchPools.forEach(pool -> sendMessage(chatId, pool, client)));
+        int days = asDays(args);
+        cryptoScout.getLaunchPools(chatId, days)
+                .thenAccept(pools -> {
+                    if (pools.isEmpty()) {
+                        sendMessage(chatId, "No launch pools found for the last " + days + " days.", client);
+                    } else {
+                        pools.forEach(pool -> sendMessage(chatId, pool, client));
+                    }
+                })
+                .exceptionally(ex -> {
+                    sendMessage(chatId, "Error fetching launch pools: " + ex.getMessage(), client);
+                    LOGGER.error("Error fetching launch pools", ex);
+                    return null;
+                });
     }
 }

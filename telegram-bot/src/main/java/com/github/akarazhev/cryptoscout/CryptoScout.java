@@ -24,14 +24,14 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 public interface CryptoScout {
 
-    CompletableFuture<List<String>> getLaunchPads(final long chatId, final int days);
+    CompletableFuture<Collection<String>> getLaunchPads(final long chatId, final int days);
 
-    CompletableFuture<List<String>> getLaunchPools(final long chatId, final int days);
+    CompletableFuture<Collection<String>> getLaunchPools(final long chatId, final int days);
 
     void subscribe(final Message<Envelope<Event>> message);
 }
