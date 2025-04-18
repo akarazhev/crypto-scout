@@ -53,7 +53,8 @@ final class CommandSubscriber implements Subscriber<Message<Long>> {
     public void subscribe(final Message<Long> message) {
         final var action = message.action();
         final var type = Message.Action.LAUNCH_POOL.equals(action) ? "Launchpool" :
-                Message.Action.LAUNCH_PAD.equals(action) ? "Launchpad" : null;
+                Message.Action.LAUNCH_PAD.equals(action) ? "Launchpad" :
+                Message.Action.BY_VOTES.equals(action) ? "ByVotes" : null;
         if (type != null && message.data() != null) {
             final var events = bybitService.getEvents(type, message.data());
             if (!events.isEmpty()) {

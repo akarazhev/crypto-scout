@@ -26,7 +26,7 @@ package com.github.akarazhev.cryptoscout;
 
 public record Message<T>(long chatId, Action action, T data) {
     public enum Action {
-        LAUNCH_POOL, LAUNCH_PAD;
+        LAUNCH_POOL, LAUNCH_PAD, BY_VOTES;
 
         @Override
         public String toString() {
