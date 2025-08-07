@@ -15,6 +15,7 @@
     </licenses>
     <modules>
         <module>crypto-scout-lib</module>
+        <module>event-parser</module>
         <module>cex-client</module>
         <module>event-collector</module>
         <module>telegram-bot</module>
