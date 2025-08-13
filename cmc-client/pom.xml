@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.github.akarazhev.cryptoscout</groupId>
-    <artifactId>event-parser</artifactId>
+    <artifactId>cmc-client</artifactId>
     <version>0.0.1</version>
-    <name>event-parser</name>
-    <description>Event Parser</description>
+    <name>cmc-client</name>
+    <description>CoinMarketCap Client</description>
     <url/>
     <licenses>
         <license>
