@@ -84,7 +84,7 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue commandsQueue(@Value("${amqp.queue.commands}") final String queueName) {
+    public Queue commandsQueue(@Value("${amqp.queue.events}") final String queueName) {
         return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
                 .build();

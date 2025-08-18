@@ -48,7 +48,7 @@ final class CommandSubscriber implements Subscriber<Message<Long>> {
         this.exchange = exchange;
     }
 
-    @RabbitListener(queues = "${amqp.queue.commands}")
+    @RabbitListener(queues = "${amqp.queue.events}")
     @Override
     public void subscribe(final Message<Long> message) {
         final var action = message.action();
