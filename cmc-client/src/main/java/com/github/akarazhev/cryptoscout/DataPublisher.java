@@ -25,28 +25,35 @@
 package com.github.akarazhev.cryptoscout;
 
 import com.github.akarazhev.jcryptolib.stream.Payload;
+import com.github.akarazhev.jcryptolib.stream.Provider;
+import com.github.akarazhev.jcryptolib.stream.Source;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_ALTCOIN_SEASON_INDEX;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
+
 @Service
 final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
     private final AmqpTemplate amqpTemplate;
-    private final String exchange;
-    private final String routingKey;
 
-    public DataPublisher(final AmqpTemplate amqpTemplate,
-                         @Value("${amqp.exchange.activities}") final String exchange,
-                         @Value("${amqp.routing.activities}") final String routingKey) {
+    public DataPublisher(final AmqpTemplate amqpTemplate) {
         this.amqpTemplate = amqpTemplate;
-        this.exchange = exchange;
-        this.routingKey = routingKey;
     }
 
     @Override
     public void publish(final Payload<Map<String, Object>> payload) {
-        amqpTemplate.convertAndSend(exchange, routingKey, payload);
+        if (Provider.CMC.equals(payload.getProvider())) {
+            if (Source.FGI.equals(payload.getSource())) {
+                amqpTemplate.convertAndSend(ROUTING_METRICS_FEAR_GREED_INDEX, payload.getData());
+            } else if (Source.ASI.equals(payload.getSource())) {
+                amqpTemplate.convertAndSend(ROUTING_METRICS_ALTCOIN_SEASON_INDEX, payload.getData());
+            } else if (Source.BDO.equals(payload.getSource())) {
+                amqpTemplate.convertAndSend(ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW, payload.getData());
+            }
+        }
     }
 }

@@ -45,6 +45,8 @@ final class DataSupplier {
     public Flowable<Payload<Map<String, Object>>> ofCmc() {
         final var config = new DataConfig.Builder()
                 .type(Type.FGI)
+                .type(Type.ASI)
+                .type(Type.BDO)
                 .build();
         return DataStreams.ofCmc(client, config);
     }

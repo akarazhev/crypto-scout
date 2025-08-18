@@ -24,11 +24,22 @@
 
 package com.github.akarazhev.cryptoscout;
 
-final public class Constants {
+public final class Constants {
+
+    private Constants() {
+        throw new UnsupportedOperationException();
+    }
 
     public static final class AMQP {
+        private AMQP() {
+            throw new UnsupportedOperationException();
+        }
+
         public static final String ROUTING_ANNOUNCEMENTS = "announcements.cex";
         public static final String ROUTING_COMMANDS = "commands";
         public static final String ROUTING_RESULTS = "results";
+        public static final String ROUTING_METRICS_FEAR_GREED_INDEX = "metrics.fear_greed_index";
+        public static final String ROUTING_METRICS_ALTCOIN_SEASON_INDEX = "metrics.altcoin_season_index";
+        public static final String ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW = "metrics.bitcoin_dominance_overview";
     }
 }

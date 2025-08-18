@@ -37,6 +37,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_ALTCOIN_SEASON_INDEX;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
+
 @Configuration
 class AmqpConfig {
 
@@ -68,6 +72,17 @@ class AmqpConfig {
     }
 
     @Bean
+    public Queue fearGreedIndexQueue(@Value("${amqp.queue.fear_greed_index}") final String queueName,
+                                     @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+        return QueueBuilder.durable(queueName)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
+                .ttl(21600000)
+                .maxLength(2500)
+                .build();
+    }
+
+    @Bean
     public Queue eventsQueue(@Value("${amqp.queue.events}") final String queueName) {
         return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
@@ -81,14 +96,17 @@ class AmqpConfig {
 
     @Bean
     public Binding altcoinSeasonIndexBinding(final Queue altcoinSeasonIndexQueue, final TopicExchange metricsExchange) {
-        return BindingBuilder.bind(altcoinSeasonIndexQueue)
-                .to(metricsExchange).with("metrics.altcoin_season_index");
+        return BindingBuilder.bind(altcoinSeasonIndexQueue).to(metricsExchange).with(ROUTING_METRICS_ALTCOIN_SEASON_INDEX);
     }
 
     @Bean
     public Binding bitcoinDominanceBinding(final Queue bitcoinDominanceQueue, final TopicExchange metricsExchange) {
-        return BindingBuilder.bind(bitcoinDominanceQueue)
-                .to(metricsExchange).with("metrics.bitcoin_dominance");
+        return BindingBuilder.bind(bitcoinDominanceQueue).to(metricsExchange).with(ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW);
+    }
+
+    @Bean
+    public Binding fearGreedIndexBinding(final Queue fearGreedIndexQueue, final TopicExchange metricsExchange) {
+        return BindingBuilder.bind(fearGreedIndexQueue).to(metricsExchange).with(ROUTING_METRICS_FEAR_GREED_INDEX);
     }
 
     @Bean
