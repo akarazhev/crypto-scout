@@ -24,29 +24,28 @@
 
 package com.github.akarazhev.cryptoscout;
 
+import com.github.akarazhev.jcryptolib.DataStreams;
+import com.github.akarazhev.jcryptolib.cmc.config.Type;
+import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import io.reactivex.rxjava3.core.Flowable;
+import org.springframework.stereotype.Component;
 
+import java.net.http.HttpClient;
 import java.util.Map;
 
-@Service
-final class EventPublisher implements Publisher<Payload<Map<String, Object>>> {
-    private final AmqpTemplate amqpTemplate;
-    private final String exchange;
-    private final String routingKey;
+@Component
+final class DataSupplier {
+    private final HttpClient client;
 
-    public EventPublisher(final AmqpTemplate amqpTemplate,
-                          @Value("${amqp.exchange.activities}") final String exchange,
-                          @Value("${amqp.routing.activities}") final String routingKey) {
-        this.amqpTemplate = amqpTemplate;
-        this.exchange = exchange;
-        this.routingKey = routingKey;
+    public DataSupplier(final HttpClient client) {
+        this.client = client;
     }
 
-    @Override
-    public void publish(final Payload<Map<String, Object>> payload) {
-        amqpTemplate.convertAndSend(exchange, routingKey, payload);
+    public Flowable<Payload<Map<String, Object>>> ofCmc() {
+        final var config = new DataConfig.Builder()
+                .type(Type.FGI)
+                .build();
+        return DataStreams.ofCmc(client, config);
     }
 }

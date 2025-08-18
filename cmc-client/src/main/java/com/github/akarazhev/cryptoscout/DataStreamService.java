@@ -24,31 +24,29 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import io.reactivex.rxjava3.disposables.Disposable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.springframework.stereotype.Component;
+import com.github.akarazhev.jcryptolib.stream.Payload;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-@Component
-final class EventBridge {
-    private final EventStreamService eventStreamService;
-    private final EventPublisher eventPublisher;
-    private Disposable disposable;
+import java.util.Map;
 
-    public EventBridge(final EventStreamService eventStreamService, final EventPublisher eventPublisher) {
-        this.eventStreamService = eventStreamService;
-        this.eventPublisher = eventPublisher;
+@Service
+final class DataStreamService implements DataStream {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataStreamService.class);
+    private final DataSupplier dataSupplier;
+
+    public DataStreamService(final DataSupplier dataSupplier) {
+        this.dataSupplier = dataSupplier;
     }
 
-    @PostConstruct
-    public void start() {
-        disposable = eventStreamService.events().subscribe(eventPublisher::publish);
-    }
-
-    @PreDestroy
-    public void stop() {
-        if (disposable != null) {
-            disposable.dispose();
-        }
+    @Override
+    public Flowable<Payload<Map<String, Object>>> data() {
+        return dataSupplier.ofCmc()
+                .subscribeOn(Schedulers.io())
+                .doOnError((error) -> LOGGER.error("Error getting data", error))
+                .doOnCancel(() -> LOGGER.info("Data stream cancelled"));
     }
 }

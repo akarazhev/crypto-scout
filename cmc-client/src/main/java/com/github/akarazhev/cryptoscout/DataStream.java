@@ -24,30 +24,12 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.jcryptolib.DataStreams;
-import com.github.akarazhev.jcryptolib.bybit.config.StreamType;
-import com.github.akarazhev.jcryptolib.bybit.config.Topic;
-import com.github.akarazhev.jcryptolib.bybit.stream.DataConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.reactivex.rxjava3.core.Flowable;
-import org.springframework.stereotype.Component;
 
-import java.net.http.HttpClient;
 import java.util.Map;
 
-@Component
-final class DataStream {
-    private final HttpClient client;
+public interface DataStream {
 
-    public DataStream(final HttpClient client) {
-        this.client = client;
-    }
-
-    public Flowable<Payload<Map<String, Object>>> bybit() {
-        final var config = new DataConfig.Builder()
-                .streamType(StreamType.PTST)
-                .topic(Topic.TICKERS_BTC_USDT)
-                .build();
-        return DataStreams.ofBybit(client, config);
-    }
+    Flowable<Payload<Map<String, Object>>> data();
 }

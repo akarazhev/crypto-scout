@@ -24,12 +24,31 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.jcryptolib.stream.Payload;
-import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.springframework.stereotype.Component;
 
-import java.util.Map;
+@Component
+final class DataBridge {
+    private final DataStreamService dataStreamService;
+    private final DataPublisher dataPublisher;
+    private Disposable disposable;
 
-public interface EventService {
+    public DataBridge(final DataStreamService dataStreamService, final DataPublisher dataPublisher) {
+        this.dataStreamService = dataStreamService;
+        this.dataPublisher = dataPublisher;
+    }
 
-    Flowable<Payload<Map<String, Object>>> events();
+    @PostConstruct
+    public void start() {
+        disposable = dataStreamService.data().subscribe(dataPublisher::publish);
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (disposable != null) {
+            disposable.dispose();
+        }
+    }
 }

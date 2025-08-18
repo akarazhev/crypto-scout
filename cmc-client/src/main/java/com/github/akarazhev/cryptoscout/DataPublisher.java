@@ -25,28 +25,28 @@
 package com.github.akarazhev.cryptoscout;
 
 import com.github.akarazhev.jcryptolib.stream.Payload;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
-final class EventStreamService implements EventService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventStreamService.class);
-    private final DataStream dataStream;
+final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
+    private final AmqpTemplate amqpTemplate;
+    private final String exchange;
+    private final String routingKey;
 
-    public EventStreamService(final DataStream dataStream) {
-        this.dataStream = dataStream;
+    public DataPublisher(final AmqpTemplate amqpTemplate,
+                         @Value("${amqp.exchange.activities}") final String exchange,
+                         @Value("${amqp.routing.activities}") final String routingKey) {
+        this.amqpTemplate = amqpTemplate;
+        this.exchange = exchange;
+        this.routingKey = routingKey;
     }
 
     @Override
-    public Flowable<Payload<Map<String, Object>>> events() {
-        return dataStream.bybit()
-                .subscribeOn(Schedulers.io())
-                .doOnError((error) -> LOGGER.error("Error getting events", error))
-                .doOnCancel(() -> LOGGER.info("Event stream cancelled"));
+    public void publish(final Payload<Map<String, Object>> payload) {
+        amqpTemplate.convertAndSend(exchange, routingKey, payload);
     }
 }
