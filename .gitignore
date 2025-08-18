@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 docker-compose/data
 .DS_Store
+dev/
 
 ### STS ###
 .apt_generated
