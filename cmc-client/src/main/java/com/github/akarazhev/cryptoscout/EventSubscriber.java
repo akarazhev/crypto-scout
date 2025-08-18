@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 final class EventSubscriber implements Subscriber<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventSubscriber.class);
 
-    @RabbitListener(queues = "${amqp.queue.commands}")
+    @RabbitListener(queues = "${amqp.queue.events}")
     @Override
     public void subscribe(final String event) {
         LOGGER.info("Received event: {}", event);

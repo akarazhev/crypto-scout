@@ -24,6 +24,8 @@
 
 package com.github.akarazhev.cryptoscout.config;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
@@ -39,15 +41,54 @@ import java.time.Duration;
 class AmqpConfig {
 
     @Bean
-    public TopicExchange activitiesTopicExchange(@Value("${amqp.exchange.activities}") final String name) {
+    public TopicExchange metricsExchange(@Value("${amqp.exchange.metrics}") final String name) {
         return ExchangeBuilder.topicExchange(name).durable(true).build();
     }
 
     @Bean
-    public Queue commandsQueue(@Value("${amqp.queue.commands}") final String queueName) {
+    public Queue altcoinSeasonIndexQueue(@Value("${amqp.queue.altcoin_season_index}") final String queueName,
+                                         @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+        return QueueBuilder.durable(queueName)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
+                .ttl(21600000) // 6 hours in ms
+                .maxLength(2500)
+                .build();
+    }
+
+    @Bean
+    public Queue bitcoinDominanceQueue(@Value("${amqp.queue.bitcoin_dominance}") final String queueName,
+                                       @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+        return QueueBuilder.durable(queueName)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
+                .ttl(21600000)
+                .maxLength(2500)
+                .build();
+    }
+
+    @Bean
+    public Queue eventsQueue(@Value("${amqp.queue.events}") final String queueName) {
         return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
                 .build();
+    }
+
+    @Bean
+    public Queue deadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
+        return QueueBuilder.durable(queueName).build();
+    }
+
+    @Bean
+    public Binding altcoinSeasonIndexBinding(final Queue altcoinSeasonIndexQueue, final TopicExchange metricsExchange) {
+        return BindingBuilder.bind(altcoinSeasonIndexQueue)
+                .to(metricsExchange).with("metrics.altcoin_season_index");
+    }
+
+    @Bean
+    public Binding bitcoinDominanceBinding(final Queue bitcoinDominanceQueue, final TopicExchange metricsExchange) {
+        return BindingBuilder.bind(bitcoinDominanceQueue)
+                .to(metricsExchange).with("metrics.bitcoin_dominance");
     }
 
     @Bean
