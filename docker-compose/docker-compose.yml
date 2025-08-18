@@ -30,7 +30,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - "./data/rabbitmq:/var/lib/rabbitmq"
+      - "../data/rabbitmq:/var/lib/rabbitmq"
     networks:
       - crypto-scout
     healthcheck:
@@ -46,7 +46,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - "./data/postgres:/var/lib/postgresql/data"
+      - "../data/postgres:/var/lib/postgresql/data"
       - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
     networks:
       - crypto-scout

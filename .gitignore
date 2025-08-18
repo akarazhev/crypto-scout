@@ -5,6 +5,7 @@ target/
 docker-compose/data
 .DS_Store
 dev/
+data/
 
 ### STS ###
 .apt_generated
