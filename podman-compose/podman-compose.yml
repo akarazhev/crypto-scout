@@ -1,0 +1,157 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: crypto-scout-mq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ../data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - crypto-scout
+    environment:
+      - RABBITMQ_DEFAULT_USER_FILE=/run/secrets/rabbitmq_user
+      - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_pass
+      # To enable TLS, uncomment and provide certs:
+      # - RABBITMQ_SSL_CACERTFILE=/certs/ca_certificate.pem
+      # - RABBITMQ_SSL_CERTFILE=/certs/server_certificate.pem
+      # - RABBITMQ_SSL_KEYFILE=/certs/server_key.pem
+      # - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=true
+      # - RABBITMQ_SSL_VERIFY=verify_peer
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  postgres:
+    image: postgres:13
+    container_name: crypto-scout-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../data/postgres:/var/lib/postgresql/data
+      - ../docker-compose/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - crypto-scout
+    environment:
+      - POSTGRES_DB=cryptoscout
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=sa
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U sa -d cryptoscout" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  event-collector:
+    build:
+      context: ../event-collector
+      dockerfile: Dockerfile
+    container_name: crypto-scout-event-collector
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - SPRING_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cryptoscout
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=sa
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar event-collector.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  cex-client:
+    build:
+      context: ../cex-client
+      dockerfile: Dockerfile
+    container_name: crypto-scout-cex-client
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - SPRING_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar cex-client.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  telegram-bot:
+    build:
+      context: ../telegram-bot
+      dockerfile: Dockerfile
+    container_name: crypto-scout-telegram-bot
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - SPRING_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - SPRING_RABBITMQ_CONNECTION_TIMEOUT=5000
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar telegram-bot.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+secrets:
+  rabbitmq_user:
+    file: ./rabbitmq_user
+  rabbitmq_pass:
+    file: ./rabbitmq_pass
+
+networks:
+  crypto-scout:
