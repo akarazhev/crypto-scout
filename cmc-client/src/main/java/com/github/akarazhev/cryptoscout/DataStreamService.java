@@ -29,14 +29,23 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Service
 final class DataStreamService implements DataStream {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStreamService.class);
     private final DataSupplier dataSupplier;
+    @Value("${cmc.retry.base.ms:1000}")
+    private long retryBaseMs;
+    @Value("${cmc.retry.max.ms:60000}")
+    private long retryMaxMs;
+    @Value("${cmc.retry.jitter:0.2}")
+    private double retryJitter;
 
     public DataStreamService(final DataSupplier dataSupplier) {
         this.dataSupplier = dataSupplier;
@@ -44,9 +53,30 @@ final class DataStreamService implements DataStream {
 
     @Override
     public Flowable<Payload<Map<String, Object>>> data() {
-        return dataSupplier.ofCmc()
+        return Flowable.defer(() ->
+                        dataSupplier.ofCmc()
+                                .doOnSubscribe(_ -> LOGGER.info("CMC data stream subscribed"))
+                                .doOnError(e -> LOGGER.error("CMC data stream error", e))
+                                .onErrorResumeNext((Throwable _) -> Flowable.empty())
+                )
+                .repeatWhen(completed ->
+                        completed
+                                .zipWith(Flowable.range(1, Integer.MAX_VALUE), (ignored, attempt) -> attempt)
+                                .flatMap(attempt -> {
+                                    long delay = computeBackoffDelayMs(attempt, retryBaseMs, retryMaxMs, retryJitter);
+                                    LOGGER.warn("Resubscribing to CMC stream in {} ms (attempt #{})", delay, attempt);
+                                    return Flowable.timer(delay, TimeUnit.MILLISECONDS);
+                                })
+                )
                 .subscribeOn(Schedulers.io())
-                .doOnError((error) -> LOGGER.error("Error getting data", error))
                 .doOnCancel(() -> LOGGER.info("Data stream cancelled"));
+    }
+
+    private long computeBackoffDelayMs(final int attempt, final long baseMs, final long maxMs, final double jitterFactor) {
+        // Exponential backoff with cap and jitter
+        double exp = baseMs * Math.pow(2.0, Math.max(0, attempt - 1));
+        long delay = Math.min((long) exp, maxMs);
+        long jitter = (long) (delay * jitterFactor);
+        return delay + ThreadLocalRandom.current().nextLong(0, jitter + 1);
     }
 }
