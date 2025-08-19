@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.stream;
 
+import com.github.akarazhev.cryptoscout.amqp.DataPublisher;
 import io.reactivex.rxjava3.disposables.Disposable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

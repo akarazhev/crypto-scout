@@ -22,20 +22,32 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Service;
+import com.github.akarazhev.jcryptolib.DataStreams;
+import com.github.akarazhev.jcryptolib.cmc.config.Type;
+import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
+import com.github.akarazhev.jcryptolib.stream.Payload;
+import io.reactivex.rxjava3.core.Flowable;
+import org.springframework.stereotype.Component;
 
-@Service
-final class EventSubscriber implements Subscriber<String> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventSubscriber.class);
+import java.net.http.HttpClient;
+import java.util.Map;
 
-    @RabbitListener(queues = "${amqp.queue.events}")
-    @Override
-    public void subscribe(final String event) {
-        LOGGER.info("Received event: {}", event);
+@Component
+final class DataSupplier {
+    private final HttpClient client;
+
+    public DataSupplier(final HttpClient client) {
+        this.client = client;
+    }
+
+    public Flowable<Payload<Map<String, Object>>> ofCmc() {
+        final var config = new DataConfig.Builder()
+                .type(Type.FGI)
+                .type(Type.ASI)
+                .type(Type.BDO)
+                .build();
+        return DataStreams.ofCmc(client, config);
     }
 }

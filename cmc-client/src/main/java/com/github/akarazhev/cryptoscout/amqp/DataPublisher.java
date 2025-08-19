@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.amqp;
 
+import com.github.akarazhev.cryptoscout.Publisher;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
@@ -38,7 +39,7 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BI
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
 
 @Service
-final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
+public final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
     private final AmqpTemplate amqpTemplate;
     private final TopicExchange topicExchange;
 
