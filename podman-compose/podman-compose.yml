@@ -93,11 +93,11 @@ services:
           cpus: '0.50'
           memory: 512M
 
-  cex-client:
+  cmc-client:
     build:
-      context: ../cex-client
+      context: ../cmc-client
       dockerfile: Dockerfile
-    container_name: crypto-scout-cex-client
+    container_name: crypto-scout-cmc-client
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -113,7 +113,7 @@ services:
       - rabbitmq_user
       - rabbitmq_pass
     restart: on-failure
-    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar cex-client.jar" ]
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar cmc-client.jar" ]
     deploy:
       resources:
         limits:
