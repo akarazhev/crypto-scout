@@ -28,6 +28,7 @@ import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -39,20 +40,23 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FE
 @Service
 final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
     private final AmqpTemplate amqpTemplate;
+    private final TopicExchange topicExchange;
 
-    public DataPublisher(final AmqpTemplate amqpTemplate) {
+    public DataPublisher(final AmqpTemplate amqpTemplate, final TopicExchange topicExchange) {
         this.amqpTemplate = amqpTemplate;
+        this.topicExchange = topicExchange;
     }
 
     @Override
     public void publish(final Payload<Map<String, Object>> payload) {
         if (Provider.CMC.equals(payload.getProvider())) {
+            final var data = payload.getData();
             if (Source.FGI.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(ROUTING_METRICS_FEAR_GREED_INDEX, payload.getData());
+                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_FEAR_GREED_INDEX, data);
             } else if (Source.ASI.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(ROUTING_METRICS_ALTCOIN_SEASON_INDEX, payload.getData());
+                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_ALTCOIN_SEASON_INDEX, data);
             } else if (Source.BDO.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW, payload.getData());
+                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW, data);
             }
         }
     }
