@@ -29,7 +29,7 @@ import io.reactivex.rxjava3.core.Flowable;
 
 import java.util.Map;
 
-interface DataStream {
+public interface DataStream {
 
     Flowable<Payload<Map<String, Object>>> data();
 }

@@ -22,35 +22,10 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream;
+package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.cryptoscout.amqp.DataPublisher;
-import io.reactivex.rxjava3.disposables.Disposable;
-import org.springframework.stereotype.Component;
-
-@Component
-public final class DataBridge {
-    private final DataStream dataStream;
-    private final DataPublisher dataPublisher;
-    private Disposable disposable;
-
-    public DataBridge(final DataStream dataStream, final DataPublisher dataPublisher) {
-        this.dataStream = dataStream;
-        this.dataPublisher = dataPublisher;
-    }
-
-    public void start() {
-        disposable = dataStream.data().subscribe(dataPublisher::publish);
-    }
-
-    public void stop() {
-        if (disposable != null) {
-            disposable.dispose();
-        }
-    }
-
-    public void restart() {
-        stop();
-        start();
+public record Command<T>(Action action, T payload) {
+    public enum Action {
+        START, STOP, RESTART
     }
 }

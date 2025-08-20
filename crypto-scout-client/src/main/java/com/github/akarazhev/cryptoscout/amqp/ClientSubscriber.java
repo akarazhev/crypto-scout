@@ -24,19 +24,45 @@
 
 package com.github.akarazhev.cryptoscout.amqp;
 
+import com.github.akarazhev.cryptoscout.Command;
 import com.github.akarazhev.cryptoscout.Subscriber;
+import com.github.akarazhev.cryptoscout.stream.DataBridge;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 @Service
-final class ClientSubscriber implements Subscriber<String> {
+final class ClientSubscriber implements Subscriber<Command<Object>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientSubscriber.class);
+    private final DataBridge dataBridge;
+
+    public ClientSubscriber(final DataBridge dataBridge) {
+        this.dataBridge = dataBridge;
+    }
 
     @RabbitListener(queues = "${amqp.queue.client}")
     @Override
-    public void subscribe(final String command) {
+    public void subscribe(final Command<Object> command) {
         LOGGER.info("Received the command: {}", command);
+        switch (command.action()) {
+            case STOP -> dataBridge.stop();
+            case START -> dataBridge.start();
+            case RESTART -> dataBridge.restart();
+            default -> {
+            }
+        }
+    }
+
+    @PreDestroy
+    public void stop() {
+        dataBridge.stop();
+    }
+
+    @PostConstruct
+    public void start() {
+        dataBridge.start();
     }
 }
