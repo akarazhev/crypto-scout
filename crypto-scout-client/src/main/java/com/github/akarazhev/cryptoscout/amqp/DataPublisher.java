@@ -34,7 +34,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BYBIT_LPL;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_CMC_FGI;
 
 @Service
 public final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
@@ -48,10 +49,16 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
 
     @Override
     public void publish(final Payload<Map<String, Object>> payload) {
-        if (Provider.CMC.equals(payload.getProvider())) {
-            final var data = payload.getData();
-            if (Source.FGI.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_FEAR_GREED_INDEX, data);
+        final var provider = payload.getProvider();
+        final var source = payload.getSource();
+        final var data = payload.getData();
+        if (Provider.CMC.equals(provider)) {
+            if (Source.FGI.equals(source)) {
+                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_CMC_FGI, data);
+            }
+        } else if (Provider.BYBIT.equals(provider)) {
+            if (Source.LPL.equals(source)) {
+                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_BYBIT_LPL, data);
             }
         }
     }

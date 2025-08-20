@@ -63,7 +63,7 @@ final class DataStreamService implements DataStream {
                         completed
                                 .zipWith(Flowable.range(1, Integer.MAX_VALUE), (ignored, attempt) -> attempt)
                                 .flatMap(attempt -> {
-                                    long delay = computeBackoffDelayMs(attempt, retryBaseMs, retryMaxMs, retryJitter);
+                                    final var delay = computeBackoffDelayMs(attempt, retryBaseMs, retryMaxMs, retryJitter);
                                     LOGGER.warn("Resubscribing to CMC stream in {} ms (attempt #{})", delay, attempt);
                                     return Flowable.timer(delay, TimeUnit.MILLISECONDS);
                                 })
@@ -74,9 +74,9 @@ final class DataStreamService implements DataStream {
 
     private long computeBackoffDelayMs(final int attempt, final long baseMs, final long maxMs, final double jitterFactor) {
         // Exponential backoff with cap and jitter
-        double exp = baseMs * Math.pow(2.0, Math.max(0, attempt - 1));
-        long delay = Math.min((long) exp, maxMs);
-        long jitter = (long) (delay * jitterFactor);
+        final var exp = baseMs * Math.pow(2.0, Math.max(0, attempt - 1));
+        final var delay = Math.min((long) exp, maxMs);
+        final var jitter = (long) (delay * jitterFactor);
         return delay + ThreadLocalRandom.current().nextLong(0, jitter + 1);
     }
 }

@@ -38,6 +38,7 @@ public final class Constants {
         public static final String ROUTING_ANNOUNCEMENTS = "announcements.cex";
         public static final String ROUTING_COMMANDS = "commands";
         public static final String ROUTING_RESULTS = "results";
-        public static final String ROUTING_METRICS_FEAR_GREED_INDEX = "metrics.fear_greed_index";
+        public static final String ROUTING_METRICS_CMC_FGI = "metrics.cmc_fear_greed_index";
+        public static final String ROUTING_METRICS_BYBIT_LPL = "metrics.bybit_launch_pool";
     }
 }

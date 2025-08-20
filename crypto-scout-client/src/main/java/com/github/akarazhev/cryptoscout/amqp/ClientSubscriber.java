@@ -31,12 +31,12 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 @Service
-final class EventSubscriber implements Subscriber<String> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventSubscriber.class);
+final class ClientSubscriber implements Subscriber<String> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientSubscriber.class);
 
-    @RabbitListener(queues = "${amqp.queue.events}")
+    @RabbitListener(queues = "${amqp.queue.client}")
     @Override
-    public void subscribe(final String event) {
-        LOGGER.info("Received event: {}", event);
+    public void subscribe(final String command) {
+        LOGGER.info("Received the command: {}", command);
     }
 }

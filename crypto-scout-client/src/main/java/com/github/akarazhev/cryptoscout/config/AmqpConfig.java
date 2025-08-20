@@ -37,19 +37,22 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BYBIT_LPL;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_CMC_FGI;
 
 @Configuration
 class AmqpConfig {
 
     @Bean
     public TopicExchange metricsExchange(@Value("${amqp.exchange.metrics}") final String name) {
-        return ExchangeBuilder.topicExchange(name).durable(true).build();
+        return ExchangeBuilder.topicExchange(name)
+                .durable(true)
+                .build();
     }
 
     @Bean
-    public Queue fearGreedIndexQueue(@Value("${amqp.queue.fear_greed_index}") final String queueName,
-                                     @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+    public Queue cmcFearGreedIndexQueue(@Value("${amqp.queue.cmc_fear_greed_index}") final String queueName,
+                                        @Value("${amqp.queue.dead}") final String deadLetterQueue) {
         return QueueBuilder.durable(queueName)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", deadLetterQueue)
@@ -59,8 +62,20 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue eventsQueue(@Value("${amqp.queue.events}") final String queueName) {
-        return QueueBuilder.durable(queueName).ttl((int) Duration.ofHours(6).toMillis())
+    public Queue bybitLaunchPoolQueue(@Value("${amqp.queue.bybit_launch_pool}") final String queueName,
+                                      @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+        return QueueBuilder.durable(queueName)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
+                .ttl(21600000)
+                .maxLength(2500)
+                .build();
+    }
+
+    @Bean
+    public Queue clientQueue(@Value("${amqp.queue.client}") final String queueName) {
+        return QueueBuilder.durable(queueName)
+                .ttl((int) Duration.ofHours(6).toMillis())
                 .maxLength(2500)
                 .build();
     }
@@ -71,8 +86,17 @@ class AmqpConfig {
     }
 
     @Bean
-    public Binding fearGreedIndexBinding(final Queue fearGreedIndexQueue, final TopicExchange metricsExchange) {
-        return BindingBuilder.bind(fearGreedIndexQueue).to(metricsExchange).with(ROUTING_METRICS_FEAR_GREED_INDEX);
+    public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue, final TopicExchange metricsExchange) {
+        return BindingBuilder.bind(cmcFearGreedIndexQueue)
+                .to(metricsExchange)
+                .with(ROUTING_METRICS_CMC_FGI);
+    }
+
+    @Bean
+    public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue, final TopicExchange metricsExchange) {
+        return BindingBuilder.bind(bybitLaunchPoolQueue)
+                .to(metricsExchange)
+                .with(ROUTING_METRICS_BYBIT_LPL);
     }
 
     @Bean
