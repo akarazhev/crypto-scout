@@ -35,10 +35,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
-
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BYBIT_LPL;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_CMC_FGI;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
 
 @Configuration
 class AmqpConfig {
@@ -52,31 +53,37 @@ class AmqpConfig {
 
     @Bean
     public Queue cmcFearGreedIndexQueue(@Value("${amqp.queue.cmc_fear_greed_index}") final String queueName,
-                                        @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+                                        @Value("${amqp.queue.dead}") final String deadLetterQueue,
+                                        @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                                        @Value("${amqp.queue.max.length}") final int maxLength) {
         return QueueBuilder.durable(queueName)
-                .withArgument("x-dead-letter-exchange", "")
-                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
-                .ttl(21600000)
-                .maxLength(2500)
+                .withArgument(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE)
+                .withArgument(X_DEAD_LETTER_ROUTING_KEY, deadLetterQueue)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
                 .build();
     }
 
     @Bean
     public Queue bybitLaunchPoolQueue(@Value("${amqp.queue.bybit_launch_pool}") final String queueName,
-                                      @Value("${amqp.queue.dead}") final String deadLetterQueue) {
+                                      @Value("${amqp.queue.dead}") final String deadLetterQueue,
+                                      @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                                      @Value("${amqp.queue.max.length}") final int maxLength) {
         return QueueBuilder.durable(queueName)
-                .withArgument("x-dead-letter-exchange", "")
-                .withArgument("x-dead-letter-routing-key", deadLetterQueue)
-                .ttl(21600000)
-                .maxLength(2500)
+                .withArgument(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE)
+                .withArgument(X_DEAD_LETTER_ROUTING_KEY, deadLetterQueue)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
                 .build();
     }
 
     @Bean
-    public Queue clientQueue(@Value("${amqp.queue.client}") final String queueName) {
+    public Queue clientQueue(@Value("${amqp.queue.client}") final String queueName,
+                             @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                             @Value("${amqp.queue.max.length}") final int maxLength) {
         return QueueBuilder.durable(queueName)
-                .ttl((int) Duration.ofHours(6).toMillis())
-                .maxLength(2500)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
                 .build();
     }
 
