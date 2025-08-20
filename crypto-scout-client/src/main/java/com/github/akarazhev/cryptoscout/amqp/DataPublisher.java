@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_ALTCOIN_SEASON_INDEX;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_FEAR_GREED_INDEX;
 
 @Service
@@ -54,10 +52,6 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
             final var data = payload.getData();
             if (Source.FGI.equals(payload.getSource())) {
                 amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_FEAR_GREED_INDEX, data);
-            } else if (Source.ASI.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_ALTCOIN_SEASON_INDEX, data);
-            } else if (Source.BDO.equals(payload.getSource())) {
-                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_BITCOIN_DOMINANCE_OVERVIEW, data);
             }
         }
     }

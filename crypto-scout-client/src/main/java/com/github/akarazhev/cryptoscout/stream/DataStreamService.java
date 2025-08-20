@@ -54,7 +54,7 @@ final class DataStreamService implements DataStream {
     @Override
     public Flowable<Payload<Map<String, Object>>> data() {
         return Flowable.defer(() ->
-                        dataSupplier.ofCmc()
+                        dataSupplier.ofCmcData()
                                 .doOnSubscribe(_ -> LOGGER.info("CMC data stream subscribed"))
                                 .doOnError(e -> LOGGER.error("CMC data stream error", e))
                                 .onErrorResumeNext((Throwable _) -> Flowable.empty())
