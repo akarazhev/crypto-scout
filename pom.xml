@@ -15,7 +15,7 @@
     </licenses>
     <modules>
         <module>crypto-scout-lib</module>
-        <module>cmc-client</module>
+        <module>crypto-scout-client</module>
         <module>event-collector</module>
         <module>telegram-bot</module>
     </modules>

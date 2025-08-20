@@ -20,30 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Client settings
-client.connect.timeout.ms=10000
-# CoinMarketCap settings
-cmc.connect.timeout.ms=10000
-cmc.fetch.interval.ms=600000
-cmc.circuit.breaker.threshold=5
-cmc.circuit.breaker.timeout.ms=30000
-cmc.rate.limit.ms=2100
-cmc.retry.base.ms=1000
-cmc.retry.max.ms=60000
-cmc.retry.jitter=0.2
-# CoinMarketCap API settings
-cmc.api.key=
-# RabbitMQ Connection settings
-amqp.exchange.metrics=metrics-exchange
-amqp.queue.altcoin_season_index=metrics-altcoin-season-index-queue
-amqp.queue.bitcoin_dominance=metrics-bitcoin-dominance-queue
-amqp.queue.fear_greed_index=metrics-fear-greed-index-queue
-amqp.queue.dead=metrics-dead-letter-queue
-amqp.queue.events=crypto-scout-events-queue
-# Application settings
-spring.application.name=cmc-client
-spring.main.banner-mode=off
-spring.rabbitmq.host=${SPRING_RABBITMQ_HOST:localhost}
-spring.rabbitmq.port=${SPRING_RABBITMQ_PORT:5672}
-spring.rabbitmq.username=
-spring.rabbitmq.password=
+FROM amazoncorretto:23-alpine
+WORKDIR /app
+COPY target/crypto-scout-client-0.0.1.jar crypto-scout-client.jar
+ENTRYPOINT ["java", "-jar", "crypto-scout-client.jar"]
