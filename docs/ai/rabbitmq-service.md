@@ -27,75 +27,86 @@ Take the following roles:
 
 ## Implementation Summary
 
-The RabbitMQ service has been successfully implemented with the following key features:
+The RabbitMQ service has been upgraded to version 4.1.3 with the following configuration:
 
-### 1. Production-Ready Configuration
+1. **Container**: Using the official RabbitMQ 4.1.3 image with management plugin
+2. **Networking**: Exposing ports 5672 (AMQP), 15672 (Management UI), and 5552 (Stream)
+3. **Persistence**: Volume mounted for data persistence
+4. **Configuration**:
+   - Core settings in rabbitmq.conf
+   - Plugins in enabled_plugins
+   - Definitions (users, vhosts, queues, exchanges, bindings) in definitions.json
+5. **High Availability**: Configured via queue-leader-locator and queue-mode policies
+6. **Security**: Admin user with password authentication
+7. **Resource Limits**: Memory and disk limits configured
 
-- **RabbitMQ 3.12** with management plugin
-- Stream protocol support (port 5552)
-- Resource limits and reservations for CPU and memory
-- Health checks and proper restart policies
-- File descriptor limits (ulimits)
-- Memory high watermark (60%) and disk free limit (2GB)
-- Credentials configured directly in rabbitmq.conf (best practice)
+## Streams and Messaging Architecture
 
-### 2. Stream Processing for Crypto Data
+The service provides two main stream queues:
+- `crypto.price.stream`: For cryptocurrency price data
+- `crypto.market.stream`: For market-related events
 
-- Enabled stream plugin
-- Configured streams:
-    - `crypto.price.stream`: For price updates
-    - `crypto.market.stream`: For market data
-- Stream settings:
-    - 7-day data retention
-    - 100MB segment size
-    - 20GB total storage limit
+These streams have retention policies set to 7 days.
 
-### 3. Messaging Architecture
+Several classic queues are configured for different purposes:
+- Metrics collection queues with overflow protection
+- Client communication queues
+- Service notification and command queues
 
-- **Exchanges**:
-    - `metrics-exchange`: For metrics data
-    - `crypto.events`: For crypto-related events
-    - `service.events`: For service-to-service communication
+## Security and High Availability
 
-- **Queues**:
-    - `metrics-cmc-fear-greed-index-queue`: For CoinMarketCap fear and greed index metrics
-    - `metrics-bybit-launch-pool-queue`: For Bybit launch pool metrics
-    - `metrics-dead-letter-queue`: Dead letter queue for failed messages
-    - `crypto-scout-client-queue`: Client-specific queue
-    - `service.notifications`: For notifications (consumed by Telegram bot)
-    - `service.commands`: For service commands
+- Authentication is handled via username/password
+- TLS configuration is prepared but not enabled
+- High availability is configured via queue policies
+- Dead letter queues are set up for failed message handling
 
-- **Bindings**:
-    - Appropriate routing keys for all exchanges and queues
-    - Dead letter exchange configuration
+## Upgrade Notes and Lessons Learned
 
-### 4. Client-Specific Configuration
+The upgrade from RabbitMQ 3.x to 4.1.3 revealed several important considerations:
 
-- All queue and exchange names aligned with client code
-- TTL and max length settings from application.properties
-- Environment variables for all services
+### Configuration Changes
 
-### 5. Security
+1. **Policy Settings**: RabbitMQ 4.x removed support for certain policy settings:
+   - `ha-mode` and `ha-sync-mode` are no longer supported
+   - Use `queue-leader-locator` instead of `queue-master-locator`
+   - Stream retention settings format has changed
 
-- Credentials managed directly in rabbitmq.conf (replacing deprecated environment variables)
-- Prepared TLS configuration (commented out)
-- Proper user permissions
+2. **Configuration Approach**: 
+   - Keep rabbitmq.conf minimal with core settings only
+   - Use definitions.json for complex configurations
+   - Configure advanced features through policies rather than direct configuration
 
-### 6. High Availability
+3. **Deprecated Features**:
+   - Some features like `management_metrics_collection` are deprecated but still functional
+   - Monitor logs for deprecation warnings to prepare for future upgrades
 
-- HA policies for queues and exchanges
-- Automatic synchronization
-- Clustering configuration
+### Migration Best Practices
 
-### 7. Configuration Files
+1. **Incremental Approach**: Update components in this order:
+   - Container image version
+   - Core configuration
+   - Policies and definitions
+   - Advanced features
 
-- **enabled_plugins**: Management, prometheus, stream, consistent hash exchange, shovel plugins
-- **rabbitmq.conf**: Memory/disk limits, stream settings, queue defaults, security, user credentials
-- **definitions.json**: Users, vhosts, permissions, exchanges, queues, bindings, streams
+2. **Testing Strategy**:
+   - Check container logs for configuration errors
+   - Verify service functionality after each change
+   - Test all message patterns (publish/subscribe, streams, etc.)
 
-### 8. Directory Structure
+3. **Documentation**: 
+   - Refer to official RabbitMQ 4.x documentation
+   - Community forums provide additional migration insights
 
-- Data directory aligned with .gitignore configuration (podman-compose/data)
-- Configuration files organized in the rabbitmq subdirectory
+## Benefits of RabbitMQ 4.1.3
+
+The upgrade provides several advantages:
+
+1. **Improved Performance**: Better message throughput and reduced latency
+2. **Enhanced Stream Processing**: Native stream support with improved configuration
+3. **Better Resource Management**: More efficient memory and disk usage
+4. **Advanced Clustering**: Improved high availability and fault tolerance
+5. **Modern Management Interface**: Enhanced monitoring capabilities
+6. **Extended Plugin Ecosystem**: Access to new plugins and features
+7. **Better Security**: Enhanced security features and controls
 
 A detailed report is available in `docs/dev/rabbitmq-service-report.md`.

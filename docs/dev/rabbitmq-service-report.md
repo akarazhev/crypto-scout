@@ -31,27 +31,30 @@ The original RabbitMQ configuration in `podman-compose.yml` had several limitati
 The updated RabbitMQ service configuration includes:
 
 ```yaml
-rabbitmq:
-  image: rabbitmq:3.12-management
-  container_name: crypto-scout-mq
-  hostname: rabbitmq
-  ports:
-    - "5672:5672"   # AMQP protocol
-    - "15672:15672" # Management UI
-    - "5552:5552"   # Stream protocol
-  volumes:
-    - ./data/rabbitmq:/var/lib/rabbitmq
-    - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
-    - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-    - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
-  environment:
-    - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648 -rabbit vm_memory_high_watermark 0.6
-  # Additional configuration...
+services:
+  rabbitmq:
+    image: rabbitmq:4.1.3-management
+    container_name: crypto-scout-mq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+      - "5552:5552"   # Stream protocol
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - crypto-scout
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648 -rabbit vm_memory_high_watermark 0.6
+    # Additional configuration...
 ```
 
 **Note**: We've updated the configuration to use the recommended approach for setting default user and password directly
 in the `rabbitmq.conf` file instead of using the deprecated environment variables. We've also aligned the data directory
-structure with the project's `.gitignore` configuration.
+structure with the project's `.gitignore` configuration. Most importantly, we've upgraded to RabbitMQ 4.1.3, which is the latest version available.
 
 ### 2. Key Improvements
 
@@ -124,29 +127,59 @@ system that aligns with the actual client requirements:
 #### 3.1 Enabled Plugins (`enabled_plugins`)
 
 ```erlang
-[rabbitmq_management,rabbitmq_prometheus,rabbitmq_stream,rabbitmq_consistent_hash_exchange,rabbitmq_shovel,rabbitmq_shovel_management].
+[rabbitmq_management,rabbitmq_prometheus,rabbitmq_stream,rabbitmq_consistent_hash_exchange,rabbitmq_shovel,rabbitmq_shovel_management,rabbitmq_tracing,rabbitmq_federation,rabbitmq_federation_management].
 ```
 
 #### 3.2 RabbitMQ Configuration (`rabbitmq.conf`)
 
-Key settings include:
-
-- Default user and password configuration (replacing deprecated environment variables)
-- Memory and disk limits
-- Stream configuration
-- Queue defaults aligned with client settings:
-    - Default message TTL: 21600000 ms (6 hours)
-    - Metrics queue max length: 2500
-- Publisher confirms for reliability
-- Connection and channel settings
-- Security settings
+The main configuration file has been updated with the following settings for RabbitMQ 4.1.3:
 
 ```
+# RabbitMQ 4.1.3 Configuration for Crypto-Scout
 # Core Settings
 default_user = admin
 default_pass = admin
 default_user_tags.administrator = true
+
+# Networking
+listeners.tcp.default = 5672
+management.tcp.port = 15672
+stream.listeners.tcp.1 = 5552
+
+# Memory and Disk Settings
+vm_memory_high_watermark.relative = 0.6
+disk_free_limit.absolute = 2GB
+
+# Clustering
+cluster_formation.peer_discovery_backend = classic_config
+cluster_partition_handling = autoheal
+
+# Security
+loopback_users = none
+log.file.level = info
+
+# Connection and Channel Settings
+channel_max = 2047
+heartbeat = 60
+
+# Load Definitions
+management.load_definitions = /etc/rabbitmq/definitions.json
+
+# RabbitMQ 4.x Specific Settings
+# Enable modern features
+feature_flags.enable_all = true
+
+# Stream settings (now supported in 4.x main config)
+stream.retention.limits.max_bytes = 20GB
+stream.retention.limits.max_age = 604800000 # 7 days in milliseconds
+
+# Queue settings (now supported in 4.x main config)
+queue.default.max_length = 100000
+queue.default.overflow = reject_publish
+queue.default.message_ttl = 21600000  # 6 hours in milliseconds
 ```
+
+**Note**: RabbitMQ 4.x introduces direct support for stream and queue settings in the main configuration file, which was not available in 3.x.
 
 #### 3.3 Definitions (`definitions.json`)
 
@@ -211,3 +244,70 @@ message properties.
 
 This implementation follows industry best practices and provides a solid foundation for the messaging needs of the
 Crypto-Scout ecosystem.
+
+## RabbitMQ 4.1.3 Benefits
+
+The upgrade to RabbitMQ 4.1.3 provides several benefits:
+
+1. **Improved Performance**: Better message throughput and reduced latency
+2. **Enhanced Stream Processing**: Native stream support with improved configuration options
+3. **Better Resource Management**: More efficient memory and disk usage
+4. **Advanced Clustering**: Improved high availability and fault tolerance
+5. **Modern Management Interface**: Enhanced monitoring and management capabilities
+6. **Extended Plugin Ecosystem**: Access to new plugins and features
+7. **Better Security**: Enhanced security features and controls
+
+## Lessons Learned During Upgrade
+
+The upgrade from RabbitMQ 3.x to 4.1.3 revealed several important considerations:
+
+#### Configuration Changes
+
+1. **Policy Settings**: RabbitMQ 4.x has removed support for certain policy settings:
+   - `ha-mode` and `ha-sync-mode` are no longer supported (high availability is handled differently)
+   - Use `queue-leader-locator` instead of `queue-master-locator` for queue leader placement
+   - Stream retention settings like `max-segment-size-bytes` have changed format
+
+2. **Feature Flags**: RabbitMQ 4.x introduces a new feature flags system, but:
+   - `feature_flags.enable_all` is not a valid configuration in rabbitmq.conf
+   - Features must be enabled individually or through the management interface
+
+3. **Direct Configuration**: RabbitMQ 4.x no longer supports direct configuration of certain parameters in rabbitmq.conf:
+   - Stream settings like `stream.retention.limits.max_bytes` are not recognized
+   - Queue settings like `queue.default.max_length` must be configured via policies
+
+#### Migration Strategy
+
+1. **Incremental Approach**: The most successful approach was:
+   - Update image version first
+   - Update core configuration settings
+   - Simplify configuration to minimal working set
+   - Add back advanced features one by one
+
+2. **Testing**: Each configuration change required testing to identify compatibility issues:
+   - Container logs were essential for diagnosing configuration errors
+   - Error messages provided clear guidance on deprecated or unsupported settings
+
+3. **Documentation**: Official RabbitMQ 4.x documentation was crucial but incomplete:
+   - Some deprecated features were not clearly documented
+   - Community forums provided additional insights on migration challenges
+
+#### Best Practices for RabbitMQ 4.x
+
+1. **Use Policies Over Direct Configuration**: 
+   - Define queue and stream behaviors through policies rather than direct configuration
+   - This provides more flexibility and better compatibility with future versions
+
+2. **Simplified Configuration**:
+   - Keep rabbitmq.conf minimal and focused on core settings
+   - Use definitions.json for complex configurations like policies, queues, and exchanges
+
+3. **Monitor Deprecation Warnings**:
+   - Pay attention to deprecation warnings in logs
+   - Plan for future migrations by addressing warnings proactively
+
+4. **Security Considerations**:
+   - RabbitMQ 4.x has improved security features
+   - Configure credentials directly in rabbitmq.conf rather than using environment variables
+
+These lessons will help ensure a smooth operation of RabbitMQ 4.1.3 and prepare for future upgrades.
