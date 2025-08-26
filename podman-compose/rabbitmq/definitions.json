@@ -1,8 +1,8 @@
 {
-  "rabbit_version": "3.12.0",
-  "rabbitmq_version": "3.12.0",
+  "rabbit_version": "4.1.3",
+  "rabbitmq_version": "4.1.3",
   "product_name": "RabbitMQ",
-  "product_version": "3.12.0",
+  "product_version": "4.1.3",
   "users": [
     {
       "name": "admin",
@@ -33,8 +33,18 @@
       "pattern": "^(metrics-.*|crypto-.*)",
       "apply-to": "all",
       "definition": {
-        "ha-mode": "all",
-        "ha-sync-mode": "automatic"
+        "queue-leader-locator": "balanced",
+        "queue-mode": "lazy"
+      },
+      "priority": 1
+    },
+    {
+      "vhost": "/",
+      "name": "stream-retention-policy",
+      "pattern": "^crypto\\.(price|market)\\.stream$",
+      "apply-to": "streams",
+      "definition": {
+        "max-age": "7D"
       },
       "priority": 1
     }
@@ -190,8 +200,6 @@
       "vhost": "/",
       "arguments": {
         "max-age": "7D",
-        "max-segment-size-bytes": 100000000,
-        "max-length-bytes": 20000000000,
         "queue-leader-locator": "balanced"
       }
     },
@@ -200,10 +208,30 @@
       "vhost": "/",
       "arguments": {
         "max-age": "7D",
-        "max-segment-size-bytes": 100000000,
-        "max-length-bytes": 20000000000,
         "queue-leader-locator": "balanced"
       }
+    }
+  ],
+  "feature_flags": [
+    {
+      "name": "stream_queue",
+      "enabled": true
+    },
+    {
+      "name": "direct_exchange_routing_v2",
+      "enabled": true
+    },
+    {
+      "name": "maintenance_mode_status",
+      "enabled": true
+    },
+    {
+      "name": "user_limits",
+      "enabled": true
+    },
+    {
+      "name": "virtual_host_metadata",
+      "enabled": true
     }
   ]
 }
