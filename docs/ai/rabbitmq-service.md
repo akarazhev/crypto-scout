@@ -37,6 +37,7 @@ The RabbitMQ service has been successfully implemented with the following key fe
 - Health checks and proper restart policies
 - File descriptor limits (ulimits)
 - Memory high watermark (60%) and disk free limit (2GB)
+- Credentials configured directly in rabbitmq.conf (best practice)
 
 ### 2. Stream Processing for Crypto Data
 
@@ -76,7 +77,7 @@ The RabbitMQ service has been successfully implemented with the following key fe
 
 ### 5. Security
 
-- Credentials managed via Docker secrets
+- Credentials managed directly in rabbitmq.conf (replacing deprecated environment variables)
 - Prepared TLS configuration (commented out)
 - Proper user permissions
 
@@ -89,7 +90,12 @@ The RabbitMQ service has been successfully implemented with the following key fe
 ### 7. Configuration Files
 
 - **enabled_plugins**: Management, prometheus, stream, consistent hash exchange, shovel plugins
-- **rabbitmq.conf**: Memory/disk limits, stream settings, queue defaults, security
+- **rabbitmq.conf**: Memory/disk limits, stream settings, queue defaults, security, user credentials
 - **definitions.json**: Users, vhosts, permissions, exchanges, queues, bindings, streams
+
+### 8. Directory Structure
+
+- Data directory aligned with .gitignore configuration (podman-compose/data)
+- Configuration files organized in the rabbitmq subdirectory
 
 A detailed report is available in `docs/dev/rabbitmq-service-report.md`.

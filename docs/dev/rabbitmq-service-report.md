@@ -45,11 +45,13 @@ rabbitmq:
     - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
   environment:
-    - RABBITMQ_DEFAULT_USER_FILE=/run/secrets/rabbitmq_user
-    - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_pass
     - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648 -rabbit vm_memory_high_watermark 0.6
   # Additional configuration...
 ```
+
+**Note**: We've updated the configuration to use the recommended approach for setting default user and password directly
+in the `rabbitmq.conf` file instead of using the deprecated environment variables. We've also aligned the data directory
+structure with the project's `.gitignore` configuration.
 
 ### 2. Key Improvements
 
@@ -113,7 +115,7 @@ system that aligns with the actual client requirements:
 
 #### 2.5 Security Enhancements
 
-- Used secrets for credentials
+- Credentials configured directly in rabbitmq.conf (best practice)
 - Prepared for TLS configuration (commented out)
 - Configured proper user permissions
 
@@ -129,6 +131,7 @@ system that aligns with the actual client requirements:
 
 Key settings include:
 
+- Default user and password configuration (replacing deprecated environment variables)
 - Memory and disk limits
 - Stream configuration
 - Queue defaults aligned with client settings:
@@ -137,6 +140,13 @@ Key settings include:
 - Publisher confirms for reliability
 - Connection and channel settings
 - Security settings
+
+```
+# Core Settings
+default_user = admin
+default_pass = admin
+default_user_tags.administrator = true
+```
 
 #### 3.3 Definitions (`definitions.json`)
 
