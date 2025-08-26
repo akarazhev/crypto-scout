@@ -37,9 +37,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Service
-final class DataStreamService implements DataStream {
+public final class DataStreamService implements DataStream {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStreamService.class);
-    private final DataSupplier dataSupplier;
+    private final ResilientDataService resilientDataService;
     @Value("${cmc.retry.base.ms:1000}")
     private long retryBaseMs;
     @Value("${cmc.retry.max.ms:60000}")
@@ -47,17 +47,17 @@ final class DataStreamService implements DataStream {
     @Value("${cmc.retry.jitter:0.2}")
     private double retryJitter;
 
-    public DataStreamService(final DataSupplier dataSupplier) {
-        this.dataSupplier = dataSupplier;
+    public DataStreamService(final ResilientDataService resilientDataService) {
+        this.resilientDataService = resilientDataService;
     }
 
     @Override
     public Flowable<Payload<Map<String, Object>>> data() {
         return Flowable.defer(() ->
-                        dataSupplier.ofCmcData()
-                                .doOnSubscribe(_ -> LOGGER.info("CMC data stream subscribed"))
+                        resilientDataService.getCmcData()
+                                .doOnSubscribe(s -> LOGGER.info("CMC data stream subscribed"))
                                 .doOnError(e -> LOGGER.error("CMC data stream error", e))
-                                .onErrorResumeNext((Throwable _) -> Flowable.empty())
+                                .onErrorResumeNext((Throwable t) -> Flowable.empty())
                 )
                 .repeatWhen(completed ->
                         completed

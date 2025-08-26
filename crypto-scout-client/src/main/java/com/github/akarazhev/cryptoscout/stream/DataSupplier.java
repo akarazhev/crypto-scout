@@ -24,9 +24,12 @@
 
 package com.github.akarazhev.cryptoscout.stream;
 
+import com.github.akarazhev.cryptoscout.config.SecureConfigProperties;
 import com.github.akarazhev.jcryptolib.DataStreams;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.reactivex.rxjava3.core.Flowable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.net.http.HttpClient;
@@ -36,23 +39,38 @@ import static com.github.akarazhev.jcryptolib.bybit.config.Type.LPL;
 import static com.github.akarazhev.jcryptolib.cmc.config.Type.FGI;
 
 @Component
-final class DataSupplier {
+public final class DataSupplier {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSupplier.class);
     private final HttpClient client;
+    private final SecureConfigProperties secureConfig;
 
-    public DataSupplier(final HttpClient client) {
+    public DataSupplier(final HttpClient client, final SecureConfigProperties secureConfig) {
         this.client = client;
+        this.secureConfig = secureConfig;
     }
 
     public Flowable<Payload<Map<String, Object>>> ofBybitEvents() {
+        final String bybitApiKey = secureConfig.getApiKeys().getBybit();
+        if (bybitApiKey == null || bybitApiKey.isEmpty()) {
+            LOGGER.warn("Bybit API key not configured. Using default configuration.");
+        }
+        
         final var config = new com.github.akarazhev.jcryptolib.bybit.stream.DataConfig.Builder()
                 .type(LPL)
+                .apiKey(bybitApiKey)
                 .build();
         return DataStreams.ofBybit(client, config);
     }
 
     public Flowable<Payload<Map<String, Object>>> ofCmcData() {
+        final String cmcApiKey = secureConfig.getApiKeys().getCoinMarketCap();
+        if (cmcApiKey == null || cmcApiKey.isEmpty()) {
+            LOGGER.warn("CoinMarketCap API key not configured. Using default configuration.");
+        }
+        
         final var config = new com.github.akarazhev.jcryptolib.cmc.stream.DataConfig.Builder()
                 .type(FGI)
+                .apiKey(cmcApiKey)
                 .build();
         return DataStreams.ofCmc(client, config);
     }
