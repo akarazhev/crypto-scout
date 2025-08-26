@@ -308,6 +308,10 @@ The upgrade from RabbitMQ 3.x to 4.1.3 revealed several important considerations
 3. **Monitor Deprecation Warnings**:
     - Pay attention to deprecation warnings in logs
     - Plan for future migrations by addressing warnings proactively
+    - For the `management_metrics_collection` deprecated feature, we've explicitly enabled it with:
+      ```
+      deprecated_features.permit.management_metrics_collection = true
+      ```
 
 4. **Security Considerations**:
     - RabbitMQ 4.x has improved security features

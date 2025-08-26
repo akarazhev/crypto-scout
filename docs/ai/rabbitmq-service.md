@@ -24,3 +24,15 @@ Take the following roles:
 - Use common queue for messaging between services.
 - Recheck your proposal and make sure that they are correct and haven't missed any important points.
 - Write a report with your proposal and implementation into `doc/dev/rabbitmq-service-report.md`.
+
+## Lessons Learned During Upgrade
+
+### Deprecated Features
+
+- **Management Metrics Collection**: This feature is deprecated in RabbitMQ 4.x but still functional. We've explicitly
+  enabled it with:
+  ```
+  deprecated_features.permit.management_metrics_collection = true
+  ```
+  This ensures metrics collection continues to work in the management UI even in future minor versions. Long-term,
+  consider migrating to Prometheus metrics (already enabled on port 15692).
