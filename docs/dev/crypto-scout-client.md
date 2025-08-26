@@ -72,7 +72,7 @@ The service is configured via `application.properties` with the following key se
 The service can be deployed as a Docker container using the provided Dockerfile:
 
 ```dockerfile
-FROM amazoncorretto:23-alpine
+FROM eclipse-temurin:21.0.8_9-jre-ubi9-minimal
 WORKDIR /app
 COPY target/crypto-scout-client-0.0.1.jar crypto-scout-client.jar
 ENTRYPOINT ["java", "-jar", "crypto-scout-client.jar"]
@@ -89,7 +89,7 @@ The following environment variables can be used to configure the service:
 
 ### Prerequisites
 
-- Java 23
+- Java 21
 - Maven
 - RabbitMQ
 

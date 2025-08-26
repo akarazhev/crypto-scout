@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM amazoncorretto:23-alpine
+FROM eclipse-temurin:21.0.8_9-jre-ubi9-minimal
 WORKDIR /app
 COPY target/crypto-scout-client-0.0.1.jar crypto-scout-client.jar
 ENTRYPOINT ["java", "-jar", "crypto-scout-client.jar"]
