@@ -64,4 +64,4 @@ build/
 development
 
 ### Data files ###
-data
+podman-compose/data
