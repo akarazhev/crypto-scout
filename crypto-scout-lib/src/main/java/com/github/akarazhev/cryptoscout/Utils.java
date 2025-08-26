@@ -43,7 +43,7 @@ public final class Utils {
                     if (days < 1) {
                         days = 14;
                     }
-                } catch (NumberFormatException _) {
+                } catch (NumberFormatException ignored) {
                 }
             }
 
