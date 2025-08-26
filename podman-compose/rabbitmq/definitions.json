@@ -51,7 +51,7 @@
   ],
   "queues": [
     {
-      "name": "metrics-cmc-fear-greed-index-queue",
+      "name": "metrics-cmc-fgi-queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -65,7 +65,7 @@
       }
     },
     {
-      "name": "metrics-bybit-launch-pool-queue",
+      "name": "metrics-bybit-lpl-queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -155,17 +155,17 @@
     {
       "source": "metrics-exchange",
       "vhost": "/",
-      "destination": "metrics-cmc-fear-greed-index-queue",
+      "destination": "metrics-cmc-fgi-queue",
       "destination_type": "queue",
-      "routing_key": "metrics.cmc_fear_greed_index",
+      "routing_key": "metrics.cmc_fgi",
       "arguments": {}
     },
     {
       "source": "metrics-exchange",
       "vhost": "/",
-      "destination": "metrics-bybit-launch-pool-queue",
+      "destination": "metrics-bybit-lpl-queue",
       "destination_type": "queue",
-      "routing_key": "metrics.bybit_launch_pool",
+      "routing_key": "metrics.bybit_lpl",
       "arguments": {}
     },
     {

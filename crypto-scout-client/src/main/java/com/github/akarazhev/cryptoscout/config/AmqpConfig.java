@@ -52,7 +52,7 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue cmcFearGreedIndexQueue(@Value("${amqp.queue.cmc_fear_greed_index}") final String queueName,
+    public Queue cmcFearGreedIndexQueue(@Value("${amqp.queue.cmc_fgi}") final String queueName,
                                         @Value("${amqp.queue.dead}") final String deadLetterQueue,
                                         @Value("${amqp.queue.ttl.ms}") final int ttlMs,
                                         @Value("${amqp.queue.max.length}") final int maxLength) {
@@ -65,7 +65,7 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue bybitLaunchPoolQueue(@Value("${amqp.queue.bybit_launch_pool}") final String queueName,
+    public Queue bybitLaunchPoolQueue(@Value("${amqp.queue.bybit_lpl}") final String queueName,
                                       @Value("${amqp.queue.dead}") final String deadLetterQueue,
                                       @Value("${amqp.queue.ttl.ms}") final int ttlMs,
                                       @Value("${amqp.queue.max.length}") final int maxLength) {
