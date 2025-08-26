@@ -54,7 +54,8 @@ services:
 
 **Note**: We've updated the configuration to use the recommended approach for setting default user and password directly
 in the `rabbitmq.conf` file instead of using the deprecated environment variables. We've also aligned the data directory
-structure with the project's `.gitignore` configuration. Most importantly, we've upgraded to RabbitMQ 4.1.3, which is the latest version available.
+structure with the project's `.gitignore` configuration. Most importantly, we've upgraded to RabbitMQ 4.1.3, which is
+the latest version available.
 
 ### 2. Key Improvements
 
@@ -179,7 +180,8 @@ queue.default.overflow = reject_publish
 queue.default.message_ttl = 21600000  # 6 hours in milliseconds
 ```
 
-**Note**: RabbitMQ 4.x introduces direct support for stream and queue settings in the main configuration file, which was not available in 3.x.
+**Note**: RabbitMQ 4.x introduces direct support for stream and queue settings in the main configuration file, which was
+not available in 3.x.
 
 #### 3.3 Definitions (`definitions.json`)
 
@@ -264,50 +266,51 @@ The upgrade from RabbitMQ 3.x to 4.1.3 revealed several important considerations
 #### Configuration Changes
 
 1. **Policy Settings**: RabbitMQ 4.x has removed support for certain policy settings:
-   - `ha-mode` and `ha-sync-mode` are no longer supported (high availability is handled differently)
-   - Use `queue-leader-locator` instead of `queue-master-locator` for queue leader placement
-   - Stream retention settings like `max-segment-size-bytes` have changed format
+    - `ha-mode` and `ha-sync-mode` are no longer supported (high availability is handled differently)
+    - Use `queue-leader-locator` instead of `queue-master-locator` for queue leader placement
+    - Stream retention settings like `max-segment-size-bytes` have changed format
 
 2. **Feature Flags**: RabbitMQ 4.x introduces a new feature flags system, but:
-   - `feature_flags.enable_all` is not a valid configuration in rabbitmq.conf
-   - Features must be enabled individually or through the management interface
+    - `feature_flags.enable_all` is not a valid configuration in rabbitmq.conf
+    - Features must be enabled individually or through the management interface
 
-3. **Direct Configuration**: RabbitMQ 4.x no longer supports direct configuration of certain parameters in rabbitmq.conf:
-   - Stream settings like `stream.retention.limits.max_bytes` are not recognized
-   - Queue settings like `queue.default.max_length` must be configured via policies
+3. **Direct Configuration**: RabbitMQ 4.x no longer supports direct configuration of certain parameters in
+   rabbitmq.conf:
+    - Stream settings like `stream.retention.limits.max_bytes` are not recognized
+    - Queue settings like `queue.default.max_length` must be configured via policies
 
 #### Migration Strategy
 
 1. **Incremental Approach**: The most successful approach was:
-   - Update image version first
-   - Update core configuration settings
-   - Simplify configuration to minimal working set
-   - Add back advanced features one by one
+    - Update image version first
+    - Update core configuration settings
+    - Simplify configuration to minimal working set
+    - Add back advanced features one by one
 
 2. **Testing**: Each configuration change required testing to identify compatibility issues:
-   - Container logs were essential for diagnosing configuration errors
-   - Error messages provided clear guidance on deprecated or unsupported settings
+    - Container logs were essential for diagnosing configuration errors
+    - Error messages provided clear guidance on deprecated or unsupported settings
 
 3. **Documentation**: Official RabbitMQ 4.x documentation was crucial but incomplete:
-   - Some deprecated features were not clearly documented
-   - Community forums provided additional insights on migration challenges
+    - Some deprecated features were not clearly documented
+    - Community forums provided additional insights on migration challenges
 
 #### Best Practices for RabbitMQ 4.x
 
-1. **Use Policies Over Direct Configuration**: 
-   - Define queue and stream behaviors through policies rather than direct configuration
-   - This provides more flexibility and better compatibility with future versions
+1. **Use Policies Over Direct Configuration**:
+    - Define queue and stream behaviors through policies rather than direct configuration
+    - This provides more flexibility and better compatibility with future versions
 
 2. **Simplified Configuration**:
-   - Keep rabbitmq.conf minimal and focused on core settings
-   - Use definitions.json for complex configurations like policies, queues, and exchanges
+    - Keep rabbitmq.conf minimal and focused on core settings
+    - Use definitions.json for complex configurations like policies, queues, and exchanges
 
 3. **Monitor Deprecation Warnings**:
-   - Pay attention to deprecation warnings in logs
-   - Plan for future migrations by addressing warnings proactively
+    - Pay attention to deprecation warnings in logs
+    - Plan for future migrations by addressing warnings proactively
 
 4. **Security Considerations**:
-   - RabbitMQ 4.x has improved security features
-   - Configure credentials directly in rabbitmq.conf rather than using environment variables
+    - RabbitMQ 4.x has improved security features
+    - Configure credentials directly in rabbitmq.conf rather than using environment variables
 
 These lessons will help ensure a smooth operation of RabbitMQ 4.1.3 and prepare for future upgrades.
