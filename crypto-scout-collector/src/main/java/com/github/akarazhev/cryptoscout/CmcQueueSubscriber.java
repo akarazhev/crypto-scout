@@ -24,7 +24,6 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.cryptoscout.bybit.BybitService;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +33,10 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-final class BybitDataSubscriber implements Subscriber<Payload<Map<String, Object>>> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BybitDataSubscriber.class);
-    private final BybitService bybitService;
+final class CmcQueueSubscriber implements Subscriber<Payload<Map<String, Object>>> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmcQueueSubscriber.class);
 
-    public BybitDataSubscriber(final BybitService bybitService) {
-        this.bybitService = bybitService;
-    }
-
-    @RabbitListener(queues = "${amqp.queue.bybit}")
+    @RabbitListener(queues = "${amqp.queue.cmc}")
     @Override
     public void subscribe(final Payload<Map<String, Object>> payload) {
         LOGGER.info("Received payload: {}", payload);
