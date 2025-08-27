@@ -39,8 +39,8 @@ import org.springframework.context.annotation.Configuration;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CLIENT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT_LPL;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC_FGI;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
@@ -123,14 +123,14 @@ class AmqpConfig {
     public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(cmcFearGreedIndexQueue)
                 .to(metricsExchange)
-                .with(ROUTING_KEY_METRICS_CMC_FGI);
+                .with(ROUTING_KEY_METRICS_CMC);
     }
 
     @Bean
     public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(bybitLaunchPoolQueue)
                 .to(metricsExchange)
-                .with(ROUTING_KEY_METRICS_BYBIT_LPL);
+                .with(ROUTING_KEY_METRICS_BYBIT);
     }
 
     @Bean

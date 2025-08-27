@@ -35,8 +35,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT_LPL;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC_FGI;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
 
 @Service
 public final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
@@ -58,13 +58,13 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
         final var data = payload.getData();
         if (Provider.CMC.equals(provider)) {
             if (Source.FGI.equals(source)) {
-                amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_CMC_FGI, data);
+                amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_CMC, payload);
             }
         } else if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
-                amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_BYBIT_LPL, data);
+                amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_BYBIT, payload);
             } else if (Source.WS.equals(source)) {
-                amqpTemplate.convertAndSend(cryptoExchange, ROUTING_KEY_CRYPTO_BYBIT, data);
+                amqpTemplate.convertAndSend(cryptoExchange, ROUTING_KEY_CRYPTO_BYBIT, payload);
             }
         }
     }
