@@ -30,13 +30,17 @@ import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BYBIT_LPL;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_CMC_FGI;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CLIENT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT_LPL;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC_FGI;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
@@ -46,6 +50,20 @@ class AmqpConfig {
 
     @Bean
     public TopicExchange metricsExchange(@Value("${amqp.exchange.metrics}") final String name) {
+        return ExchangeBuilder.topicExchange(name)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange cryptoExchange(@Value("${amqp.exchange.crypto}") final String name) {
+        return ExchangeBuilder.topicExchange(name)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange clientExchange(@Value("${amqp.exchange.client}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)
                 .build();
@@ -78,6 +96,16 @@ class AmqpConfig {
     }
 
     @Bean
+    public Queue cryptoBybitQueue(@Value("${amqp.queue.crypto_bybit}") final String queueName,
+                                  @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                                  @Value("${amqp.queue.max.length}") final int maxLength) {
+        return QueueBuilder.durable(queueName)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
+                .build();
+    }
+
+    @Bean
     public Queue clientQueue(@Value("${amqp.queue.client}") final String queueName,
                              @Value("${amqp.queue.ttl.ms}") final int ttlMs,
                              @Value("${amqp.queue.max.length}") final int maxLength) {
@@ -88,7 +116,7 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue deadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
+    public Queue metricsDeadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
         return QueueBuilder.durable(queueName).build();
     }
 
@@ -96,14 +124,35 @@ class AmqpConfig {
     public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(cmcFearGreedIndexQueue)
                 .to(metricsExchange)
-                .with(ROUTING_METRICS_CMC_FGI);
+                .with(ROUTING_KEY_METRICS_CMC_FGI);
     }
 
     @Bean
     public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(bybitLaunchPoolQueue)
                 .to(metricsExchange)
-                .with(ROUTING_METRICS_BYBIT_LPL);
+                .with(ROUTING_KEY_METRICS_BYBIT_LPL);
+    }
+
+    @Bean
+    public Binding cryptoBybitBinding(final Queue cryptoBybitQueue, final TopicExchange cryptoExchange) {
+        return BindingBuilder.bind(cryptoBybitQueue)
+                .to(cryptoExchange)
+                .with(ROUTING_KEY_CRYPTO_BYBIT);
+    }
+
+    @Bean
+    public Binding clientBinding(final Queue clientQueue, final TopicExchange clientExchange) {
+        return BindingBuilder.bind(clientQueue)
+                .to(clientExchange)
+                .with(ROUTING_KEY_CLIENT);
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
+        final var rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+        return rabbitTemplate;
     }
 
     @Bean

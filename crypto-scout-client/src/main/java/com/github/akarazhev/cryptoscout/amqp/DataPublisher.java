@@ -29,22 +29,26 @@ import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_BYBIT_LPL;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_METRICS_CMC_FGI;
 
 @Service
 public final class DataPublisher implements Publisher<Payload<Map<String, Object>>> {
     private final AmqpTemplate amqpTemplate;
-    private final TopicExchange topicExchange;
+    private final String metricsExchange;
+    private final String cryptoExchange;
 
-    public DataPublisher(final AmqpTemplate amqpTemplate, final TopicExchange topicExchange) {
+    public DataPublisher(final AmqpTemplate amqpTemplate, @Value("${amqp.exchange.metrics}") final String metricsExchange,
+                         @Value("${amqp.exchange.crypto}") final String cryptoExchange) {
         this.amqpTemplate = amqpTemplate;
-        this.topicExchange = topicExchange;
+        this.metricsExchange = metricsExchange;
+        this.cryptoExchange = cryptoExchange;
     }
 
     @Override
@@ -54,11 +58,13 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
         final var data = payload.getData();
         if (Provider.CMC.equals(provider)) {
             if (Source.FGI.equals(source)) {
-                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_CMC_FGI, data);
+                amqpTemplate.convertAndSend(metricsExchange, ROUTING_METRICS_CMC_FGI, data);
             }
         } else if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
-                amqpTemplate.convertAndSend(topicExchange.getName(), ROUTING_METRICS_BYBIT_LPL, data);
+                amqpTemplate.convertAndSend(metricsExchange, ROUTING_METRICS_BYBIT_LPL, data);
+            } else if (Source.WS.equals(source)) {
+                amqpTemplate.convertAndSend(cryptoExchange, ROUTING_CRYPTO_BYBIT, data);
             }
         }
     }

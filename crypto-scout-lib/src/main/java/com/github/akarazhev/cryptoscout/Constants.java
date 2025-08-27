@@ -38,10 +38,24 @@ public final class Constants {
         public static final String ROUTING_ANNOUNCEMENTS = "announcements.cex";
         public static final String ROUTING_COMMANDS = "commands";
         public static final String ROUTING_RESULTS = "results";
-        public static final String ROUTING_METRICS_CMC_FGI = "metrics.cmc_fgi";
-        public static final String ROUTING_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+        // Dead letter
         public static final String X_DEAD_LETTER_ROUTING_KEY = "x-dead-letter-routing-key";
         public static final String X_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
         public static final String X_DEAD_LETTER_EXCHANGE_VALUE = "";
+        // Exchange names
+        public static final String METRICS_EXCHANGE = "metrics-exchange";
+        public static final String CRYPTO_EXCHANGE = "crypto-exchange";
+        public static final String CLIENT_EXCHANGE = "client-exchange";
+        // Queue names
+        public static final String METRICS_CMC_FGI_QUEUE = "metrics-cmc-fgi-queue";
+        public static final String METRICS_BYBIT_LPL_QUEUE = "metrics-bybit-lpl-queue";
+        public static final String METRICS_DEAD_LETTER_QUEUE = "metrics-dead-letter-queue";
+        public static final String CRYPTO_BYBIT_QUEUE = "crypto-bybit-queue";
+        public static final String CLIENT_QUEUE = "crypto-scout-client-queue";
+        // Routing keys
+        public static final String ROUTING_KEY_METRICS_CMC_FGI = "metrics.cmc_fgi";
+        public static final String ROUTING_KEY_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+        public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
+        public static final String ROUTING_KEY_CLIENT = "client";
     }
 }
