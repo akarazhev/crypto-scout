@@ -43,8 +43,8 @@ public final class Constants {
         public static final String X_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
         public static final String X_DEAD_LETTER_EXCHANGE_VALUE = "";
         // Routing keys
-        public static final String ROUTING_KEY_METRICS_CMC_FGI = "metrics.cmc_fgi";
-        public static final String ROUTING_KEY_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+        public static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
+        public static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
         public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
         public static final String ROUTING_KEY_CLIENT = "client";
     }
