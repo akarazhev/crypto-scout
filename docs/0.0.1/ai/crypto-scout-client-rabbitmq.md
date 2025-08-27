@@ -19,11 +19,9 @@ Take the following roles:
 ### RabbitMQ Configuration
 
 - For the `metrics-exchange` exchange we will have common queues: `metrics-cmc-fgi-queue` and `metrics-bybit-lpl-queue`.
-  The
-  dead letter queue will be `metrics-dead-letter-queue`.
+  The dead letter queue will be `metrics-dead-letter-queue`.
 - For the `crypto-exchange` exchange we will have a stream: `crypto-bybit-queue`.
-- For the `client-exchange` exchange we will have a stream: `crypto-scout-client-queue`. The dead letter queue will be
-  `client-exchange-dead-letter-queue`.
+- For the `client-exchange` exchange we will have a stream: `crypto-scout-client-queue`.
 
 ## Tasks
 
