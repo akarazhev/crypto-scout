@@ -20,12 +20,12 @@ The RabbitMQ integration follows a topic-based messaging architecture with the f
 ### Queues
 
 | Queue Name                  | Bound to Exchange  | Routing Key         | Dead Letter                 | TTL (ms) | Max Length |
-|-----------------------------|--------------------|---------------------|----------------------------|----------|------------|
+|-----------------------------|--------------------|---------------------|-----------------------------|----------|------------|
 | `metrics-cmc-fgi-queue`     | `metrics-exchange` | `metrics.cmc_fgi`   | `metrics-dead-letter-queue` | 21600000 | 2500       |
 | `metrics-bybit-lpl-queue`   | `metrics-exchange` | `metrics.bybit_lpl` | `metrics-dead-letter-queue` | 21600000 | 2500       |
-| `metrics-dead-letter-queue` | -                  | -                   | -                          | -        | -          |
-| `crypto-bybit-queue`        | `crypto-exchange`  | `crypto.bybit`      | -                          | 21600000 | 2500       |
-| `crypto-scout-client-queue` | `client-exchange`  | `client`            | -                          | 21600000 | 2500       |
+| `metrics-dead-letter-queue` | -                  | -                   | -                           | -        | -          |
+| `crypto-bybit-queue`        | `crypto-exchange`  | `crypto.bybit`      | -                           | 21600000 | 2500       |
+| `crypto-scout-client-queue` | `client-exchange`  | `client`            | -                           | 21600000 | 2500       |
 
 ## Configuration Details
 
@@ -34,23 +34,16 @@ The RabbitMQ integration follows a topic-based messaging architecture with the f
 The following constants are defined in `Constants.AMQP`:
 
 ```java
-// Exchange names
-public static final String METRICS_EXCHANGE = "metrics-exchange";
-public static final String CRYPTO_EXCHANGE = "crypto-exchange";
-public static final String CLIENT_EXCHANGE = "client-exchange";
-
-// Queue names
-public static final String METRICS_CMC_FGI_QUEUE = "metrics-cmc-fgi-queue";
-public static final String METRICS_BYBIT_LPL_QUEUE = "metrics-bybit-lpl-queue";
-public static final String METRICS_DEAD_LETTER_QUEUE = "metrics-dead-letter-queue";
-public static final String CRYPTO_BYBIT_QUEUE = "crypto-bybit-queue";
-public static final String CLIENT_QUEUE = "crypto-scout-client-queue";
-
 // Routing keys
-public static final String ROUTING_METRICS_CMC_FGI = "metrics.cmc_fgi";
-public static final String ROUTING_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
-public static final String ROUTING_CRYPTO_BYBIT = "crypto.bybit";
-public static final String ROUTING_CLIENT = "client";
+public static final String ROUTING_KEY_METRICS_CMC_FGI = "metrics.cmc_fgi";
+public static final String ROUTING_KEY_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
+public static final String ROUTING_KEY_CLIENT = "client";
+
+// Dead letter configuration
+public static final String X_DEAD_LETTER_ROUTING_KEY = "x-dead-letter-routing-key";
+public static final String X_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
+public static final String X_DEAD_LETTER_EXCHANGE_VALUE = "";
 ```
 
 ### Application Properties
@@ -71,8 +64,8 @@ amqp.queue.ttl.ms=21600000
 amqp.queue.max.length=2500
 spring.rabbitmq.host=${SPRING_RABBITMQ_HOST:localhost}
 spring.rabbitmq.port=${SPRING_RABBITMQ_PORT:5672}
-spring.rabbitmq.username=admin
-spring.rabbitmq.password=admin
+spring.rabbitmq.username=
+spring.rabbitmq.password=
 ```
 
 ## Message Flow
@@ -107,7 +100,7 @@ spring.rabbitmq.password=admin
 
 RabbitMQ connection uses the following credentials:
 
-- Username: admin
-- Password: admin
+- Username: 
+- Password: 
 - Host: Configurable via environment variable `SPRING_RABBITMQ_HOST` (default: localhost)
 - Port: Configurable via environment variable `SPRING_RABBITMQ_PORT` (default: 5672)
