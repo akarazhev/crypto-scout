@@ -52,11 +52,11 @@ final class BybitDataSupplier {
         return DataStreams.ofBybit(client, config);
     }
 
-    public Flowable<Payload<Map<String, Object>>> publicSpotTradeData() {
+    public Flowable<Payload<Map<String, Object>>> publicSpotTickerData() {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PTST)
-                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
+                .topic(Topic.TICKERS_BTC_USDT)
+                .topic(Topic.TICKERS_ETH_USDT)
                 .build();
         return DataStreams.ofBybit(client, config);
     }

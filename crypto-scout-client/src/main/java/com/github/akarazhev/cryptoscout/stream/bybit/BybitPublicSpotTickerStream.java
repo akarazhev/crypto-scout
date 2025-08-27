@@ -12,18 +12,18 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-@Qualifier("bybitPublicSpotTradeDataStream")
-final class BybitPublicSpotTradeDataStream implements DataStream {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BybitPublicSpotTradeDataStream.class);
+@Qualifier("BybitPublicSpotTickerStream")
+final class BybitPublicSpotTickerStream implements DataStream {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BybitPublicSpotTickerStream.class);
     private final BybitDataSupplier bybitDataSupplier;
 
-    public BybitPublicSpotTradeDataStream(final BybitDataSupplier bybitDataSupplier) {
+    public BybitPublicSpotTickerStream(final BybitDataSupplier bybitDataSupplier) {
         this.bybitDataSupplier = bybitDataSupplier;
     }
 
     @Override
     public Flowable<Payload<Map<String, Object>>> stream() {
-        return bybitDataSupplier.publicSpotTradeData()
+        return bybitDataSupplier.publicSpotTickerData()
                 .subscribeOn(Schedulers.io())
                 .doOnError((error) -> LOGGER.error("Bybit data stream error", error))
                 .doOnCancel(() -> LOGGER.info("Bybit data stream cancelled"));

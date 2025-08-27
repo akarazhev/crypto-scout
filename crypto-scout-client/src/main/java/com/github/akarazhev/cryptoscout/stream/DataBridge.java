@@ -34,7 +34,7 @@ public final class DataBridge {
     private final DataPublisher dataPublisher;
     private Disposable cmcDataStream;
     private Disposable bybitEventStream;
-    private Disposable bybitPublicSpotTradeStream;
+    private Disposable bybitPublicSpotTickerStream;
 
     public DataBridge(final DataStreams dataStreams, final DataPublisher dataPublisher) {
         this.dataStreams = dataStreams;
@@ -48,7 +48,7 @@ public final class DataBridge {
         bybitEventStream = dataStreams.of(DataStreams.Type.BYBIT_EVENT_STREAM)
                 .stream()
                 .subscribe(dataPublisher::publish);
-        bybitPublicSpotTradeStream = dataStreams.of(DataStreams.Type.BYBIT_PUBLIC_SPOT_TRADE_STREAM)
+        bybitPublicSpotTickerStream = dataStreams.of(DataStreams.Type.BYBIT_PUBLIC_SPOT_TICKER_STREAM)
                 .stream()
                 .subscribe(dataPublisher::publish);
     }
@@ -62,8 +62,8 @@ public final class DataBridge {
             bybitEventStream.dispose();
         }
 
-        if (bybitPublicSpotTradeStream != null) {
-            bybitPublicSpotTradeStream.dispose();
+        if (bybitPublicSpotTickerStream != null) {
+            bybitPublicSpotTickerStream.dispose();
         }
     }
 
