@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM amazoncorretto:23-alpine
+FROM eclipse-temurin:21.0.8_9-jre-ubi9-minimal
 WORKDIR /app
-COPY target/event-collector-0.0.1.jar event-collector.jar
-ENTRYPOINT ["java", "-jar", "event-collector.jar"]
+COPY target/crypto-scout-collector-0.0.1.jar crypto-scout-collector.jar
+ENTRYPOINT ["java", "-jar", "crypto-scout-collector.jar"]

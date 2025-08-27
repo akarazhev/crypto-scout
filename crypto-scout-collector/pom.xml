@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.github.akarazhev.cryptoscout</groupId>
-    <artifactId>event-collector</artifactId>
+    <artifactId>crypto-scout-collector</artifactId>
     <version>0.0.1</version>
-    <name>event-collector</name>
-    <description>Event Collector</description>
+    <name>crypto-scout-collector</name>
+    <description>Crypto Scout Collector</description>
     <url/>
     <licenses>
     </licenses>

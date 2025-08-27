@@ -30,9 +30,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-class EventCollector {
+class CryptoScoutCollector {
 
     public static void main(final String[] args) {
-        SpringApplication.run(EventCollector.class, args);
+        SpringApplication.run(CryptoScoutCollector.class, args);
     }
 }
