@@ -16,7 +16,7 @@
     <modules>
         <module>crypto-scout-lib</module>
         <module>crypto-scout-client</module>
-        <module>event-collector</module>
+        <module>crypto-scout-collector</module>
         <module>telegram-bot</module>
     </modules>
 </project>
