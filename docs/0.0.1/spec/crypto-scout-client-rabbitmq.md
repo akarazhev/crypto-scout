@@ -19,13 +19,13 @@ The RabbitMQ integration follows a topic-based messaging architecture with the f
 
 ### Queues
 
-| Queue Name                  | Bound to Exchange  | Routing Key         | Dead Letter                 | TTL (ms) | Max Length |
-|-----------------------------|--------------------|---------------------|-----------------------------|----------|------------|
-| `metrics-cmc-queue`         | `metrics-exchange` | `metrics.cmc_fgi`   | `metrics-dead-letter-queue` | 21600000 | 2500       |
-| `metrics-bybit-queue`       | `metrics-exchange` | `metrics.bybit_lpl` | `metrics-dead-letter-queue` | 21600000 | 2500       |
-| `metrics-dead-letter-queue` | -                  | -                   | -                           | -        | -          |
-| `crypto-bybit-stream`       | `crypto-exchange`  | `crypto.bybit`      | -                           | -        | -          |
-| `crypto-scout-client-queue` | `client-exchange`  | `client`            | -                           | -        | -          |
+| Queue Name                  | Bound to Exchange  | Routing Key     | Dead Letter                 | TTL (ms) | Max Length |
+|-----------------------------|--------------------|-----------------|-----------------------------|----------|------------|
+| `metrics-cmc-queue`         | `metrics-exchange` | `metrics.cmc`   | `metrics-dead-letter-queue` | 21600000 | 2500       |
+| `metrics-bybit-queue`       | `metrics-exchange` | `metrics.bybit` | `metrics-dead-letter-queue` | 21600000 | 2500       |
+| `metrics-dead-letter-queue` | -                  | -               | -                           | -        | -          |
+| `crypto-bybit-stream`       | `crypto-exchange`  | `crypto.bybit`  | -                           | -        | -          |
+| `crypto-scout-client-queue` | `client-exchange`  | `client`        | -                           | -        | -          |
 
 ## Queue Types
 
@@ -65,8 +65,8 @@ The following constants are defined in `Constants.AMQP`:
 
 ```java
 // Routing keys
-public static final String ROUTING_KEY_METRICS_CMC_FGI = "metrics.cmc_fgi";
-public static final String ROUTING_KEY_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+public static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
+public static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
 public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
 public static final String ROUTING_KEY_CLIENT = "client";
 
@@ -101,9 +101,9 @@ spring.rabbitmq.password=
 ## Message Flow
 
 1. **Metrics Data Flow**:
-    - Messages published to `metrics-exchange` with routing key `metrics.cmc_fgi` are delivered to
+    - Messages published to `metrics-exchange` with routing key `metrics.cmc` are delivered to
       `metrics-cmc-queue`
-    - Messages published to `metrics-exchange` with routing key `metrics.bybit_lpl` are delivered to
+    - Messages published to `metrics-exchange` with routing key `metrics.bybit` are delivered to
       `metrics-bybit-queue`
     - Failed message processing results in messages being sent to `metrics-dead-letter-queue`
 

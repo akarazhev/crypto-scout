@@ -51,7 +51,7 @@
   ],
   "queues": [
     {
-      "name": "metrics-cmc-fgi-queue",
+      "name": "metrics-cmc-queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -65,7 +65,7 @@
       }
     },
     {
-      "name": "metrics-bybit-lpl-queue",
+      "name": "metrics-bybit-queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -155,17 +155,17 @@
     {
       "source": "metrics-exchange",
       "vhost": "/",
-      "destination": "metrics-cmc-fgi-queue",
+      "destination": "metrics-cmc-queue",
       "destination_type": "queue",
-      "routing_key": "metrics.cmc_fgi",
+      "routing_key": "metrics.cmc",
       "arguments": {}
     },
     {
       "source": "metrics-exchange",
       "vhost": "/",
-      "destination": "metrics-bybit-lpl-queue",
+      "destination": "metrics-bybit-queue",
       "destination_type": "queue",
-      "routing_key": "metrics.bybit_lpl",
+      "routing_key": "metrics.bybit",
       "arguments": {}
     },
     {

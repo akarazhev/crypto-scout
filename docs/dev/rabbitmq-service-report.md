@@ -86,16 +86,16 @@ system that aligns with the actual client requirements:
     - `service.events`: For service-to-service communication
 
 - **Queues**:
-    - `metrics-cmc-fgi-queue`: For CoinMarketCap fear and greed index metrics
-    - `metrics-bybit-lpl-queue`: For Bybit launch pool metrics
+    - `metrics-cmc-queue`: For CoinMarketCap fear and greed index metrics
+    - `metrics-bybit-queue`: For Bybit launch pool metrics
     - `metrics-dead-letter-queue`: Dead letter queue for failed messages
     - `crypto-scout-client-queue`: Client-specific queue
     - `service.notifications`: For notifications (consumed by Telegram bot)
     - `service.commands`: For service commands
 
 - **Bindings**:
-    - `metrics-exchange` → `metrics-cmc-fgi-queue` with routing key `metrics.cmc_fgi`
-    - `metrics-exchange` → `metrics-bybit-lpl-queue` with routing key `metrics.bybit_lpl`
+    - `metrics-exchange` → `metrics-cmc-queue` with routing key `metrics.cmc`
+    - `metrics-exchange` → `metrics-bybit-queue` with routing key `metrics.bybit`
     - `crypto.events` → `service.notifications` with routing key `crypto.price.#`
     - `service.events` → `service.commands` with routing key `service.command.#`
     - `service.events` → `crypto-scout-client-queue` with routing key `commands`
@@ -209,8 +209,8 @@ All services are configured to use the appropriate RabbitMQ features:
 
 - Configured with client-specific environment variables:
     - `AMQP_EXCHANGE_METRICS=metrics-exchange`
-    - `AMQP_QUEUE_CMC_FGI=metrics-cmc-fgi-queue`
-    - `AMQP_QUEUE_BYBIT_LPL=metrics-bybit-lpl-queue`
+    - `AMQP_QUEUE_CMC=metrics-cmc-queue`
+    - `AMQP_QUEUE_BYBIT=metrics-bybit-queue`
     - `AMQP_QUEUE_DEAD=metrics-dead-letter-queue`
     - `AMQP_QUEUE_CLIENT=crypto-scout-client-queue`
     - `AMQP_QUEUE_TTL_MS=21600000`
