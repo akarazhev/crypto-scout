@@ -22,9 +22,12 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream;
+package com.github.akarazhev.cryptoscout.stream.bybit;
 
 import com.github.akarazhev.jcryptolib.DataStreams;
+import com.github.akarazhev.jcryptolib.bybit.config.StreamType;
+import com.github.akarazhev.jcryptolib.bybit.config.Topic;
+import com.github.akarazhev.jcryptolib.bybit.stream.DataConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.reactivex.rxjava3.core.Flowable;
 import org.springframework.stereotype.Component;
@@ -33,27 +36,28 @@ import java.net.http.HttpClient;
 import java.util.Map;
 
 import static com.github.akarazhev.jcryptolib.bybit.config.Type.LPL;
-import static com.github.akarazhev.jcryptolib.cmc.config.Type.FGI;
 
 @Component
-final class DataSupplier {
+final class BybitDataSupplier {
     private final HttpClient client;
 
-    public DataSupplier(final HttpClient client) {
+    public BybitDataSupplier(final HttpClient client) {
         this.client = client;
     }
 
-    public Flowable<Payload<Map<String, Object>>> ofBybitEvents() {
-        final var config = new com.github.akarazhev.jcryptolib.bybit.stream.DataConfig.Builder()
+    public Flowable<Payload<Map<String, Object>>> events() {
+        final var config = new DataConfig.Builder()
                 .type(LPL)
                 .build();
         return DataStreams.ofBybit(client, config);
     }
 
-    public Flowable<Payload<Map<String, Object>>> ofCmcData() {
-        final var config = new com.github.akarazhev.jcryptolib.cmc.stream.DataConfig.Builder()
-                .type(FGI)
+    public Flowable<Payload<Map<String, Object>>> publicSpotTradeData() {
+        final var config = new DataConfig.Builder()
+                .streamType(StreamType.PTST)
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
                 .build();
-        return DataStreams.ofCmc(client, config);
+        return DataStreams.ofBybit(client, config);
     }
 }

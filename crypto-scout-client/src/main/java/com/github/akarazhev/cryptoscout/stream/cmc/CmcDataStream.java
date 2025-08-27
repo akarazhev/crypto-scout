@@ -22,13 +22,15 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream;
+package com.github.akarazhev.cryptoscout.stream.cmc;
 
+import com.github.akarazhev.cryptoscout.stream.DataStream;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +39,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Service
-final class DataStreamService implements DataStream {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataStreamService.class);
-    private final DataSupplier dataSupplier;
+@Qualifier("cmcDataStream")
+final class CmcDataStream implements DataStream {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmcDataStream.class);
+    private final CmcDataSupplier cmcDataSupplier;
     @Value("${cmc.retry.base.ms:1000}")
     private long retryBaseMs;
     @Value("${cmc.retry.max.ms:60000}")
@@ -47,14 +50,14 @@ final class DataStreamService implements DataStream {
     @Value("${cmc.retry.jitter:0.2}")
     private double retryJitter;
 
-    public DataStreamService(final DataSupplier dataSupplier) {
-        this.dataSupplier = dataSupplier;
+    public CmcDataStream(final CmcDataSupplier cmcDataSupplier) {
+        this.cmcDataSupplier = cmcDataSupplier;
     }
 
     @Override
-    public Flowable<Payload<Map<String, Object>>> data() {
+    public Flowable<Payload<Map<String, Object>>> stream() {
         return Flowable.defer(() ->
-                        dataSupplier.ofCmcData()
+                        cmcDataSupplier.data()
                                 .doOnSubscribe(s -> LOGGER.info("CMC data stream subscribed"))
                                 .doOnError(e -> LOGGER.error("CMC data stream error", e))
                                 .onErrorResumeNext((Throwable t) -> Flowable.empty())

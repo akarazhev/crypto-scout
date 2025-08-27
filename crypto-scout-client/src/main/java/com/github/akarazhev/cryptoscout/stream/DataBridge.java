@@ -30,22 +30,40 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class DataBridge {
-    private final DataStream dataStream;
+    private final DataStreams dataStreams;
     private final DataPublisher dataPublisher;
-    private Disposable disposable;
+    private Disposable cmcDataStream;
+    private Disposable bybitEventStream;
+    private Disposable bybitPublicSpotTradeStream;
 
-    public DataBridge(final DataStream dataStream, final DataPublisher dataPublisher) {
-        this.dataStream = dataStream;
+    public DataBridge(final DataStreams dataStreams, final DataPublisher dataPublisher) {
+        this.dataStreams = dataStreams;
         this.dataPublisher = dataPublisher;
     }
 
     public void start() {
-        disposable = dataStream.data().subscribe(dataPublisher::publish);
+        cmcDataStream = dataStreams.of(DataStreams.Type.CMC_DATA_STREAM)
+                .stream()
+                .subscribe(dataPublisher::publish);
+        bybitEventStream = dataStreams.of(DataStreams.Type.BYBIT_EVENT_STREAM)
+                .stream()
+                .subscribe(dataPublisher::publish);
+        bybitPublicSpotTradeStream = dataStreams.of(DataStreams.Type.BYBIT_PUBLIC_SPOT_TRADE_STREAM)
+                .stream()
+                .subscribe(dataPublisher::publish);
     }
 
     public void stop() {
-        if (disposable != null) {
-            disposable.dispose();
+        if (cmcDataStream != null) {
+            cmcDataStream.dispose();
+        }
+
+        if (bybitEventStream != null) {
+            bybitEventStream.dispose();
+        }
+
+        if (bybitPublicSpotTradeStream != null) {
+            bybitPublicSpotTradeStream.dispose();
         }
     }
 
