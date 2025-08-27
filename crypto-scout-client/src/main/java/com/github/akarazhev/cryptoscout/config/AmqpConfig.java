@@ -96,12 +96,11 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue cryptoBybitQueue(@Value("${amqp.queue.crypto_bybit}") final String queueName,
-                                  @Value("${amqp.queue.ttl.ms}") final int ttlMs,
-                                  @Value("${amqp.queue.max.length}") final int maxLength) {
-        return QueueBuilder.durable(queueName)
-                .ttl(ttlMs)
-                .maxLength(maxLength)
+    public Queue cryptoBybitQueue(@Value("${amqp.stream.crypto_bybit}") final String streamName) {
+        return QueueBuilder.durable(streamName)
+                .withArgument("x-queue-type", "stream")
+                .withArgument("x-max-length-bytes", 2_000_000_000) // 2GB max size
+                .withArgument("x-stream-max-segment-size-bytes", 100_000_000) // 100MB segments
                 .build();
     }
 

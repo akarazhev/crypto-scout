@@ -32,7 +32,7 @@ amqp.queue.cmc=metrics-cmc-queue
 amqp.queue.bybit=metrics-bybit-queue
 amqp.queue.dead=metrics-dead-letter-queue
 amqp.queue.client=crypto-scout-client-queue
-amqp.queue.crypto_bybit=crypto-bybit-queue
+amqp.stream.crypto_bybit=crypto-bybit-stream
 amqp.queue.ttl.ms=21600000
 amqp.queue.max.length=2500
 spring.rabbitmq.host=${SPRING_RABBITMQ_HOST:localhost}
@@ -54,7 +54,7 @@ Enhanced `AmqpConfig.java` to define:
     - `metrics-cmc-queue`: For CoinMarketCap metrics
     - `metrics-bybit-queue`: For Bybit metrics
     - `metrics-dead-letter-queue`: Dead letter queue for metrics exchange
-    - `crypto-bybit-queue`: Stream for Bybit cryptocurrency data
+    - `crypto-bybit-stream`: Stream for Bybit cryptocurrency data
     - `crypto-scout-client-queue`: Stream for client data
 
 3. **Bindings**:
@@ -62,6 +62,47 @@ Enhanced `AmqpConfig.java` to define:
 
 4. **Message Conversion**:
     - Configured Jackson JSON message converter for serialization/deserialization
+
+## Stream Queue
+
+For real-time data processing, we use RabbitMQ stream queue for the following:
+
+- `crypto-bybit-stream`: Handles real-time cryptocurrency data from Bybit
+
+Stream queue is configured with the following parameters:
+
+```java
+QueueBuilder.durable(queueName)
+    .withArgument("x-queue-type", "stream")
+    .withArgument("x-max-length-bytes", 2_000_000_000) // 2GB max size
+    .withArgument("x-stream-max-segment-size-bytes", 100_000_000) // 100MB segments
+    .build();
+```
+
+Unlike traditional queues, stream queues:
+- Do not use TTL or max length in messages
+- Use byte-based retention policies instead
+- Do not use dead letter queues
+- Are optimized for high-throughput, real-time data processing
+
+## Traditional Queues
+
+For metrics data that doesn't require real-time processing, we use traditional queues with TTL and max length:
+
+- `metrics-cmc-queue`: Handles CoinMarketCap Fear & Greed Index data
+- `metrics-bybit-queue`: Handles Bybit Launchpool data
+- `metrics-dead-letter-queue`: Dead letter queue for failed message processing
+
+These queues are configured with TTL and max length parameters:
+
+```java
+QueueBuilder.durable(queueName)
+    .withArgument(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE)
+    .withArgument(X_DEAD_LETTER_ROUTING_KEY, deadLetterQueue)
+    .ttl(ttlMs)
+    .maxLength(maxLength)
+    .build();
+```
 
 ## Design Patterns and Best Practices
 
