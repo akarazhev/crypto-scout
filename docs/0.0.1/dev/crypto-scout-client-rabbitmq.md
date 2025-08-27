@@ -13,8 +13,8 @@ Added new constants in `Constants.AMQP` class to define routing keys:
 
 ```java
 // Routing keys
-public static final String ROUTING_KEY_METRICS_CMC_FGI = "metrics.cmc_fgi";
-public static final String ROUTING_KEY_METRICS_BYBIT_LPL = "metrics.bybit_lpl";
+public static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
+public static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
 public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
 public static final String ROUTING_KEY_CLIENT = "client";
 ```
@@ -28,13 +28,17 @@ Updated `application.properties` to include all required RabbitMQ exchange and q
 amqp.exchange.metrics=metrics-exchange
 amqp.exchange.crypto=crypto-exchange
 amqp.exchange.client=client-exchange
-amqp.queue.cmc_fgi=metrics-cmc-fgi-queue
-amqp.queue.bybit_lpl=metrics-bybit-lpl-queue
+amqp.queue.cmc=metrics-cmc-queue
+amqp.queue.bybit=metrics-bybit-queue
 amqp.queue.dead=metrics-dead-letter-queue
 amqp.queue.client=crypto-scout-client-queue
 amqp.queue.crypto_bybit=crypto-bybit-queue
 amqp.queue.ttl.ms=21600000
 amqp.queue.max.length=2500
+spring.rabbitmq.host=${SPRING_RABBITMQ_HOST:localhost}
+spring.rabbitmq.port=${SPRING_RABBITMQ_PORT:5672}
+spring.rabbitmq.username=
+spring.rabbitmq.password=
 ```
 
 ### 3. AMQP Configuration
@@ -47,8 +51,8 @@ Enhanced `AmqpConfig.java` to define:
     - `client-exchange`: Topic exchange for client-related messages
 
 2. **Queues**:
-    - `metrics-cmc-fgi-queue`: For CoinMarketCap Fear & Greed Index metrics
-    - `metrics-bybit-lpl-queue`: For Bybit Launch Pool metrics
+    - `metrics-cmc-queue`: For CoinMarketCap metrics
+    - `metrics-bybit-queue`: For Bybit metrics
     - `metrics-dead-letter-queue`: Dead letter queue for metrics exchange
     - `crypto-bybit-queue`: Stream for Bybit cryptocurrency data
     - `crypto-scout-client-queue`: Stream for client data

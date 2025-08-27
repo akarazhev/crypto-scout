@@ -21,8 +21,8 @@ The RabbitMQ integration follows a topic-based messaging architecture with the f
 
 | Queue Name                  | Bound to Exchange  | Routing Key         | Dead Letter                 | TTL (ms) | Max Length |
 |-----------------------------|--------------------|---------------------|-----------------------------|----------|------------|
-| `metrics-cmc-fgi-queue`     | `metrics-exchange` | `metrics.cmc_fgi`   | `metrics-dead-letter-queue` | 21600000 | 2500       |
-| `metrics-bybit-lpl-queue`   | `metrics-exchange` | `metrics.bybit_lpl` | `metrics-dead-letter-queue` | 21600000 | 2500       |
+| `metrics-cmc-queue`         | `metrics-exchange` | `metrics.cmc_fgi`   | `metrics-dead-letter-queue` | 21600000 | 2500       |
+| `metrics-bybit-queue`       | `metrics-exchange` | `metrics.bybit_lpl` | `metrics-dead-letter-queue` | 21600000 | 2500       |
 | `metrics-dead-letter-queue` | -                  | -                   | -                           | -        | -          |
 | `crypto-bybit-queue`        | `crypto-exchange`  | `crypto.bybit`      | -                           | 21600000 | 2500       |
 | `crypto-scout-client-queue` | `client-exchange`  | `client`            | -                           | 21600000 | 2500       |
@@ -55,8 +55,8 @@ The RabbitMQ configuration in `application.properties`:
 amqp.exchange.metrics=metrics-exchange
 amqp.exchange.crypto=crypto-exchange
 amqp.exchange.client=client-exchange
-amqp.queue.cmc_fgi=metrics-cmc-fgi-queue
-amqp.queue.bybit_lpl=metrics-bybit-lpl-queue
+amqp.queue.cmc=metrics-cmc-queue
+amqp.queue.bybit=metrics-bybit-queue
 amqp.queue.dead=metrics-dead-letter-queue
 amqp.queue.client=crypto-scout-client-queue
 amqp.queue.crypto_bybit=crypto-bybit-queue
@@ -72,9 +72,9 @@ spring.rabbitmq.password=
 
 1. **Metrics Data Flow**:
     - Messages published to `metrics-exchange` with routing key `metrics.cmc_fgi` are delivered to
-      `metrics-cmc-fgi-queue`
+      `metrics-cmc-queue`
     - Messages published to `metrics-exchange` with routing key `metrics.bybit_lpl` are delivered to
-      `metrics-bybit-lpl-queue`
+      `metrics-bybit-queue`
     - Failed message processing results in messages being sent to `metrics-dead-letter-queue`
 
 2. **Cryptocurrency Data Flow**:
@@ -88,7 +88,7 @@ spring.rabbitmq.password=
 ## Error Handling
 
 1. **Dead Letter Queues**:
-    - `metrics-dead-letter-queue`: Collects failed messages from `metrics-cmc-fgi-queue` and `metrics-bybit-lpl-queue`
+    - `metrics-dead-letter-queue`: Collects failed messages from `metrics-cmc-queue` and `metrics-bybit-queue`
 
 2. **Message TTL**:
     - All queues have a TTL of 21,600,000 ms (6 hours)
