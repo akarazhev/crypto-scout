@@ -100,7 +100,7 @@ class AmqpConfig {
     }
 
     @Bean
-    public Queue cryptoBybitQueue(@Value("${amqp.stream.crypto_bybit}") final String streamName) {
+    public Queue cryptoBybitQueue(@Value("${amqp.stream.bybit}") final String streamName) {
         return QueueBuilder.durable(streamName)
                 .withArgument("x-queue-type", "stream")
                 .withArgument("x-max-length-bytes", 2_000_000_000) // 2GB max size
