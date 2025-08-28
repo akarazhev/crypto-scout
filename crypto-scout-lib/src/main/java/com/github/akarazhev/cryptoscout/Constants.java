@@ -43,5 +43,7 @@ public final class Constants {
         public static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
         public static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
         public static final String ROUTING_KEY_CLIENT = "client";
+        public static final String ROUTING_KEY_COLLECTOR = "collector";
+        public static final String ROUTING_KEY_TELEGRAM = "telegram";
     }
 }

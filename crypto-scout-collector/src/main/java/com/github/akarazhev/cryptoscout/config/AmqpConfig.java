@@ -33,12 +33,12 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CLIENT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
@@ -50,7 +50,6 @@ import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_ROUT
 class AmqpConfig {
 
     @Bean
-    @Qualifier("metricsExchange")
     public TopicExchange metricsExchange(@Value("${amqp.exchange.metrics}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)
@@ -58,7 +57,6 @@ class AmqpConfig {
     }
 
     @Bean
-    @Qualifier("cryptoExchange")
     public TopicExchange cryptoExchange(@Value("${amqp.exchange.crypto}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)
@@ -66,8 +64,14 @@ class AmqpConfig {
     }
 
     @Bean
-    @Qualifier("clientExchange")
     public TopicExchange clientExchange(@Value("${amqp.exchange.client}") final String name) {
+        return ExchangeBuilder.topicExchange(name)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange collectorExchange(@Value("${amqp.exchange.collector}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)
                 .build();
@@ -119,40 +123,53 @@ class AmqpConfig {
     }
 
     @Bean
+    public Queue collectorQueue(@Value("${amqp.queue.collector}") final String queueName,
+                                @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                                @Value("${amqp.queue.max.length}") final int maxLength) {
+        return QueueBuilder.durable(queueName)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
+                .build();
+    }
+
+    @Bean
     public Queue metricsDeadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
         return QueueBuilder.durable(queueName).build();
     }
 
     @Bean
-    public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue,
-                                           @Qualifier("metricsExchange") final TopicExchange metricsExchange) {
+    public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(cmcFearGreedIndexQueue)
                 .to(metricsExchange)
                 .with(ROUTING_KEY_METRICS_CMC);
     }
 
     @Bean
-    public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue,
-                                         @Qualifier("metricsExchange") final TopicExchange metricsExchange) {
+    public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue, final TopicExchange metricsExchange) {
         return BindingBuilder.bind(bybitLaunchPoolQueue)
                 .to(metricsExchange)
                 .with(ROUTING_KEY_METRICS_BYBIT);
     }
 
     @Bean
-    public Binding cryptoBybitBinding(final Queue cryptoBybitQueue,
-                                     @Qualifier("cryptoExchange") final TopicExchange cryptoExchange) {
+    public Binding cryptoBybitBinding(final Queue cryptoBybitQueue, final TopicExchange cryptoExchange) {
         return BindingBuilder.bind(cryptoBybitQueue)
                 .to(cryptoExchange)
                 .with(ROUTING_KEY_CRYPTO_BYBIT);
     }
 
     @Bean
-    public Binding clientBinding(final Queue clientQueue,
-                               @Qualifier("clientExchange") final TopicExchange clientExchange) {
+    public Binding clientBinding(final Queue clientQueue, final TopicExchange clientExchange) {
         return BindingBuilder.bind(clientQueue)
                 .to(clientExchange)
                 .with(ROUTING_KEY_CLIENT);
+    }
+
+    @Bean
+    public Binding collectorBinding(final Queue collectorQueue, final TopicExchange collectorExchange) {
+        return BindingBuilder.bind(collectorQueue)
+                .to(collectorExchange)
+                .with(ROUTING_KEY_COLLECTOR);
     }
 
     @Bean

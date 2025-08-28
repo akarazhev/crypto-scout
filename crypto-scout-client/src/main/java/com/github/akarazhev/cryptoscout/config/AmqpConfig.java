@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CLIENT;
+import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
 import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
@@ -64,6 +65,13 @@ class AmqpConfig {
 
     @Bean
     public TopicExchange clientExchange(@Value("${amqp.exchange.client}") final String name) {
+        return ExchangeBuilder.topicExchange(name)
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public TopicExchange collectorExchange(@Value("${amqp.exchange.collector}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)
                 .build();
@@ -115,6 +123,16 @@ class AmqpConfig {
     }
 
     @Bean
+    public Queue collectorQueue(@Value("${amqp.queue.collector}") final String queueName,
+                                @Value("${amqp.queue.ttl.ms}") final int ttlMs,
+                                @Value("${amqp.queue.max.length}") final int maxLength) {
+        return QueueBuilder.durable(queueName)
+                .ttl(ttlMs)
+                .maxLength(maxLength)
+                .build();
+    }
+
+    @Bean
     public Queue metricsDeadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
         return QueueBuilder.durable(queueName).build();
     }
@@ -145,6 +163,13 @@ class AmqpConfig {
         return BindingBuilder.bind(clientQueue)
                 .to(clientExchange)
                 .with(ROUTING_KEY_CLIENT);
+    }
+
+    @Bean
+    public Binding collectorBinding(final Queue collectorQueue, final TopicExchange collectorExchange) {
+        return BindingBuilder.bind(collectorQueue)
+                .to(collectorExchange)
+                .with(ROUTING_KEY_COLLECTOR);
     }
 
     @Bean
