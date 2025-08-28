@@ -3,11 +3,16 @@ package com.github.akarazhev.cryptoscout.bybit;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.CS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.DATA;
@@ -35,8 +40,15 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WHITE_PAP
 
 @Service
 class BybitServiceImpl implements BybitService {
+    // Buffers for batch processing
+    private final List<BybitTicker> tickerBuffer = new CopyOnWriteArrayList<>();
+    private final List<BybitLpl> lplBuffer = new CopyOnWriteArrayList<>();
     private final BybitTickerRepository bybitTickerRepository;
     private final BybitLplRepository bybitLplRepository;
+    @Value("${crypto-scout.bybit.batch-size:100}")
+    private int batchSize;
+    @Value("${crypto-scout.bybit.flush-interval-ms:5000}")
+    private long flushIntervalMs;
 
     public BybitServiceImpl(final BybitTickerRepository bybitTickerRepository, final BybitLplRepository bybitLplRepository) {
         this.bybitTickerRepository = bybitTickerRepository;
@@ -49,10 +61,51 @@ class BybitServiceImpl implements BybitService {
         final var source = payload.getSource();
         if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
-                bybitLplRepository.save(getBybitLpl(payload.getData()));
+                final BybitLpl lpl = getBybitLpl(payload.getData());
+                lplBuffer.add(lpl);
+                // Flush if buffer size reaches the threshold
+                if (lplBuffer.size() >= batchSize) {
+                    flushLplBuffer();
+                }
             } else if (Source.WS.equals(source)) {
-                bybitTickerRepository.save(getBybitTicker(payload.getData()));
+                final BybitTicker ticker = getBybitTicker(payload.getData());
+                tickerBuffer.add(ticker);
+                // Flush if buffer size reaches the threshold
+                if (tickerBuffer.size() >= batchSize) {
+                    flushTickerBuffer();
+                }
             }
+        }
+    }
+    
+    /**
+     * Scheduled method to flush buffers periodically even if they don't reach the batch size
+     */
+    @Scheduled(fixedDelayString = "${crypto-scout.bybit.flush-interval-ms:5000}")
+    public void scheduledFlush() {
+        flushTickerBuffer();
+        flushLplBuffer();
+    }
+    
+    /**
+     * Flush the ticker buffer to the database
+     */
+    private synchronized void flushTickerBuffer() {
+        if (!tickerBuffer.isEmpty()) {
+            List<BybitTicker> batchToSave = new ArrayList<>(tickerBuffer);
+            tickerBuffer.clear();
+            bybitTickerRepository.saveAll(batchToSave);
+        }
+    }
+    
+    /**
+     * Flush the LPL buffer to the database
+     */
+    private synchronized void flushLplBuffer() {
+        if (!lplBuffer.isEmpty()) {
+            List<BybitLpl> batchToSave = new ArrayList<>(lplBuffer);
+            lplBuffer.clear();
+            bybitLplRepository.saveAll(batchToSave);
         }
     }
 
@@ -157,7 +210,7 @@ class BybitServiceImpl implements BybitService {
                 bybitTicker.setUsdIndexPrice(new BigDecimal((String) tickerData.get(USD_INDEX_PRICE)));
             }
         }
-
+        
         return bybitTicker;
     }
 }
