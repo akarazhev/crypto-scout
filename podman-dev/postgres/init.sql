@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS crypto_scout.bybit_ticker (
     volume_24h NUMERIC(20, 8) NOT NULL,
     turnover_24h NUMERIC(20, 4) NOT NULL,
     price_24h_pcnt NUMERIC(10, 4) NOT NULL,
-    usd_index_price NUMERIC(20, 6) NOT NULL,
+    usd_index_price NUMERIC(20, 6),
     -- For hypertables, primary key must include the partitioning column (timestamp)
     CONSTRAINT bybit_ticker_pkey PRIMARY KEY (id, timestamp)
 );

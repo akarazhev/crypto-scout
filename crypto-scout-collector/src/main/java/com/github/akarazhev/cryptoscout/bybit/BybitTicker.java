@@ -58,7 +58,7 @@ public class BybitTicker {
     @Column(name = "price_24h_pcnt", nullable = false, precision = 10, scale = 4)
     private BigDecimal price24hPcnt;
 
-    @Column(name = "usd_index_price", nullable = false, precision = 20, scale = 6)
+    @Column(name = "usd_index_price", precision = 20, scale = 6)
     private BigDecimal usdIndexPrice;
 
     /**
