@@ -28,6 +28,44 @@ CREATE INDEX IF NOT EXISTS idx_cmc_fgi_name ON crypto_scout.cmc_fgi(name);
 -- Using 1-day chunks for optimal performance with daily data
 SELECT public.create_hypertable('crypto_scout.cmc_fgi', 'timestamp', chunk_time_interval => INTERVAL '1 day');
 
+-- Create Bybit Ticker table in crypto_scout schema
+CREATE TABLE IF NOT EXISTS crypto_scout.bybit_ticker (
+    id BIGSERIAL,
+    topic VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    cross_sequence BIGINT NOT NULL,
+    symbol VARCHAR(50) NOT NULL,
+    last_price NUMERIC(20, 2) NOT NULL,
+    high_price_24h NUMERIC(20, 2) NOT NULL,
+    low_price_24h NUMERIC(20, 2) NOT NULL,
+    prev_price_24h NUMERIC(20, 2) NOT NULL,
+    volume_24h NUMERIC(20, 8) NOT NULL,
+    turnover_24h NUMERIC(20, 4) NOT NULL,
+    price_24h_pcnt NUMERIC(10, 4) NOT NULL,
+    usd_index_price NUMERIC(20, 6) NOT NULL,
+    -- For hypertables, primary key must include the partitioning column (timestamp)
+    CONSTRAINT bybit_ticker_pkey PRIMARY KEY (id, timestamp)
+);
+
+-- Create indexes for bybit_ticker table first (before hypertable conversion)
+CREATE INDEX IF NOT EXISTS idx_bybit_ticker_timestamp ON crypto_scout.bybit_ticker(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_bybit_ticker_symbol ON crypto_scout.bybit_ticker(symbol);
+CREATE INDEX IF NOT EXISTS idx_bybit_ticker_topic ON crypto_scout.bybit_ticker(topic);
+
+-- Convert the bybit_ticker table to a hypertable partitioned by timestamp
+-- Using 1-day chunks for optimal performance with time-series data
+SELECT public.create_hypertable('crypto_scout.bybit_ticker', 'timestamp', chunk_time_interval => INTERVAL '1 day');
+
+-- Add compression for bybit_ticker table
+ALTER TABLE crypto_scout.bybit_ticker SET (
+    timescaledb.compress,
+    timescaledb.compress_segmentby = 'symbol'
+);
+
+-- Compress chunks that are older than 7 days
+SELECT add_compression_policy('crypto_scout.bybit_ticker', INTERVAL '7 days');
+
 -- Grant privileges
 GRANT ALL PRIVILEGES ON SCHEMA crypto_scout TO sa;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA crypto_scout TO sa;
@@ -44,3 +82,4 @@ SELECT add_compression_policy('crypto_scout.cmc_fgi', INTERVAL '7 days');
 
 -- Optional: Add retention policy (uncomment if needed)
 -- SELECT add_retention_policy('crypto_scout.cmc_fgi', INTERVAL '90 days');
+-- SELECT add_retention_policy('crypto_scout.bybit_ticker', INTERVAL '90 days');
