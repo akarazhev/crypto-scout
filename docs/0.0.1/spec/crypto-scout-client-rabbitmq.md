@@ -33,9 +33,9 @@ The RabbitMQ integration follows a topic-based messaging architecture with the f
 
 The following queues are configured as RabbitMQ streams for high-throughput, real-time data processing:
 
-| Queue Name                 | Property                 | Purpose                                            |
-|----------------------------|--------------------------|----------------------------------------------------|
-| crypto-bybit-stream        | amqp.stream.crypto_bybit | Real-time cryptocurrency data from Bybit websocket |
+| Queue Name          | Property          | Purpose                                            |
+|---------------------|-------------------|----------------------------------------------------|
+| crypto-bybit-stream | amqp.stream.bybit | Real-time cryptocurrency data from Bybit websocket |
 
 Stream queue is configured with:
 - Queue type: stream (`x-queue-type: stream`)
