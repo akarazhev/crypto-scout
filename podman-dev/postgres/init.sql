@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS crypto_scout.bybit_ticker (
     topic VARCHAR(50) NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     type VARCHAR(50) NOT NULL,
-    cross_sequence BIGINT NOT NULL,
+    cross_sequence INTEGER NOT NULL,
     symbol VARCHAR(50) NOT NULL,
     last_price NUMERIC(20, 2) NOT NULL,
     high_price_24h NUMERIC(20, 2) NOT NULL,

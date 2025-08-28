@@ -116,7 +116,7 @@ class BybitServiceImpl implements BybitService {
         }
         
         if (data.get(CS) != null) {
-            bybitTicker.setCs((Long) data.get(CS));
+            bybitTicker.setCs((Integer) data.get(CS));
         }
         // Process nested data object
         if (data.get(DATA) != null) {

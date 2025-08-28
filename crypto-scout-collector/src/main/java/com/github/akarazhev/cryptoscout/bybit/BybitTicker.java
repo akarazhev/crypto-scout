@@ -32,7 +32,7 @@ public class BybitTicker {
     private String type;
 
     @Column(name = "cross_sequence", nullable = false)
-    private Long cs;
+    private Integer cs;
 
     @Column(nullable = false, length = 50)
     private String symbol;
@@ -99,11 +99,11 @@ public class BybitTicker {
         this.type = type;
     }
 
-    public Long getCs() {
+    public Integer getCs() {
         return cs;
     }
 
-    public void setCs(final Long cs) {
+    public void setCs(final Integer cs) {
         this.cs = cs;
     }
 
