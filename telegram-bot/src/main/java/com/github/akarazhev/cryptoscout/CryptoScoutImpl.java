@@ -43,8 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_COMMANDS;
-
 @Service
 final class CryptoScoutImpl implements CryptoScout {
     private final static int TIME_OUT_SECONDS = 30;
@@ -76,7 +74,7 @@ final class CryptoScoutImpl implements CryptoScout {
         final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
         futures.put(MessageKey.of(chatId, Message.Action.LAUNCH_PAD), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
-        amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
+        amqpTemplate.convertAndSend(exchange, "ROUTING_COMMANDS",
                 new Message<>(chatId, Message.Action.LAUNCH_PAD, startDate));
         return future;
     }
@@ -86,7 +84,7 @@ final class CryptoScoutImpl implements CryptoScout {
         final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
         futures.put(MessageKey.of(chatId, Message.Action.LAUNCH_POOL), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
-        amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
+        amqpTemplate.convertAndSend(exchange, "ROUTING_COMMANDS",
                 new Message<>(chatId, Message.Action.LAUNCH_POOL, startDate));
         return future;
     }
@@ -96,7 +94,7 @@ final class CryptoScoutImpl implements CryptoScout {
         final CompletableFuture<Collection<String>> future = new CompletableFuture<>();
         futures.put(MessageKey.of(chatId, Message.Action.BY_VOTES), future);
         final var startDate = Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli();
-        amqpTemplate.convertAndSend(exchange, ROUTING_COMMANDS,
+        amqpTemplate.convertAndSend(exchange, "ROUTING_COMMANDS",
                 new Message<>(chatId, Message.Action.BY_VOTES, startDate));
         return future;
     }
