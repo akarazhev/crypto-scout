@@ -34,10 +34,6 @@ public final class Constants {
         private AMQP() {
             throw new UnsupportedOperationException();
         }
-
-        public static final String ROUTING_ANNOUNCEMENTS = "announcements.cex";
-        public static final String ROUTING_COMMANDS = "commands";
-        public static final String ROUTING_RESULTS = "results";
         // Dead letter
         public static final String X_DEAD_LETTER_ROUTING_KEY = "x-dead-letter-routing-key";
         public static final String X_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
