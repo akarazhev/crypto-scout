@@ -26,6 +26,6 @@ package com.github.akarazhev.cryptoscout;
 
 public record Command<T>(Action action, T payload) {
     public enum Action {
-        START, STOP, RESTART
+        START, STOP, RESTART, STATUS
     }
 }
