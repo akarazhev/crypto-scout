@@ -45,23 +45,23 @@ class CmcServiceImpl implements CmcService {
         final var cmcFgis = new ArrayList<CmcFgi>();
         for (final var point : dataList) {
             final var cmcFgi = new CmcFgi();
-            if (point.containsKey(SCORE)) {
+            if (point.get(SCORE) != null) {
                 cmcFgi.setScore((Integer) point.get(SCORE));
             }
 
-            if (point.containsKey(NAME)) {
+            if (point.get(NAME) != null) {
                 cmcFgi.setName((String) point.get(NAME));
             }
 
-            if (point.containsKey(TIMESTAMP)) {
+            if (point.get(TIMESTAMP) != null) {
                 cmcFgi.setTimestamp(Instant.ofEpochSecond(Long.parseLong((String) point.get(TIMESTAMP))));
             }
 
-            if (point.containsKey(BTC_PRICE)) {
+            if (point.get(BTC_PRICE) != null) {
                 cmcFgi.setBtcPrice(BigDecimal.valueOf(Double.parseDouble((String) point.get(BTC_PRICE))));
             }
 
-            if (point.containsKey(BTC_VOLUME)) {
+            if (point.get(BTC_VOLUME) != null) {
                 cmcFgi.setBtcVolume(BigDecimal.valueOf(Double.parseDouble((String) point.get(BTC_VOLUME))));
             }
 
