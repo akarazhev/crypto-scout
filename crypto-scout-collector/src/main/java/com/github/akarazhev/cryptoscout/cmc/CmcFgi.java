@@ -43,28 +43,11 @@ public class CmcFgi {
     public CmcFgi() {
     }
 
-    /**
-     * Constructs a new Fgi instance with the specified parameters.
-     *
-     * @param score     the fear and greed index score
-     * @param name      the name/classification of the score (e.g., "Greed")
-     * @param timestamp the timestamp when the data was recorded
-     * @param btcPrice  the Bitcoin price at the time of recording
-     * @param btcVolume the Bitcoin trading volume at the time of recording
-     */
-    public CmcFgi(Integer score, String name, Instant timestamp, BigDecimal btcPrice, BigDecimal btcVolume) {
-        this.score = score;
-        this.name = name;
-        this.timestamp = timestamp;
-        this.btcPrice = btcPrice;
-        this.btcVolume = btcVolume;
-    }
-
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -72,7 +55,7 @@ public class CmcFgi {
         return score;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(final Integer score) {
         this.score = score;
     }
 
@@ -80,7 +63,7 @@ public class CmcFgi {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -88,7 +71,7 @@ public class CmcFgi {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(final Instant timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -96,7 +79,7 @@ public class CmcFgi {
         return btcPrice;
     }
 
-    public void setBtcPrice(BigDecimal btcPrice) {
+    public void setBtcPrice(final BigDecimal btcPrice) {
         this.btcPrice = btcPrice;
     }
 
@@ -104,15 +87,21 @@ public class CmcFgi {
         return btcVolume;
     }
 
-    public void setBtcVolume(BigDecimal btcVolume) {
+    public void setBtcVolume(final BigDecimal btcVolume) {
         this.btcVolume = btcVolume;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CmcFgi cmcFgi = (CmcFgi) o;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final var cmcFgi = (CmcFgi) o;
         return Objects.equals(id, cmcFgi.id) &&
                 Objects.equals(score, cmcFgi.score) &&
                 Objects.equals(name, cmcFgi.name) &&

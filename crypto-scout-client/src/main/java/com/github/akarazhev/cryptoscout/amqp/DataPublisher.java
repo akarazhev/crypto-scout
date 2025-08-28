@@ -55,7 +55,6 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
     public void publish(final Payload<Map<String, Object>> payload) {
         final var provider = payload.getProvider();
         final var source = payload.getSource();
-        final var data = payload.getData();
         if (Provider.CMC.equals(provider)) {
             if (Source.FGI.equals(source)) {
                 amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_CMC, payload);
