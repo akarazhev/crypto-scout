@@ -24,7 +24,6 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import com.github.akarazhev.cryptoscout.bybit.BybitService;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +35,6 @@ import java.util.Map;
 @Service
 final class BybitQueueSubscriber implements Subscriber<Payload<Map<String, Object>>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitQueueSubscriber.class);
-    private final BybitService bybitService;
-
-    public BybitQueueSubscriber(final BybitService bybitService) {
-        this.bybitService = bybitService;
-    }
 
     @RabbitListener(queues = "${amqp.queue.bybit}")
     @Override

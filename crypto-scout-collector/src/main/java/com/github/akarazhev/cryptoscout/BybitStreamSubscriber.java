@@ -22,15 +22,23 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.bybit;
+package com.github.akarazhev.cryptoscout;
 
-import org.springframework.data.repository.CrudRepository;
+import com.github.akarazhev.jcryptolib.stream.Payload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Service;
 
-import java.util.Collection;
+import java.util.Map;
 
-interface BybitEventRepository extends CrudRepository<BybitEvent, Long> {
+@Service
+final class BybitStreamSubscriber implements Subscriber<Payload<Map<String, Object>>> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BybitStreamSubscriber.class);
 
-    boolean existsByTitle(final String title);
-
-    Collection<BybitEvent> findByTypeAndEventTimeAfterOrderByEventTimeDesc(final String type, final long eventTime);
+    @RabbitListener(queues = "${amqp.stream.crypto_bybit}")
+    @Override
+    public void subscribe(final Payload<Map<String, Object>> payload) {
+        LOGGER.info("Received payload: {}", payload);
+    }
 }
