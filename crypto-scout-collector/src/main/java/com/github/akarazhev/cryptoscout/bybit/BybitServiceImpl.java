@@ -178,36 +178,52 @@ class BybitServiceImpl implements BybitService {
                 bybitTicker.setSymbol((String) tickerData.get(SYMBOL));
             }
             
-            if (tickerData.get(LAST_PRICE) != null) {
-                bybitTicker.setLastPrice(new BigDecimal((String) tickerData.get(LAST_PRICE)));
+            if (tickerData.get(LAST_PRICE) != null && tickerData.get(LAST_PRICE) instanceof String lastPrice) {
+                if (!lastPrice.isEmpty()) {
+                    bybitTicker.setLastPrice(new BigDecimal(lastPrice));
+                }
             }
             
-            if (tickerData.get(HIGH_PRICE_24H) != null) {
-                bybitTicker.setHighPrice24h(new BigDecimal((String) tickerData.get(HIGH_PRICE_24H)));
+            if (tickerData.get(HIGH_PRICE_24H) != null && tickerData.get(HIGH_PRICE_24H) instanceof String highPrice) {
+                if (!highPrice.isEmpty()) {
+                    bybitTicker.setHighPrice24h(new BigDecimal(highPrice));
+                }
             }
             
-            if (tickerData.get(LOW_PRICE_24H) != null) {
-                bybitTicker.setLowPrice24h(new BigDecimal((String) tickerData.get(LOW_PRICE_24H)));
+            if (tickerData.get(LOW_PRICE_24H) != null && tickerData.get(LOW_PRICE_24H) instanceof String lowPrice) {
+                if (!lowPrice.isEmpty()) {
+                    bybitTicker.setLowPrice24h(new BigDecimal(lowPrice));
+                }
             }
             
-            if (tickerData.get(PREV_PRICE_24H) != null) {
-                bybitTicker.setPrevPrice24h(new BigDecimal((String) tickerData.get(PREV_PRICE_24H)));
+            if (tickerData.get(PREV_PRICE_24H) != null && tickerData.get(PREV_PRICE_24H) instanceof String prevPrice) {
+                if (!prevPrice.isEmpty()) {
+                    bybitTicker.setPrevPrice24h(new BigDecimal(prevPrice));
+                }
             }
             
-            if (tickerData.get(VOLUME_24H) != null) {
-                bybitTicker.setVolume24h(new BigDecimal((String) tickerData.get(VOLUME_24H)));
+            if (tickerData.get(VOLUME_24H) != null && tickerData.get(VOLUME_24H) instanceof String volume) {
+                if (!volume.isEmpty()) {
+                    bybitTicker.setVolume24h(new BigDecimal(volume));
+                }
             }
             
-            if (tickerData.get(TURNOVER_24H) != null) {
-                bybitTicker.setTurnover24h(new BigDecimal((String) tickerData.get(TURNOVER_24H)));
+            if (tickerData.get(TURNOVER_24H) != null && tickerData.get(TURNOVER_24H) instanceof String turnover) {
+                if (!turnover.isEmpty()) {
+                    bybitTicker.setTurnover24h(new BigDecimal(turnover));
+                }
             }
             
-            if (tickerData.get(PRICE_24H_PCNT) != null) {
-                bybitTicker.setPrice24hPcnt(new BigDecimal((String) tickerData.get(PRICE_24H_PCNT)));
+            if (tickerData.get(PRICE_24H_PCNT) != null && tickerData.get(PRICE_24H_PCNT) instanceof String pricePcnt) {
+                if (!pricePcnt.isEmpty()) {
+                    bybitTicker.setPrice24hPcnt(new BigDecimal(pricePcnt));
+                }
             }
             
-            if (tickerData.get(USD_INDEX_PRICE) != null) {
-                bybitTicker.setUsdIndexPrice(new BigDecimal((String) tickerData.get(USD_INDEX_PRICE)));
+            if (tickerData.get(USD_INDEX_PRICE) != null && tickerData.get(USD_INDEX_PRICE) instanceof String usdPrice) {
+                if (!usdPrice.isEmpty()) {
+                    bybitTicker.setUsdIndexPrice(new BigDecimal(usdPrice));
+                }
             }
         }
         
