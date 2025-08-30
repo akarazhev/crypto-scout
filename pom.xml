@@ -17,6 +17,7 @@
         <module>crypto-scout-lib</module>
         <module>crypto-scout-client</module>
         <module>crypto-scout-collector</module>
+        <module>crypto-scout-analyst</module>
         <module>crypto-scout-telegram</module>
     </modules>
 </project>
