@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM amazoncorretto:23-alpine
+FROM eclipse-temurin:21.0.8_9-jre-ubi9-minimal
 WORKDIR /app
-COPY target/telegram-bot-0.0.1.jar telegram-bot.jar
-ENTRYPOINT ["java", "-jar", "telegram-bot.jar"]
+COPY target/crypto-scout-telegram-0.0.1.jar crypto-scout-telegram.jar
+ENTRYPOINT ["java", "-jar", "crypto-scout-telegram.jar"]
