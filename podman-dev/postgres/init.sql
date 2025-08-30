@@ -32,9 +32,7 @@ SELECT public.create_hypertable('crypto_scout.cmc_fgi', 'timestamp', chunk_time_
 CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
     id BIGSERIAL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-    type VARCHAR(50) NOT NULL,
     cross_sequence INTEGER NOT NULL,
-    symbol VARCHAR(50) NOT NULL,
     last_price NUMERIC(20, 2) NOT NULL,
     high_price_24h NUMERIC(20, 2) NOT NULL,
     low_price_24h NUMERIC(20, 2) NOT NULL,
@@ -49,7 +47,6 @@ CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
 
 -- Create indexes for bybit_spot_tickers_btc_usdt table first (before hypertable conversion)
 CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_timestamp ON crypto_scout.bybit_spot_tickers_btc_usdt(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_symbol ON crypto_scout.bybit_spot_tickers_btc_usdt(symbol);
 
 -- Convert the bybit_spot_tickers_btc_usdt table to a hypertable partitioned by timestamp
 -- Using 1-day chunks for optimal performance with time-series data
@@ -82,7 +79,7 @@ SELECT public.create_hypertable('crypto_scout.bybit_lpl', 'stake_begin_time', ch
 -- Add compression for bybit_spot_tickers_btc_usdt table
 ALTER TABLE crypto_scout.bybit_spot_tickers_btc_usdt SET (
     timescaledb.compress,
-    timescaledb.compress_segmentby = 'symbol'
+    timescaledb.compress_segmentby = 'cross_sequence'
 );
 
 -- Add compression for bybit_lpl table

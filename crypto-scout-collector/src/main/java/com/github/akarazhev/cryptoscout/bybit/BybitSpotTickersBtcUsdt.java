@@ -25,14 +25,8 @@ public class BybitSpotTickersBtcUsdt {
     @Column(nullable = false)
     private Instant timestamp;
 
-    @Column(nullable = false, length = 50)
-    private String type;
-
     @Column(name = "cross_sequence", nullable = false)
     private Integer cs;
-
-    @Column(nullable = false, length = 50)
-    private String symbol;
 
     @Column(name = "last_price", nullable = false, precision = 20, scale = 2)
     private BigDecimal lastPrice;
@@ -80,28 +74,12 @@ public class BybitSpotTickersBtcUsdt {
         this.timestamp = timestamp;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(final String type) {
-        this.type = type;
-    }
-
     public Integer getCs() {
         return cs;
     }
 
     public void setCs(final Integer cs) {
         this.cs = cs;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(final String symbol) {
-        this.symbol = symbol;
     }
 
     public BigDecimal getLastPrice() {
@@ -181,9 +159,7 @@ public class BybitSpotTickersBtcUsdt {
         final var that = (BybitSpotTickersBtcUsdt) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(timestamp, that.timestamp) &&
-                Objects.equals(type, that.type) &&
                 Objects.equals(cs, that.cs) &&
-                Objects.equals(symbol, that.symbol) &&
                 Objects.equals(lastPrice, that.lastPrice) &&
                 Objects.equals(highPrice24h, that.highPrice24h) &&
                 Objects.equals(lowPrice24h, that.lowPrice24h) &&
@@ -196,7 +172,7 @@ public class BybitSpotTickersBtcUsdt {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, timestamp, type, cs, symbol, lastPrice, highPrice24h, lowPrice24h,
+        return Objects.hash(id, timestamp, cs, lastPrice, highPrice24h, lowPrice24h,
                 prevPrice24h, volume24h, turnover24h, price24hPcnt, usdIndexPrice);
     }
 
@@ -205,9 +181,7 @@ public class BybitSpotTickersBtcUsdt {
         return "BybitSpotTickersBtcUsdt{" +
                 "id=" + id +
                 ", timestamp=" + timestamp +
-                ", type='" + type + '\'' +
                 ", cs=" + cs +
-                ", symbol='" + symbol + '\'' +
                 ", lastPrice=" + lastPrice +
                 ", highPrice24h=" + highPrice24h +
                 ", lowPrice24h=" + lowPrice24h +

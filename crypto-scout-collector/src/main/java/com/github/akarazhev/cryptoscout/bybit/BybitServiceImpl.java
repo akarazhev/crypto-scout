@@ -190,20 +190,12 @@ class BybitServiceImpl implements BybitService {
             bybitSpotTickersBtcUsdt.setTimestamp(Instant.ofEpochMilli((Long) data.get(TS)));
         }
         
-        if (data.get(TYPE) != null) {
-            bybitSpotTickersBtcUsdt.setType((String) data.get(TYPE));
-        }
-        
         if (data.get(CS) != null) {
             bybitSpotTickersBtcUsdt.setCs((Integer) data.get(CS));
         }
         // Process nested data object
         if (data.get(DATA) != null) {
             final var tickerData = (Map<String, Object>) data.get(DATA);
-            if (tickerData.get(SYMBOL) != null) {
-                bybitSpotTickersBtcUsdt.setSymbol((String) tickerData.get(SYMBOL));
-            }
-            
             if (tickerData.get(LAST_PRICE) != null && tickerData.get(LAST_PRICE) instanceof String lastPrice) {
                 if (!lastPrice.isEmpty()) {
                     bybitSpotTickersBtcUsdt.setLastPrice(new BigDecimal(lastPrice));
