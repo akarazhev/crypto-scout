@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.github.akarazhev.cryptoscout</groupId>
-    <artifactId>telegram-bot</artifactId>
+    <artifactId>crypto-scout-telegram</artifactId>
     <version>0.0.1</version>
-    <name>telegram-bot</name>
-    <description>Telegram Bot</description>
+    <name>crypto-scout-telegram</name>
+    <description>Crypto Scout Telegram</description>
     <url/>
     <licenses>
         <license>
