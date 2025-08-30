@@ -31,7 +31,6 @@ SELECT public.create_hypertable('crypto_scout.cmc_fgi', 'timestamp', chunk_time_
 -- Create Bybit Spot Tickers BTC/USDT table in crypto_scout schema
 CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
     id BIGSERIAL,
-    topic VARCHAR(50) NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     type VARCHAR(50) NOT NULL,
     cross_sequence INTEGER NOT NULL,
@@ -51,7 +50,6 @@ CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
 -- Create indexes for bybit_spot_tickers_btc_usdt table first (before hypertable conversion)
 CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_timestamp ON crypto_scout.bybit_spot_tickers_btc_usdt(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_symbol ON crypto_scout.bybit_spot_tickers_btc_usdt(symbol);
-CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_topic ON crypto_scout.bybit_spot_tickers_btc_usdt(topic);
 
 -- Convert the bybit_spot_tickers_btc_usdt table to a hypertable partitioned by timestamp
 -- Using 1-day chunks for optimal performance with time-series data

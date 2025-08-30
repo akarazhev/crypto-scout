@@ -39,6 +39,7 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.USD_INDEX
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.VOLUME_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WEBSITE;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WHITE_PAPER;
+import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_BTC_USDT;
 
 @Service
 class BybitServiceImpl implements BybitService {
@@ -64,8 +65,7 @@ class BybitServiceImpl implements BybitService {
         final var source = payload.getSource();
         if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
-                final BybitLpl lpl = getBybitLpl(payload.getData());
-                lplBuffer.add(lpl);
+                lplBuffer.add(getBybitLpl(payload.getData()));
                 LOGGER.debug("Added LPL data to buffer, current size: {}", lplBuffer.size());
                 // Flush if buffer size reaches the threshold
                 if (lplBuffer.size() >= batchSize) {
@@ -73,13 +73,15 @@ class BybitServiceImpl implements BybitService {
                     flushLplBuffer();
                 }
             } else if (Source.WS.equals(source)) {
-                final BybitSpotTickersBtcUsdt ticker = getBybitSpotTickersBtcUsdt(payload.getData());
-                spotTickersBtcUsdtBuffer.add(ticker);
-                LOGGER.debug("Added ticker data to buffer, current size: {}", spotTickersBtcUsdtBuffer.size());
-                // Flush if buffer size reaches the threshold
-                if (spotTickersBtcUsdtBuffer.size() >= batchSize) {
-                    LOGGER.info("Ticker buffer reached batch size ({}), triggering flush", batchSize);
-                    flushTickerBuffer();
+                final var data = payload.getData();
+                if (data.get(TOPIC) != null && data.get(TOPIC).equals(TICKERS_BTC_USDT)) {
+                    spotTickersBtcUsdtBuffer.add(getBybitSpotTickersBtcUsdt(data));
+                    LOGGER.debug("Added ticker data to buffer, current size: {}", spotTickersBtcUsdtBuffer.size());
+                    // Flush if buffer size reaches the threshold
+                    if (spotTickersBtcUsdtBuffer.size() >= batchSize) {
+                        LOGGER.info("Ticker buffer reached batch size ({}), triggering flush", batchSize);
+                        flushTickerBuffer();
+                    }
                 }
             }
         }
@@ -184,10 +186,6 @@ class BybitServiceImpl implements BybitService {
     private BybitSpotTickersBtcUsdt getBybitSpotTickersBtcUsdt(final Map<String, Object> data) {
         final var bybitSpotTickersBtcUsdt = new BybitSpotTickersBtcUsdt();
         // Set top-level fields
-        if (data.get(TOPIC) != null) {
-            bybitSpotTickersBtcUsdt.setTopic((String) data.get(TOPIC));
-        }
-        
         if (data.get(TS) != null) {
             bybitSpotTickersBtcUsdt.setTimestamp(Instant.ofEpochMilli((Long) data.get(TS)));
         }

@@ -22,9 +22,6 @@ public class BybitSpotTickersBtcUsdt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String topic;
-
     @Column(nullable = false)
     private Instant timestamp;
 
@@ -73,14 +70,6 @@ public class BybitSpotTickersBtcUsdt {
 
     public void setId(final Long id) {
         this.id = id;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(final String topic) {
-        this.topic = topic;
     }
 
     public Instant getTimestamp() {
@@ -191,7 +180,6 @@ public class BybitSpotTickersBtcUsdt {
 
         final var that = (BybitSpotTickersBtcUsdt) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(topic, that.topic) &&
                 Objects.equals(timestamp, that.timestamp) &&
                 Objects.equals(type, that.type) &&
                 Objects.equals(cs, that.cs) &&
@@ -208,7 +196,7 @@ public class BybitSpotTickersBtcUsdt {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, topic, timestamp, type, cs, symbol, lastPrice, highPrice24h, lowPrice24h,
+        return Objects.hash(id, timestamp, type, cs, symbol, lastPrice, highPrice24h, lowPrice24h,
                 prevPrice24h, volume24h, turnover24h, price24hPcnt, usdIndexPrice);
     }
 
@@ -216,7 +204,6 @@ public class BybitSpotTickersBtcUsdt {
     public String toString() {
         return "BybitSpotTickersBtcUsdt{" +
                 "id=" + id +
-                ", topic='" + topic + '\'' +
                 ", timestamp=" + timestamp +
                 ", type='" + type + '\'' +
                 ", cs=" + cs +
