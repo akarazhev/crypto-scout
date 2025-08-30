@@ -12,12 +12,12 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Entity representing the Ticker data in the crypto_scout schema.
+ * Entity representing the Bybit Spot Tickers BTC/USDT data in the crypto_scout schema.
  * This table is configured as a TimescaleDB hypertable for time-series data optimization.
  */
 @Entity
-@Table(name = "bybit_ticker", schema = "crypto_scout")
-public class BybitTicker {
+@Table(name = "bybit_spot_tickers_btc_usdt", schema = "crypto_scout")
+public class BybitSpotTickersBtcUsdt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -64,7 +64,7 @@ public class BybitTicker {
     /**
      * Default constructor required by JPA
      */
-    public BybitTicker() {
+    public BybitSpotTickersBtcUsdt() {
     }
 
     public Long getId() {
@@ -189,32 +189,32 @@ public class BybitTicker {
             return false;
         }
 
-        final var bybitTicker = (BybitTicker) o;
-        return Objects.equals(id, bybitTicker.id) &&
-                Objects.equals(topic, bybitTicker.topic) &&
-                Objects.equals(timestamp, bybitTicker.timestamp) &&
-                Objects.equals(type, bybitTicker.type) &&
-                Objects.equals(cs, bybitTicker.cs) &&
-                Objects.equals(symbol, bybitTicker.symbol) &&
-                Objects.equals(lastPrice, bybitTicker.lastPrice) &&
-                Objects.equals(highPrice24h, bybitTicker.highPrice24h) &&
-                Objects.equals(lowPrice24h, bybitTicker.lowPrice24h) &&
-                Objects.equals(prevPrice24h, bybitTicker.prevPrice24h) &&
-                Objects.equals(volume24h, bybitTicker.volume24h) &&
-                Objects.equals(turnover24h, bybitTicker.turnover24h) &&
-                Objects.equals(price24hPcnt, bybitTicker.price24hPcnt) &&
-                Objects.equals(usdIndexPrice, bybitTicker.usdIndexPrice);
+        final var that = (BybitSpotTickersBtcUsdt) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(topic, that.topic) &&
+                Objects.equals(timestamp, that.timestamp) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(cs, that.cs) &&
+                Objects.equals(symbol, that.symbol) &&
+                Objects.equals(lastPrice, that.lastPrice) &&
+                Objects.equals(highPrice24h, that.highPrice24h) &&
+                Objects.equals(lowPrice24h, that.lowPrice24h) &&
+                Objects.equals(prevPrice24h, that.prevPrice24h) &&
+                Objects.equals(volume24h, that.volume24h) &&
+                Objects.equals(turnover24h, that.turnover24h) &&
+                Objects.equals(price24hPcnt, that.price24hPcnt) &&
+                Objects.equals(usdIndexPrice, that.usdIndexPrice);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, topic, timestamp, type, cs, symbol, lastPrice, highPrice24h, 
-                lowPrice24h, prevPrice24h, volume24h, turnover24h, price24hPcnt, usdIndexPrice);
+        return Objects.hash(id, topic, timestamp, type, cs, symbol, lastPrice, highPrice24h, lowPrice24h,
+                prevPrice24h, volume24h, turnover24h, price24hPcnt, usdIndexPrice);
     }
 
     @Override
     public String toString() {
-        return "BybitTicker{" +
+        return "BybitSpotTickersBtcUsdt{" +
                 "id=" + id +
                 ", topic='" + topic + '\'' +
                 ", timestamp=" + timestamp +
