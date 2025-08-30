@@ -3,6 +3,8 @@ package com.github.akarazhev.cryptoscout.bybit;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -40,18 +42,19 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WHITE_PAP
 
 @Service
 class BybitServiceImpl implements BybitService {
-    // Buffers for batch processing
-    private final List<BybitTicker> tickerBuffer = new CopyOnWriteArrayList<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(BybitServiceImpl.class);
+    private final List<BybitSpotTickersBtcUsdt> spotTickersBtcUsdtBuffer = new CopyOnWriteArrayList<>();
     private final List<BybitLpl> lplBuffer = new CopyOnWriteArrayList<>();
-    private final BybitTickerRepository bybitTickerRepository;
+    private final BybitSpotTickersBtcUsdtRepository bybitSpotTickersBtcUsdtRepository;
     private final BybitLplRepository bybitLplRepository;
     @Value("${crypto-scout.bybit.batch-size:100}")
     private int batchSize;
     @Value("${crypto-scout.bybit.flush-interval-ms:5000}")
     private long flushIntervalMs;
 
-    public BybitServiceImpl(final BybitTickerRepository bybitTickerRepository, final BybitLplRepository bybitLplRepository) {
-        this.bybitTickerRepository = bybitTickerRepository;
+    public BybitServiceImpl(final BybitSpotTickersBtcUsdtRepository bybitSpotTickersBtcUsdtRepository,
+                            final BybitLplRepository bybitLplRepository) {
+        this.bybitSpotTickersBtcUsdtRepository = bybitSpotTickersBtcUsdtRepository;
         this.bybitLplRepository = bybitLplRepository;
     }
 
@@ -63,15 +66,19 @@ class BybitServiceImpl implements BybitService {
             if (Source.LPL.equals(source)) {
                 final BybitLpl lpl = getBybitLpl(payload.getData());
                 lplBuffer.add(lpl);
+                LOGGER.debug("Added LPL data to buffer, current size: {}", lplBuffer.size());
                 // Flush if buffer size reaches the threshold
                 if (lplBuffer.size() >= batchSize) {
+                    LOGGER.info("LPL buffer reached batch size ({}), triggering flush", batchSize);
                     flushLplBuffer();
                 }
             } else if (Source.WS.equals(source)) {
-                final BybitTicker ticker = getBybitTicker(payload.getData());
-                tickerBuffer.add(ticker);
+                final BybitSpotTickersBtcUsdt ticker = getBybitSpotTickersBtcUsdt(payload.getData());
+                spotTickersBtcUsdtBuffer.add(ticker);
+                LOGGER.debug("Added ticker data to buffer, current size: {}", spotTickersBtcUsdtBuffer.size());
                 // Flush if buffer size reaches the threshold
-                if (tickerBuffer.size() >= batchSize) {
+                if (spotTickersBtcUsdtBuffer.size() >= batchSize) {
+                    LOGGER.info("Ticker buffer reached batch size ({}), triggering flush", batchSize);
                     flushTickerBuffer();
                 }
             }
@@ -83,6 +90,8 @@ class BybitServiceImpl implements BybitService {
      */
     @Scheduled(fixedDelayString = "${crypto-scout.bybit.flush-interval-ms:5000}")
     public void scheduledFlush() {
+        LOGGER.debug("Running scheduled flush, ticker buffer size: {}, LPL buffer size: {}",
+                spotTickersBtcUsdtBuffer.size(), lplBuffer.size());
         flushTickerBuffer();
         flushLplBuffer();
     }
@@ -91,10 +100,20 @@ class BybitServiceImpl implements BybitService {
      * Flush the ticker buffer to the database
      */
     private synchronized void flushTickerBuffer() {
-        if (!tickerBuffer.isEmpty()) {
-            List<BybitTicker> batchToSave = new ArrayList<>(tickerBuffer);
-            tickerBuffer.clear();
-            bybitTickerRepository.saveAll(batchToSave);
+        if (!spotTickersBtcUsdtBuffer.isEmpty()) {
+            List<BybitSpotTickersBtcUsdt> batchToSave = new ArrayList<>(spotTickersBtcUsdtBuffer);
+            int batchSize = batchToSave.size();
+            long startTime = System.currentTimeMillis();
+
+            LOGGER.info("Flushing {} ticker records to database", batchSize);
+            spotTickersBtcUsdtBuffer.clear();
+            bybitSpotTickersBtcUsdtRepository.saveAll(batchToSave);
+            
+            long duration = System.currentTimeMillis() - startTime;
+            LOGGER.info("Successfully saved {} ticker records in {} ms ({} records/sec)",
+                    batchSize, duration, batchSize > 0 ? (batchSize * 1000L / Math.max(duration, 1)) : 0);
+        } else {
+            LOGGER.debug("Ticker buffer is empty, nothing to flush");
         }
     }
     
@@ -104,8 +123,18 @@ class BybitServiceImpl implements BybitService {
     private synchronized void flushLplBuffer() {
         if (!lplBuffer.isEmpty()) {
             List<BybitLpl> batchToSave = new ArrayList<>(lplBuffer);
+            final var batchSize = batchToSave.size();
+            final var startTime = System.currentTimeMillis();
+
+            LOGGER.info("Flushing {} LPL records to database", batchSize);
             lplBuffer.clear();
             bybitLplRepository.saveAll(batchToSave);
+            
+            final var duration = System.currentTimeMillis() - startTime;
+            LOGGER.info("Successfully saved {} LPL records in {} ms ({} records/sec)",
+                    batchSize, duration, batchSize > 0 ? (batchSize * 1000L / Math.max(duration, 1)) : 0);
+        } else {
+            LOGGER.debug("LPL buffer is empty, nothing to flush");
         }
     }
 
@@ -142,7 +171,6 @@ class BybitServiceImpl implements BybitService {
         if (data.get(STAKE_END_TIME) != null) {
             bybitLpl.setStakeEndTime(Instant.ofEpochMilli((Long) data.get(STAKE_END_TIME)));
         }
-        
         // Trade begin time can be null
         if (data.get(TRADE_BEGIN_TIME) != null) {
             bybitLpl.setTradeBeginTime(Instant.ofEpochMilli((Long) data.get(TRADE_BEGIN_TIME)));
@@ -153,80 +181,80 @@ class BybitServiceImpl implements BybitService {
         return bybitLpl;
     }
 
-    private BybitTicker getBybitTicker(final Map<String, Object> data) {
-        final var bybitTicker = new BybitTicker();
+    private BybitSpotTickersBtcUsdt getBybitSpotTickersBtcUsdt(final Map<String, Object> data) {
+        final var bybitSpotTickersBtcUsdt = new BybitSpotTickersBtcUsdt();
         // Set top-level fields
         if (data.get(TOPIC) != null) {
-            bybitTicker.setTopic((String) data.get(TOPIC));
+            bybitSpotTickersBtcUsdt.setTopic((String) data.get(TOPIC));
         }
         
         if (data.get(TS) != null) {
-            bybitTicker.setTimestamp(Instant.ofEpochMilli((Long) data.get(TS)));
+            bybitSpotTickersBtcUsdt.setTimestamp(Instant.ofEpochMilli((Long) data.get(TS)));
         }
         
         if (data.get(TYPE) != null) {
-            bybitTicker.setType((String) data.get(TYPE));
+            bybitSpotTickersBtcUsdt.setType((String) data.get(TYPE));
         }
         
         if (data.get(CS) != null) {
-            bybitTicker.setCs((Integer) data.get(CS));
+            bybitSpotTickersBtcUsdt.setCs((Integer) data.get(CS));
         }
         // Process nested data object
         if (data.get(DATA) != null) {
             final var tickerData = (Map<String, Object>) data.get(DATA);
             if (tickerData.get(SYMBOL) != null) {
-                bybitTicker.setSymbol((String) tickerData.get(SYMBOL));
+                bybitSpotTickersBtcUsdt.setSymbol((String) tickerData.get(SYMBOL));
             }
             
             if (tickerData.get(LAST_PRICE) != null && tickerData.get(LAST_PRICE) instanceof String lastPrice) {
                 if (!lastPrice.isEmpty()) {
-                    bybitTicker.setLastPrice(new BigDecimal(lastPrice));
+                    bybitSpotTickersBtcUsdt.setLastPrice(new BigDecimal(lastPrice));
                 }
             }
             
             if (tickerData.get(HIGH_PRICE_24H) != null && tickerData.get(HIGH_PRICE_24H) instanceof String highPrice) {
                 if (!highPrice.isEmpty()) {
-                    bybitTicker.setHighPrice24h(new BigDecimal(highPrice));
+                    bybitSpotTickersBtcUsdt.setHighPrice24h(new BigDecimal(highPrice));
                 }
             }
             
             if (tickerData.get(LOW_PRICE_24H) != null && tickerData.get(LOW_PRICE_24H) instanceof String lowPrice) {
                 if (!lowPrice.isEmpty()) {
-                    bybitTicker.setLowPrice24h(new BigDecimal(lowPrice));
+                    bybitSpotTickersBtcUsdt.setLowPrice24h(new BigDecimal(lowPrice));
                 }
             }
             
             if (tickerData.get(PREV_PRICE_24H) != null && tickerData.get(PREV_PRICE_24H) instanceof String prevPrice) {
                 if (!prevPrice.isEmpty()) {
-                    bybitTicker.setPrevPrice24h(new BigDecimal(prevPrice));
+                    bybitSpotTickersBtcUsdt.setPrevPrice24h(new BigDecimal(prevPrice));
                 }
             }
             
             if (tickerData.get(VOLUME_24H) != null && tickerData.get(VOLUME_24H) instanceof String volume) {
                 if (!volume.isEmpty()) {
-                    bybitTicker.setVolume24h(new BigDecimal(volume));
+                    bybitSpotTickersBtcUsdt.setVolume24h(new BigDecimal(volume));
                 }
             }
             
             if (tickerData.get(TURNOVER_24H) != null && tickerData.get(TURNOVER_24H) instanceof String turnover) {
                 if (!turnover.isEmpty()) {
-                    bybitTicker.setTurnover24h(new BigDecimal(turnover));
+                    bybitSpotTickersBtcUsdt.setTurnover24h(new BigDecimal(turnover));
                 }
             }
             
             if (tickerData.get(PRICE_24H_PCNT) != null && tickerData.get(PRICE_24H_PCNT) instanceof String pricePcnt) {
                 if (!pricePcnt.isEmpty()) {
-                    bybitTicker.setPrice24hPcnt(new BigDecimal(pricePcnt));
+                    bybitSpotTickersBtcUsdt.setPrice24hPcnt(new BigDecimal(pricePcnt));
                 }
             }
-            
+
             if (tickerData.get(USD_INDEX_PRICE) != null && tickerData.get(USD_INDEX_PRICE) instanceof String usdPrice) {
                 if (!usdPrice.isEmpty()) {
-                    bybitTicker.setUsdIndexPrice(new BigDecimal(usdPrice));
+                    bybitSpotTickersBtcUsdt.setUsdIndexPrice(new BigDecimal(usdPrice));
                 }
             }
         }
         
-        return bybitTicker;
+        return bybitSpotTickersBtcUsdt;
     }
 }
