@@ -28,8 +28,8 @@ CREATE INDEX IF NOT EXISTS idx_cmc_fgi_name ON crypto_scout.cmc_fgi(name);
 -- Using 1-day chunks for optimal performance with daily data
 SELECT public.create_hypertable('crypto_scout.cmc_fgi', 'timestamp', chunk_time_interval => INTERVAL '1 day');
 
--- Create Bybit Ticker table in crypto_scout schema
-CREATE TABLE IF NOT EXISTS crypto_scout.bybit_ticker (
+-- Create Bybit Spot Tickers BTC/USDT table in crypto_scout schema
+CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
     id BIGSERIAL,
     topic VARCHAR(50) NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -45,17 +45,17 @@ CREATE TABLE IF NOT EXISTS crypto_scout.bybit_ticker (
     price_24h_pcnt NUMERIC(10, 4) NOT NULL,
     usd_index_price NUMERIC(20, 6),
     -- For hypertables, primary key must include the partitioning column (timestamp)
-    CONSTRAINT bybit_ticker_pkey PRIMARY KEY (id, timestamp)
+    CONSTRAINT bybit_spot_tickers_btc_usdt_pkey PRIMARY KEY (id, timestamp)
 );
 
--- Create indexes for bybit_ticker table first (before hypertable conversion)
-CREATE INDEX IF NOT EXISTS idx_bybit_ticker_timestamp ON crypto_scout.bybit_ticker(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_bybit_ticker_symbol ON crypto_scout.bybit_ticker(symbol);
-CREATE INDEX IF NOT EXISTS idx_bybit_ticker_topic ON crypto_scout.bybit_ticker(topic);
+-- Create indexes for bybit_spot_tickers_btc_usdt table first (before hypertable conversion)
+CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_timestamp ON crypto_scout.bybit_spot_tickers_btc_usdt(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_symbol ON crypto_scout.bybit_spot_tickers_btc_usdt(symbol);
+CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_topic ON crypto_scout.bybit_spot_tickers_btc_usdt(topic);
 
--- Convert the bybit_ticker table to a hypertable partitioned by timestamp
+-- Convert the bybit_spot_tickers_btc_usdt table to a hypertable partitioned by timestamp
 -- Using 1-day chunks for optimal performance with time-series data
-SELECT public.create_hypertable('crypto_scout.bybit_ticker', 'timestamp', chunk_time_interval => INTERVAL '1 day');
+SELECT public.create_hypertable('crypto_scout.bybit_spot_tickers_btc_usdt', 'timestamp', chunk_time_interval => INTERVAL '1 day');
 
 -- Create Bybit Launch Pool table in crypto_scout schema
 CREATE TABLE IF NOT EXISTS crypto_scout.bybit_lpl (
@@ -81,8 +81,8 @@ CREATE INDEX IF NOT EXISTS idx_bybit_lpl_return_coin ON crypto_scout.bybit_lpl(r
 -- Using 1-day chunks for optimal performance with time-series data
 SELECT public.create_hypertable('crypto_scout.bybit_lpl', 'stake_begin_time', chunk_time_interval => INTERVAL '1 day');
 
--- Add compression for bybit_ticker table
-ALTER TABLE crypto_scout.bybit_ticker SET (
+-- Add compression for bybit_spot_tickers_btc_usdt table
+ALTER TABLE crypto_scout.bybit_spot_tickers_btc_usdt SET (
     timescaledb.compress,
     timescaledb.compress_segmentby = 'symbol'
 );
@@ -94,7 +94,7 @@ ALTER TABLE crypto_scout.bybit_lpl SET (
 );
 
 -- Compress chunks that are older than 7 days
-SELECT add_compression_policy('crypto_scout.bybit_ticker', INTERVAL '7 days');
+SELECT add_compression_policy('crypto_scout.bybit_spot_tickers_btc_usdt', INTERVAL '7 days');
 SELECT add_compression_policy('crypto_scout.bybit_lpl', INTERVAL '7 days');
 
 -- Grant privileges
@@ -113,5 +113,5 @@ SELECT add_compression_policy('crypto_scout.cmc_fgi', INTERVAL '7 days');
 
 -- Optional: Add retention policy (uncomment if needed)
 -- SELECT add_retention_policy('crypto_scout.cmc_fgi', INTERVAL '90 days');
--- SELECT add_retention_policy('crypto_scout.bybit_ticker', INTERVAL '90 days');
+-- SELECT add_retention_policy('crypto_scout.bybit_spot_tickers_btc_usdt', INTERVAL '90 days');
 -- SELECT add_retention_policy('crypto_scout.bybit_lpl', INTERVAL '90 days');
