@@ -29,12 +29,10 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.RETURN_CO
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.RULES;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.STAKE_BEGIN_TIME;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.STAKE_END_TIME;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.SYMBOL;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TOPIC;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TRADE_BEGIN_TIME;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TURNOVER_24H;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TYPE;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.USD_INDEX_PRICE;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.VOLUME_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WEBSITE;
@@ -66,20 +64,19 @@ class BybitServiceImpl implements BybitService {
         if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
                 lplBuffer.add(getBybitLpl(payload.getData()));
-                LOGGER.debug("Added LPL data to buffer, current size: {}", lplBuffer.size());
-                // Flush if buffer size reaches the threshold
+                LOGGER.debug("Added launch pool data to buffer, current size: {}", lplBuffer.size());
                 if (lplBuffer.size() >= batchSize) {
-                    LOGGER.info("LPL buffer reached batch size ({}), triggering flush", batchSize);
+                    LOGGER.info("launch pool buffer reached batch size ({}), triggering flush", batchSize);
                     flushLplBuffer();
                 }
-            } else if (Source.WS.equals(source)) {
+            } else if (Source.PTST.equals(source)) {
                 final var data = payload.getData();
-                if (data.get(TOPIC) != null && data.get(TOPIC).equals(TICKERS_BTC_USDT)) {
+                if (TICKERS_BTC_USDT.equals(data.get(TOPIC))) {
                     spotTickersBtcUsdtBuffer.add(getBybitSpotTickersBtcUsdt(data));
-                    LOGGER.debug("Added ticker data to buffer, current size: {}", spotTickersBtcUsdtBuffer.size());
+                    LOGGER.debug("Added spot ticker btc-usdt data to buffer, current size: {}", spotTickersBtcUsdtBuffer.size());
                     // Flush if buffer size reaches the threshold
                     if (spotTickersBtcUsdtBuffer.size() >= batchSize) {
-                        LOGGER.info("Ticker buffer reached batch size ({}), triggering flush", batchSize);
+                        LOGGER.info("Spot ticker btc-usdt buffer reached batch size ({}), triggering flush", batchSize);
                         flushTickerBuffer();
                     }
                 }
@@ -92,7 +89,7 @@ class BybitServiceImpl implements BybitService {
      */
     @Scheduled(fixedDelayString = "${crypto-scout.bybit.flush-interval-ms:5000}")
     public void scheduledFlush() {
-        LOGGER.debug("Running scheduled flush, ticker buffer size: {}, LPL buffer size: {}",
+        LOGGER.debug("Running scheduled flush, spot ticker btc-usdt buffer size: {}, launch pool buffer size: {}",
                 spotTickersBtcUsdtBuffer.size(), lplBuffer.size());
         flushTickerBuffer();
         flushLplBuffer();
@@ -107,20 +104,20 @@ class BybitServiceImpl implements BybitService {
             int batchSize = batchToSave.size();
             long startTime = System.currentTimeMillis();
 
-            LOGGER.info("Flushing {} ticker records to database", batchSize);
+            LOGGER.info("Flushing {} spot ticker btc-usdt records to database", batchSize);
             spotTickersBtcUsdtBuffer.clear();
             bybitSpotTickersBtcUsdtRepository.saveAll(batchToSave);
             
             long duration = System.currentTimeMillis() - startTime;
-            LOGGER.info("Successfully saved {} ticker records in {} ms ({} records/sec)",
+            LOGGER.info("Successfully saved {} spot ticker btc-usdt records in {} ms ({} records/sec)",
                     batchSize, duration, batchSize > 0 ? (batchSize * 1000L / Math.max(duration, 1)) : 0);
         } else {
-            LOGGER.debug("Ticker buffer is empty, nothing to flush");
+            LOGGER.debug("Spot ticker btc-usdt buffer is empty, nothing to flush");
         }
     }
     
     /**
-     * Flush the LPL buffer to the database
+     * Flush the launch pool buffer to the database
      */
     private synchronized void flushLplBuffer() {
         if (!lplBuffer.isEmpty()) {
@@ -128,15 +125,15 @@ class BybitServiceImpl implements BybitService {
             final var batchSize = batchToSave.size();
             final var startTime = System.currentTimeMillis();
 
-            LOGGER.info("Flushing {} LPL records to database", batchSize);
+            LOGGER.info("Flushing {} launch pool records to database", batchSize);
             lplBuffer.clear();
             bybitLplRepository.saveAll(batchToSave);
             
             final var duration = System.currentTimeMillis() - startTime;
-            LOGGER.info("Successfully saved {} LPL records in {} ms ({} records/sec)",
+            LOGGER.info("Successfully saved {} launch pool records in {} ms ({} records/sec)",
                     batchSize, duration, batchSize > 0 ? (batchSize * 1000L / Math.max(duration, 1)) : 0);
         } else {
-            LOGGER.debug("LPL buffer is empty, nothing to flush");
+            LOGGER.debug("launch pool buffer is empty, nothing to flush");
         }
     }
 

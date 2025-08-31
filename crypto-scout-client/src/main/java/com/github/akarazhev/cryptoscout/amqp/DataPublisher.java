@@ -62,7 +62,7 @@ public final class DataPublisher implements Publisher<Payload<Map<String, Object
         } else if (Provider.BYBIT.equals(provider)) {
             if (Source.LPL.equals(source)) {
                 amqpTemplate.convertAndSend(metricsExchange, ROUTING_KEY_METRICS_BYBIT, payload);
-            } else if (Source.WS.equals(source)) {
+            } else if (Source.PTST.equals(source)) {
                 amqpTemplate.convertAndSend(cryptoExchange, ROUTING_KEY_CRYPTO_BYBIT, payload);
             }
         }
