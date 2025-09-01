@@ -54,7 +54,7 @@ final class BybitDataSupplier {
 
     public Flowable<Payload<Map<String, Object>>> publicSpotTickerData() {
         final var config = new DataConfig.Builder()
-                .streamType(StreamType.PTST)
+                .streamType(StreamType.PMST)
                 .topic(Topic.TICKERS_BTC_USDT)
                 .topic(Topic.TICKERS_ETH_USDT)
                 .build();
