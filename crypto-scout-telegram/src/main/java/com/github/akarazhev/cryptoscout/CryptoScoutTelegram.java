@@ -30,9 +30,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableAsync
-public class TelegramBot {
+public class CryptoScoutTelegram {
 
     public static void main(String[] args) {
-        SpringApplication.run(TelegramBot.class, args);
+        SpringApplication.run(CryptoScoutTelegram.class, args);
     }
 }
