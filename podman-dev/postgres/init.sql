@@ -32,7 +32,7 @@ SELECT public.create_hypertable('crypto_scout.cmc_fgi', 'timestamp', chunk_time_
 CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_btc_usdt (
     id BIGSERIAL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-    cross_sequence INTEGER NOT NULL,
+    cross_sequence BIGINT NOT NULL,
     last_price NUMERIC(20, 2) NOT NULL,
     high_price_24h NUMERIC(20, 2) NOT NULL,
     low_price_24h NUMERIC(20, 2) NOT NULL,
@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_bybit_spot_tickers_btc_usdt_timestamp ON crypto_s
 CREATE TABLE IF NOT EXISTS crypto_scout.bybit_spot_tickers_eth_usdt (
     id BIGSERIAL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-    cross_sequence INTEGER NOT NULL,
+    cross_sequence BIGINT NOT NULL,
     last_price NUMERIC(20, 2) NOT NULL,
     high_price_24h NUMERIC(20, 2) NOT NULL,
     low_price_24h NUMERIC(20, 2) NOT NULL,

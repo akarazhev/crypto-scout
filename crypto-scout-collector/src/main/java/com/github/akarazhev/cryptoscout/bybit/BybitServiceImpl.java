@@ -49,7 +49,7 @@ class BybitServiceImpl implements BybitService {
     private final BybitSpotTickersBtcUsdtRepository bybitSpotTickersBtcUsdtRepository;
     private final BybitSpotTickersEthUsdtRepository bybitSpotTickersEthUsdtRepository;
     private final BybitLplRepository bybitLplRepository;
-    @Value("${crypto-scout.bybit.batch-size:100}")
+    @Value("${crypto-scout.bybit.batch-size:200}")
     private int batchSize;
     @Value("${crypto-scout.bybit.flush-interval-ms:5000}")
     private long flushIntervalMs;
@@ -201,7 +201,7 @@ class BybitServiceImpl implements BybitService {
         }
 
         if (data.get(CS) != null) {
-            bybitSpotTickersBtcUsdt.setCs((Integer) data.get(CS));
+            bybitSpotTickersBtcUsdt.setCs((Long) data.get(CS));
         }
         // Process nested data object
         if (data.get(DATA) != null) {
@@ -266,7 +266,7 @@ class BybitServiceImpl implements BybitService {
         }
 
         if (data.get(CS) != null) {
-            bybitSpotTickersEthUsdt.setCs((Integer) data.get(CS));
+            bybitSpotTickersEthUsdt.setCs((Long) data.get(CS));
         }
         // Process nested data object
         if (data.get(DATA) != null) {

@@ -26,7 +26,7 @@ public class BybitSpotTickersBtcUsdt {
     private Instant timestamp;
 
     @Column(name = "cross_sequence", nullable = false)
-    private Integer cs;
+    private Long cs;
 
     @Column(name = "last_price", nullable = false, precision = 20, scale = 2)
     private BigDecimal lastPrice;
@@ -74,11 +74,11 @@ public class BybitSpotTickersBtcUsdt {
         this.timestamp = timestamp;
     }
 
-    public Integer getCs() {
+    public Long getCs() {
         return cs;
     }
 
-    public void setCs(final Integer cs) {
+    public void setCs(final Long cs) {
         this.cs = cs;
     }
 
