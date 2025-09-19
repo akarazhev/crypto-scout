@@ -24,13 +24,38 @@
 
 package com.github.akarazhev.cryptoscout;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.github.akarazhev.cryptoscout.module.CmcModule;
+import com.github.akarazhev.cryptoscout.module.ConfigModule;
+import com.github.akarazhev.cryptoscout.module.CoreModule;
+import com.github.akarazhev.cryptoscout.module.WebModule;
+import com.github.akarazhev.cryptoscout.module.BybitModule;
+import io.activej.inject.module.Module;
+import io.activej.jmx.JmxModule;
+import io.activej.launcher.Launcher;
+import io.activej.service.ServiceGraphModule;
 
-@SpringBootApplication
-public class CryptoScoutClient {
+import static io.activej.inject.module.Modules.combine;
 
-    public static void main(final String[] args) {
-        SpringApplication.run(CryptoScoutClient.class, args);
+public final class CryptoScoutClient extends Launcher {
+
+    @Override
+    protected Module getModule() {
+        return combine(
+                JmxModule.create(),
+                ServiceGraphModule.create(),
+                CoreModule.create(),
+                ConfigModule.create(),
+                WebModule.create(),
+                BybitModule.create(),
+                CmcModule.create());
+    }
+
+    @Override
+    protected void run() throws Exception {
+        awaitShutdown();
+    }
+
+    public static void main(final String[] args) throws Exception {
+        new CryptoScoutClient().launch(args);
     }
 }

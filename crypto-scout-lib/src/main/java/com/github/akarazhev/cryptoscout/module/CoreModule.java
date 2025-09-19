@@ -22,22 +22,37 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.config;
+package com.github.akarazhev.cryptoscout.module;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.activej.eventloop.Eventloop;
+import io.activej.inject.annotation.Provides;
+import io.activej.inject.module.AbstractModule;
+import io.activej.reactor.nio.NioReactor;
 
-import java.net.http.HttpClient;
-import java.time.Duration;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-@Configuration
-class HttpClientConfig {
+/**
+ * Core module. Runtime: single-threaded reactor (event loop) and config values.
+ */
+public final class CoreModule extends AbstractModule {
 
-    @Bean
-    public HttpClient httpClient(@Value("${client.connect.timeout.ms}") final int connectTimeout) {
-        return HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(connectTimeout))
+    private CoreModule() {
+    }
+
+    public static CoreModule create() {
+        return new CoreModule();
+    }
+
+    @Provides
+    private NioReactor reactor() {
+        return Eventloop.builder()
+                .withCurrentThread()
                 .build();
+    }
+
+    @Provides
+    private Executor executor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 }

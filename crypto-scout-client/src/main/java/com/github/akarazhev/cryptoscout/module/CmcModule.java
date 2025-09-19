@@ -22,42 +22,34 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream.bybit;
+package com.github.akarazhev.cryptoscout.module;
 
-import com.github.akarazhev.jcryptolib.DataStreams;
-import com.github.akarazhev.jcryptolib.bybit.config.StreamType;
-import com.github.akarazhev.jcryptolib.bybit.config.Topic;
-import com.github.akarazhev.jcryptolib.bybit.stream.DataConfig;
-import com.github.akarazhev.jcryptolib.stream.Payload;
-import io.reactivex.rxjava3.core.Flowable;
-import org.springframework.stereotype.Component;
+import com.github.akarazhev.jcryptolib.cmc.config.Type;
+import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
+import io.activej.http.IHttpClient;
+import io.activej.inject.annotation.Provides;
+import io.activej.inject.module.AbstractModule;
+import io.activej.reactor.nio.NioReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.http.HttpClient;
-import java.util.Map;
+public final class CmcModule extends AbstractModule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmcModule.class);
 
-import static com.github.akarazhev.jcryptolib.bybit.config.Type.LPL;
-
-@Component
-final class BybitDataSupplier {
-    private final HttpClient client;
-
-    public BybitDataSupplier(final HttpClient client) {
-        this.client = client;
+    private CmcModule() {
     }
 
-    public Flowable<Payload<Map<String, Object>>> events() {
-        final var config = new DataConfig.Builder()
-                .type(LPL)
-                .build();
-        return DataStreams.ofBybit(client, config);
+    public static CmcModule create() {
+        return new CmcModule();
     }
 
-    public Flowable<Payload<Map<String, Object>>> publicSpotTickerData() {
+    @Provides
+    private CmcParser cmcParser(final NioReactor reactor, final IHttpClient httpClient) {
         final var config = new DataConfig.Builder()
-                .streamType(StreamType.PMST)
-                .topic(Topic.TICKERS_BTC_USDT)
-                .topic(Topic.TICKERS_ETH_USDT)
+                .type(Type.FGI)
                 .build();
-        return DataStreams.ofBybit(client, config);
+        LOGGER.info(config.print());
+        return CmcParser.create(reactor, httpClient, config);
     }
 }

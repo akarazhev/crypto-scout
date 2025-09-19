@@ -22,31 +22,23 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream.cmc;
+package com.github.akarazhev.cryptoscout.module;
 
-import com.github.akarazhev.jcryptolib.DataStreams;
-import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
-import com.github.akarazhev.jcryptolib.stream.Payload;
-import io.reactivex.rxjava3.core.Flowable;
-import org.springframework.stereotype.Component;
+import com.github.akarazhev.cryptoscout.config.ServerConfig;
+import io.activej.inject.annotation.Provides;
+import io.activej.inject.module.AbstractModule;
 
-import java.net.http.HttpClient;
-import java.util.Map;
+public final class ConfigModule extends AbstractModule {
 
-import static com.github.akarazhev.jcryptolib.cmc.config.Type.FGI;
-
-@Component
-final class CmcDataSupplier {
-    private final HttpClient client;
-
-    public CmcDataSupplier(final HttpClient client) {
-        this.client = client;
+    private ConfigModule() {
     }
 
-    public Flowable<Payload<Map<String, Object>>> data() {
-        final var config = new DataConfig.Builder()
-                .type(FGI)
-                .build();
-        return DataStreams.ofCmc(client, config);
+    public static ConfigModule create() {
+        return new ConfigModule();
+    }
+
+    @Provides
+    private ServerConfig httpServerConfig() {
+        return new ServerConfig(8080);
     }
 }
