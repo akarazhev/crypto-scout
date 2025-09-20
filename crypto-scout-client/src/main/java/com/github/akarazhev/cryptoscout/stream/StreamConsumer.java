@@ -35,8 +35,6 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executor;
-
 public final class StreamConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(StreamConsumer.class);
     private final BybitStream bybitStream;

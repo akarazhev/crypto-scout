@@ -52,6 +52,8 @@ public final class BybitModule extends AbstractModule {
     private BybitStream bybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PMST)
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
                 .topic(Topic.TICKERS_BTC_USDT)
                 .topic(Topic.TICKERS_ETH_USDT)
                 .build();
@@ -63,6 +65,11 @@ public final class BybitModule extends AbstractModule {
     private BybitParser bybitParser(final NioReactor reactor, final IHttpClient httpClient) {
         final var config = new DataConfig.Builder()
                 .type(Type.MD)
+                .type(Type.LPL)
+                .type(Type.LPD)
+                .type(Type.BYV)
+                .type(Type.BYS)
+                .type(Type.ADH)
                 .build();
         LOGGER.info(config.print());
         return BybitParser.create(reactor, httpClient, config);
