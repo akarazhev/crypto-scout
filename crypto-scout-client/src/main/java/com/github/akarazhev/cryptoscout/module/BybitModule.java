@@ -32,6 +32,7 @@ import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
 import com.github.akarazhev.jcryptolib.bybit.stream.DataConfig;
 import io.activej.http.IHttpClient;
 import io.activej.http.IWebSocketClient;
+import io.activej.inject.annotation.Named;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
@@ -49,12 +50,29 @@ public final class BybitModule extends AbstractModule {
     }
 
     @Provides
-    private BybitStream bybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
+    @Named("linearBybitStream")
+    private BybitStream linearBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
+        final var config = new DataConfig.Builder()
+                .streamType(StreamType.PML)
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
+                .topic(Topic.TICKERS_BTC_USDT)
+                .topic(Topic.ALL_LIQUIDATION_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
+                .topic(Topic.TICKERS_ETH_USDT)
+                .topic(Topic.ALL_LIQUIDATION_ETH_USDT)
+                .build();
+        LOGGER.info(config.print());
+        return BybitStream.create(reactor, webSocketClient, config);
+    }
+
+    @Provides
+    @Named("spotBybitStream")
+    private BybitStream spotBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PMST)
                 .topic(Topic.PUBLIC_TRADE_BTC_USDT)
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
                 .topic(Topic.TICKERS_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
                 .topic(Topic.TICKERS_ETH_USDT)
                 .build();
         LOGGER.info(config.print());

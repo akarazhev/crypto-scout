@@ -25,7 +25,8 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.config.ServerConfig;
-import com.github.akarazhev.cryptoscout.stream.StreamConsumer;
+import com.github.akarazhev.cryptoscout.consumer.BybitConsumer;
+import com.github.akarazhev.cryptoscout.consumer.CmcConsumer;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
@@ -40,6 +41,7 @@ import io.activej.http.IHttpClient;
 import io.activej.http.IWebSocketClient;
 import io.activej.http.RoutingServlet;
 import io.activej.inject.annotation.Eager;
+import io.activej.inject.annotation.Named;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.Reactor;
@@ -107,8 +109,16 @@ public final class WebModule extends AbstractModule {
 
     @Eager
     @Provides
-    private StreamConsumer streamConsumer(final NioReactor reactor, final BybitStream bybitStream,
-                                          final BybitParser bybitParser, final CmcParser cmcParser) {
-        return StreamConsumer.create(reactor, bybitStream, bybitParser, cmcParser);
+    private BybitConsumer bybitConsumer(final NioReactor reactor,
+                                        @Named("linearBybitStream") final BybitStream linearBybitStream,
+                                        @Named("spotBybitStream") final BybitStream spotBybitStream,
+                                        final BybitParser bybitParser) {
+        return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser);
+    }
+
+    @Eager
+    @Provides
+    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser) {
+        return CmcConsumer.create(reactor, cmcParser);
     }
 }

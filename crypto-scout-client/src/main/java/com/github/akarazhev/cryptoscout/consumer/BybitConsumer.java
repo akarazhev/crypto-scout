@@ -22,11 +22,10 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.stream;
+package com.github.akarazhev.cryptoscout.consumer;
 
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
-import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -35,46 +34,46 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class StreamConsumer extends AbstractReactive implements ReactiveService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StreamConsumer.class);
-    private final BybitStream bybitStream;
+public final class BybitConsumer extends AbstractReactive implements ReactiveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BybitConsumer.class);
+    private final BybitStream linearBybitStream;
+    private final BybitStream spotBybitStream;
     private final BybitParser bybitParser;
-    private final CmcParser cmcParser;
 
-    public static StreamConsumer create(final NioReactor reactor, final BybitStream bybitStream,
-                                        final BybitParser bybitParser, final CmcParser cmcParser) {
-        return new StreamConsumer(reactor, bybitStream, bybitParser, cmcParser);
+    public static BybitConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
+                                       final BybitStream spotBybitStream, final BybitParser bybitParser) {
+        return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser);
     }
 
-    private StreamConsumer(final NioReactor reactor, final BybitStream bybitStream, final BybitParser bybitParser,
-                           final CmcParser cmcParser) {
+    private BybitConsumer(final NioReactor reactor, final BybitStream linearBybitStream, final BybitStream spotBybitStream,
+                          final BybitParser bybitParser) {
         super(reactor);
-        this.bybitStream = bybitStream;
+        this.linearBybitStream = linearBybitStream;
+        this.spotBybitStream = spotBybitStream;
         this.bybitParser = bybitParser;
-        this.cmcParser = cmcParser;
     }
 
     @Override
     public Promise<?> start() {
         LOGGER.info("Starting the service...");
-        bybitStream.start().then(stream ->
+        linearBybitStream.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("Bybit Stream: {}", payload.getData()))));
+                        LOGGER.info("Bybit Linear Stream: {}", payload.getData()))));
+        spotBybitStream.start().then(stream ->
+                stream.streamTo(StreamConsumers.ofConsumer(payload ->
+                        LOGGER.info("Bybit Spot Stream: {}", payload.getData()))));
         bybitParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload ->
                         LOGGER.info("Bybit Parser: {}", payload.getData()))));
-        cmcParser.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("CMC Parser: {}", payload.getData()))));
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
         LOGGER.info("Stopping the service...");
-        cmcParser.stop();
         bybitParser.stop();
-        bybitStream.stop();
+        spotBybitStream.stop();
+        linearBybitStream.stop();
         return Promise.complete();
     }
 }
