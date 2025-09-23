@@ -1,10 +1,11 @@
 # Context: Crypto Scout Client ActiveJ RabbitMQ Integration
 
-The basic implementation of the `crypto-scout-client` service has been done in `Java 21` and `ActiveJ 6.0-rc2`, 
-but the integration with the `RabbitMQ` has been implemented with `Spring Boot`. So let's replace the current 
-implementation of the `DataPublisher.java` in `Spring Boot` with the implementation of `ActiveJ 6.0-rc2` that's 
-`AmqpClient.java`. The configuration has been done in `AmqpConfig.java`. Finally write the report with your 
-solution here `docs/0.0.1/dev/crypto-scout-client-activej-rabbitmq.md`.
+The basic implementation of the `crypto-scout-client` service has been done in `Java 21` and `ActiveJ 6.0-rc2`,
+but the integration with the `RabbitMQ` has been implemented with `Spring Boot` in `DataPublisher.java`.
+So let's replace the current implementation of the `DataPublisher.java` in `Spring Boot` with the `reactive`
+implementation of `ActiveJ 6.0-rc2` that's `AmqpClient.java`. The configuration has been done in `AmqpConfig.java`
+with `Spring Boot`, let's update it to `ActiveJ 6.0-rc2` as well. Finally write the report with your solution here
+`docs/0.0.1/dev/crypto-scout-client-activej-rabbitmq.md`.
 
 ## Roles
 
@@ -21,10 +22,13 @@ Take the following roles:
 
 ## Tasks
 
-- As the expert java developer develop integration between `crypto-scout-client` and `rabbitmq` by updating the
-  `com.github.akarazhev.cryptoscout.config.AmqpClient`.
-- Use `com.github.akarazhev.cryptoscout.amqp.DataPublisher`, `com.github.akarazhev.cryptoscout.config.AmqpConfig` and 
-- `application.properties` as the base for your implementation.
-- Recheck your suggestions and make sure that they are correct and you haven't missed any important points.
+- As the expert java developer develop integration between `crypto-scout-client` and `rabbitmq` by implementing the
+- reactive version `com.github.akarazhev.cryptoscout.config.AmqpClient` instead of
+  `com.github.akarazhev.cryptoscout.amqp.DataPublisher`.
+- Replace the current implementation of the `AmqpConfig.java` in `Spring Boot` with the implementation of
+  `ActiveJ 6.0-rc2`.
+- Use `com.github.akarazhev.cryptoscout.amqp.DataPublisher`, `com.github.akarazhev.cryptoscout.config.AmqpConfig` and
+  `application.properties` as samples for your implementation.
+- Recheck your suggestions and make sure that they are correct, and you haven't missed any important points.
 - As the expert java developer propose changes with best practices and design patterns step by step.
 - Write the report with your solution: `docs/0.0.1/dev/crypto-scout-client-activej-rabbitmq.md`.
