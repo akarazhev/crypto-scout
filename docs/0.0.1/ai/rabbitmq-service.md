@@ -9,7 +9,7 @@ Take the following roles:
 
 - Export dev-opts engineer.
 
-## Requirements
+## Conditions
 
 - Use the best practices and design patterns.
 - Do not hallucinate.
@@ -23,8 +23,7 @@ Take the following roles:
 - Use streams to process crypto data collection.
 - Use common queue for messaging between services.
 - Recheck your proposal and make sure that they are correct and haven't missed any important points.
-- Write a report with your proposal and implementation into `docs/0.0.1/dev/rabbitmq-service.md`.
-- Write a specification into `docs/0.0.1/spec/rabbitmq-service.md`.
+- Write a report with your proposal and implementation into `doc/dev/rabbitmq-service-report.md`.
 
 ## Lessons Learned During Upgrade
 
