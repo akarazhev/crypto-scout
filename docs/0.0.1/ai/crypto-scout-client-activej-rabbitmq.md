@@ -17,6 +17,7 @@ Take the following roles:
 - Use the best practices and design patterns.
 - Do not hallucinate.
 - Rely on the existing codebase.
+- Final implementation should be written in `Java 21` and `ActiveJ 6.0-rc2`.
 
 ## Tasks
 
