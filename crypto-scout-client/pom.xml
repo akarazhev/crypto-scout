@@ -5,6 +5,7 @@
     <groupId>com.github.akarazhev.cryptoscout</groupId>
     <artifactId>crypto-scout-client</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
     <name>crypto-scout-client</name>
     <description>Crypto Scout Client</description>
     <url/>
@@ -33,6 +34,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <amqp-client.version>5.26.0</amqp-client.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
     </properties>
     <dependencies>
         <dependency>
@@ -49,7 +52,39 @@
     </dependencies>
     <build>
         <plugins>
-            <!-- No special plugins required for ActiveJ; standard jar build is sufficient -->
+            <!-- Compiler plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <!-- Shade plugin to build fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.github.akarazhev.cryptoscout.CryptoScoutClient</mainClass>
+                                </transformer>
+                            </transformers>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
