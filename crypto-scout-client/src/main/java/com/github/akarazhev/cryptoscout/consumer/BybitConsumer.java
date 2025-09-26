@@ -26,6 +26,7 @@ package com.github.akarazhev.cryptoscout.consumer;
 
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
+import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -34,37 +35,48 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public final class BybitConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitConsumer.class);
     private final BybitStream linearBybitStream;
     private final BybitStream spotBybitStream;
     private final BybitParser bybitParser;
+    private final Publisher<Payload<Map<String, Object>>> publisher;
 
     public static BybitConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
-                                       final BybitStream spotBybitStream, final BybitParser bybitParser) {
-        return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser);
+                                       final BybitStream spotBybitStream, final BybitParser bybitParser,
+                                       final Publisher<Payload<Map<String, Object>>> publisher) {
+        return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
     }
 
     private BybitConsumer(final NioReactor reactor, final BybitStream linearBybitStream, final BybitStream spotBybitStream,
-                          final BybitParser bybitParser) {
+                          final BybitParser bybitParser, final Publisher<Payload<Map<String, Object>>> publisher) {
         super(reactor);
         this.linearBybitStream = linearBybitStream;
         this.spotBybitStream = spotBybitStream;
         this.bybitParser = bybitParser;
+        this.publisher = publisher;
     }
 
     @Override
     public Promise<?> start() {
         LOGGER.info("Starting the service...");
         linearBybitStream.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("Bybit Linear Stream: {}", payload.getData()))));
+                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
+                    LOGGER.info("Bybit Linear Stream: {}", payload.getData());
+                    publisher.publish(payload);
+                })));
         spotBybitStream.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("Bybit Spot Stream: {}", payload.getData()))));
+                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
+                    LOGGER.info("Bybit Spot Stream: {}", payload.getData());
+                    publisher.publish(payload);
+                })));
         bybitParser.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("Bybit Parser: {}", payload.getData()))));
+                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
+                    LOGGER.info("Bybit Parser: {}", payload.getData());
+                    publisher.publish(payload);
+                })));
         return Promise.complete();
     }
 

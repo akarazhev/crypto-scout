@@ -25,6 +25,7 @@
 package com.github.akarazhev.cryptoscout.consumer;
 
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -33,25 +34,33 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public final class CmcConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CmcConsumer.class);
     private final CmcParser cmcParser;
+    private final Publisher<Payload<Map<String, Object>>> publisher;
 
-    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser) {
-        return new CmcConsumer(reactor, cmcParser);
+    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser,
+                                     final Publisher<Payload<Map<String, Object>>> publisher) {
+        return new CmcConsumer(reactor, cmcParser, publisher);
     }
 
-    private CmcConsumer(final NioReactor reactor, final CmcParser cmcParser) {
+    private CmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
+                        final Publisher<Payload<Map<String, Object>>> publisher) {
         super(reactor);
         this.cmcParser = cmcParser;
+        this.publisher = publisher;
     }
 
     @Override
     public Promise<?> start() {
         LOGGER.info("Starting the service...");
         cmcParser.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload ->
-                        LOGGER.info("CMC Parser: {}", payload.getData()))));
+                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
+                    LOGGER.info("CMC Parser: {}", payload.getData());
+                    publisher.publish(payload);
+                })));
         return Promise.complete();
     }
 
