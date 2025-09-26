@@ -30,18 +30,32 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <amqp-client.version>5.26.0</amqp-client.version>
         <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
+        <jcryptolib.version>0.0.2</jcryptolib.version>
+        <activej.version>6.0-rc2</activej.version>
+        <amqp-client.version>5.26.0</amqp-client.version>
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.github.akarazhev.cryptoscout</groupId>
-            <artifactId>crypto-scout-lib</artifactId>
-            <version>0.0.1</version>
+            <groupId>com.github.akarazhev.jcryptolib</groupId>
+            <artifactId>jcryptolib</artifactId>
+            <version>${jcryptolib.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.activej/activej-servicegraph -->
+        <dependency>
+            <groupId>io.activej</groupId>
+            <artifactId>activej-servicegraph</artifactId>
+            <version>${activej.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.activej/activej-jmx -->
+        <dependency>
+            <groupId>io.activej</groupId>
+            <artifactId>activej-jmx</artifactId>
+            <version>${activej.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.rabbitmq/amqp-client -->
         <dependency>
