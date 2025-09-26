@@ -27,9 +27,11 @@ package com.github.akarazhev.cryptoscout.module;
 import com.github.akarazhev.cryptoscout.config.ServerConfig;
 import com.github.akarazhev.cryptoscout.consumer.BybitConsumer;
 import com.github.akarazhev.cryptoscout.consumer.CmcConsumer;
+import com.github.akarazhev.cryptoscout.consumer.Publisher;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.dns.DnsClient;
 import io.activej.dns.IDnsClient;
 import io.activej.http.AsyncServlet;
@@ -50,6 +52,7 @@ import io.activej.reactor.nio.NioReactor;
 import javax.net.ssl.SSLContext;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static io.activej.http.HttpUtils.inetAddress;
@@ -112,13 +115,15 @@ public final class WebModule extends AbstractModule {
     private BybitConsumer bybitConsumer(final NioReactor reactor,
                                         @Named("linearBybitStream") final BybitStream linearBybitStream,
                                         @Named("spotBybitStream") final BybitStream spotBybitStream,
-                                        final BybitParser bybitParser) {
-        return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser);
+                                        final BybitParser bybitParser,
+                                        final Publisher<Payload<Map<String, Object>>> publisher) {
+        return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
     }
 
     @Eager
     @Provides
-    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser) {
-        return CmcConsumer.create(reactor, cmcParser);
+    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
+                                    final Publisher<Payload<Map<String, Object>>> publisher) {
+        return CmcConsumer.create(reactor, cmcParser, publisher);
     }
 }
