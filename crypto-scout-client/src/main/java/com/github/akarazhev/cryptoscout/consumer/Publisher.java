@@ -24,7 +24,9 @@
 
 package com.github.akarazhev.cryptoscout.consumer;
 
+import io.activej.promise.Promise;
+
 public interface Publisher<T> {
 
-    void publish(final T object);
+    Promise<?> publish(final T object);
 }
