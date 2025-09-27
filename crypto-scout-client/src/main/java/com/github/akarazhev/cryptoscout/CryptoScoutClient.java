@@ -25,7 +25,7 @@
 package com.github.akarazhev.cryptoscout;
 
 import com.github.akarazhev.cryptoscout.module.CmcModule;
-import com.github.akarazhev.cryptoscout.module.ConfigModule;
+import com.github.akarazhev.cryptoscout.module.ConsumerModule;
 import com.github.akarazhev.cryptoscout.module.CoreModule;
 import com.github.akarazhev.cryptoscout.module.WebModule;
 import com.github.akarazhev.cryptoscout.module.BybitModule;
@@ -44,7 +44,7 @@ public final class CryptoScoutClient extends Launcher {
                 JmxModule.create(),
                 ServiceGraphModule.create(),
                 CoreModule.create(),
-                ConfigModule.create(),
+                ConsumerModule.create(),
                 WebModule.create(),
                 BybitModule.create(),
                 CmcModule.create());
