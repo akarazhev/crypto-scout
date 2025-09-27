@@ -53,4 +53,12 @@ final class Constants {
         static final String SPRING_RABBITMQ_USERNAME = "spring.rabbitmq.username";
         static final String SPRING_RABBITMQ_PASSWORD = "spring.rabbitmq.password";
     }
+
+    final static class ServerConfig {
+        private ServerConfig() {
+            throw new UnsupportedOperationException();
+        }
+
+        static final String SERVER_PORT = "server.port";
+    }
 }
