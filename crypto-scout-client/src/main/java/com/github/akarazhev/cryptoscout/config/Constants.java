@@ -36,12 +36,10 @@ final class Constants {
 
         static final String AMQP_EXCHANGE_METRICS = "amqp.exchange.metrics";
         static final String AMQP_EXCHANGE_CRYPTO = "amqp.exchange.crypto";
-        static final String AMQP_EXCHANGE_CLIENT = "amqp.exchange.client";
         static final String AMQP_EXCHANGE_COLLECTOR = "amqp.exchange.collector";
         static final String AMQP_QUEUE_CMC = "amqp.queue.cmc";
         static final String AMQP_QUEUE_BYBIT = "amqp.queue.bybit";
         static final String AMQP_QUEUE_DEAD = "amqp.queue.dead";
-        static final String AMQP_QUEUE_CLIENT = "amqp.queue.client";
         static final String AMQP_QUEUE_COLLECTOR = "amqp.queue.collector";
         static final String AMQP_STREAM_BYBIT = "amqp.stream.bybit";
         static final String AMQP_QUEUE_TTL_MS = "amqp.queue.ttl.ms";

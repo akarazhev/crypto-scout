@@ -26,12 +26,10 @@ package com.github.akarazhev.cryptoscout.config;
 
 import com.github.akarazhev.jcryptolib.config.AppConfig;
 
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_CLIENT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_CRYPTO;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_METRICS;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_BYBIT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_CLIENT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_CMC;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_DEAD;
@@ -58,10 +56,6 @@ public final class AmqpConfig {
         return AppConfig.getAsString(AMQP_EXCHANGE_CRYPTO);
     }
 
-    public static String getAmqpExchangeClient() {
-        return AppConfig.getAsString(AMQP_EXCHANGE_CLIENT);
-    }
-
     public static String getAmqpExchangeCollector() {
         return AppConfig.getAsString(AMQP_EXCHANGE_COLLECTOR);
     }
@@ -76,10 +70,6 @@ public final class AmqpConfig {
 
     public static String getAmqpQueueDead() {
         return AppConfig.getAsString(AMQP_QUEUE_DEAD);
-    }
-
-    public static String getAmqpQueueClient() {
-        return AppConfig.getAsString(AMQP_QUEUE_CLIENT);
     }
 
     public static String getAmqpQueueCollector() {

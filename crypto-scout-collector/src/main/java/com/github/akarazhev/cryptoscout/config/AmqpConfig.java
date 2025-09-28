@@ -64,13 +64,6 @@ class AmqpConfig {
     }
 
     @Bean
-    public TopicExchange clientExchange(@Value("${amqp.exchange.client}") final String name) {
-        return ExchangeBuilder.topicExchange(name)
-                .durable(true)
-                .build();
-    }
-
-    @Bean
     public TopicExchange collectorExchange(@Value("${amqp.exchange.collector}") final String name) {
         return ExchangeBuilder.topicExchange(name)
                 .durable(true)

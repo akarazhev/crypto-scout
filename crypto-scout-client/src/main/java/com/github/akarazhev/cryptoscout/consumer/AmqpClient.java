@@ -26,7 +26,6 @@ import com.rabbitmq.client.AMQP;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.CONNECTION_NAME;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.CONTENT_TYPE;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.DELIVERY_MODE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_CLIENT;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
@@ -138,7 +137,6 @@ public final class AmqpClient extends AbstractReactive implements ReactiveServic
         // durable topic exchanges
         channel.exchangeDeclare(AmqpConfig.getAmqpExchangeMetrics(), TOPIC, true);
         channel.exchangeDeclare(AmqpConfig.getAmqpExchangeCrypto(), TOPIC, true);
-        channel.exchangeDeclare(AmqpConfig.getAmqpExchangeClient(), TOPIC, true);
         channel.exchangeDeclare(AmqpConfig.getAmqpExchangeCollector(), TOPIC, true);
     }
 
@@ -159,7 +157,6 @@ public final class AmqpClient extends AbstractReactive implements ReactiveServic
         ccArgs.put(X_MESSAGE_TTL, AmqpConfig.getAmqpQueueTtlMs());
         ccArgs.put(X_MAX_LENGTH, AmqpConfig.getAmqpQueueMaxLength());
 
-        channel.queueDeclare(AmqpConfig.getAmqpQueueClient(), true, false, false, ccArgs);
         channel.queueDeclare(AmqpConfig.getAmqpQueueCollector(), true, false, false, ccArgs);
         // Stream queue for crypto bybit
         final var streamArgs = new HashMap<String, Object>();
@@ -171,7 +168,6 @@ public final class AmqpClient extends AbstractReactive implements ReactiveServic
         channel.queueBind(AmqpConfig.getAmqpQueueCmc(), AmqpConfig.getAmqpExchangeMetrics(), ROUTING_KEY_METRICS_CMC);
         channel.queueBind(AmqpConfig.getAmqpQueueBybit(), AmqpConfig.getAmqpExchangeMetrics(), ROUTING_KEY_METRICS_BYBIT);
         channel.queueBind(AmqpConfig.getAmqpStreamBybit(), AmqpConfig.getAmqpExchangeCrypto(), ROUTING_KEY_CRYPTO_BYBIT);
-        channel.queueBind(AmqpConfig.getAmqpQueueClient(), AmqpConfig.getAmqpExchangeClient(), ROUTING_KEY_CLIENT);
         channel.queueBind(AmqpConfig.getAmqpQueueCollector(), AmqpConfig.getAmqpExchangeCollector(), ROUTING_KEY_COLLECTOR);
     }
 

@@ -52,7 +52,6 @@ final class Constants {
         static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
         static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
         static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
-        static final String ROUTING_KEY_CLIENT = "client";
         static final String ROUTING_KEY_COLLECTOR = "collector";
         static final String ROUTING_KEY_TELEGRAM = "telegram";
     }

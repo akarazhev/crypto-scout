@@ -84,7 +84,6 @@ The RabbitMQ configuration in `application.properties`:
 # RabbitMQ Connection settings
 amqp.exchange.metrics=metrics-exchange
 amqp.exchange.crypto=crypto-exchange
-amqp.exchange.client=client-exchange
 amqp.queue.cmc=metrics-cmc-queue
 amqp.queue.bybit=metrics-bybit-queue
 amqp.queue.dead=metrics-dead-letter-queue
