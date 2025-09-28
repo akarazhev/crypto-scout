@@ -36,7 +36,7 @@ import io.activej.service.ServiceGraphModule;
 
 import static io.activej.inject.module.Modules.combine;
 
-public final class CryptoScoutClient extends Launcher {
+public final class Client extends Launcher {
 
     @Override
     protected Module getModule() {
@@ -56,6 +56,6 @@ public final class CryptoScoutClient extends Launcher {
     }
 
     public static void main(final String[] args) throws Exception {
-        new CryptoScoutClient().launch(args);
+        new Client().launch(args);
     }
 }

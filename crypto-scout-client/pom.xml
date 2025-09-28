@@ -91,7 +91,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.github.akarazhev.cryptoscout.CryptoScoutClient</mainClass>
+                                    <mainClass>com.github.akarazhev.cryptoscout.Client</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>true</createDependencyReducedPom>
