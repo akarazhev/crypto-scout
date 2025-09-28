@@ -36,17 +36,17 @@ import org.slf4j.LoggerFactory;
 public final class CmcConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CmcConsumer.class);
     private final CmcParser cmcParser;
-    private final Publisher publisher;
+    private final AmqpPublisher amqpPublisher;
 
-    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser, final Publisher publisher) {
-        return new CmcConsumer(reactor, cmcParser, publisher);
+    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser, final AmqpPublisher amqpPublisher) {
+        return new CmcConsumer(reactor, cmcParser, amqpPublisher);
     }
 
     private CmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
-                        final Publisher publisher) {
+                        final AmqpPublisher amqpPublisher) {
         super(reactor);
         this.cmcParser = cmcParser;
-        this.publisher = publisher;
+        this.amqpPublisher = amqpPublisher;
     }
 
     @Override
@@ -55,7 +55,7 @@ public final class CmcConsumer extends AbstractReactive implements ReactiveServi
         cmcParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload -> {
                     LOGGER.info("CMC Parser: {}", payload.getData());
-                    publisher.publish(payload);
+                    amqpPublisher.publish(payload);
                 })));
         return Promise.complete();
     }

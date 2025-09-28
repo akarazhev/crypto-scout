@@ -41,17 +41,17 @@ import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MESSAGE_T
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_QUEUE_TYPE;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_STREAM_MAX_SEGMENT_SIZE_BYTES;
 
-public final class Publisher extends AbstractReactive implements ReactiveService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(Publisher.class);
+public final class AmqpPublisher extends AbstractReactive implements ReactiveService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AmqpPublisher.class);
     private final Executor executor;
     private volatile Connection connection;
     private volatile Channel channel;
 
-    public static Publisher create(final NioReactor reactor, final Executor executor) {
-        return new Publisher(reactor, executor);
+    public static AmqpPublisher create(final NioReactor reactor, final Executor executor) {
+        return new AmqpPublisher(reactor, executor);
     }
 
-    private Publisher(final NioReactor reactor, final Executor executor) {
+    private AmqpPublisher(final NioReactor reactor, final Executor executor) {
         super(reactor);
         this.executor = executor;
     }

@@ -24,7 +24,7 @@
 
 package com.github.akarazhev.cryptoscout.module;
 
-import com.github.akarazhev.cryptoscout.client.Publisher;
+import com.github.akarazhev.cryptoscout.client.AmqpPublisher;
 import com.github.akarazhev.cryptoscout.client.BybitConsumer;
 import com.github.akarazhev.cryptoscout.client.CmcConsumer;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
@@ -49,8 +49,8 @@ public final class ClientModule extends AbstractModule {
 
     @Provides
     @Eager
-    private Publisher publisher(final NioReactor reactor, final Executor executor) {
-        return Publisher.create(reactor, executor);
+    private AmqpPublisher amqpPublisher(final NioReactor reactor, final Executor executor) {
+        return AmqpPublisher.create(reactor, executor);
     }
 
     @Eager
@@ -58,13 +58,13 @@ public final class ClientModule extends AbstractModule {
     private BybitConsumer bybitConsumer(final NioReactor reactor,
                                         @Named("linearBybitStream") final BybitStream linearBybitStream,
                                         @Named("spotBybitStream") final BybitStream spotBybitStream,
-                                        final BybitParser bybitParser, final Publisher publisher) {
-        return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
+                                        final BybitParser bybitParser, final AmqpPublisher amqpPublisher) {
+        return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser, amqpPublisher);
     }
 
     @Eager
     @Provides
-    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser, final Publisher publisher) {
-        return CmcConsumer.create(reactor, cmcParser, publisher);
+    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser, final AmqpPublisher amqpPublisher) {
+        return CmcConsumer.create(reactor, cmcParser, amqpPublisher);
     }
 }

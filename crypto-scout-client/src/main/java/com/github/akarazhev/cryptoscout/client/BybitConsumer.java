@@ -39,21 +39,21 @@ public final class BybitConsumer extends AbstractReactive implements ReactiveSer
     private final BybitStream linearBybitStream;
     private final BybitStream spotBybitStream;
     private final BybitParser bybitParser;
-    private final Publisher publisher;
+    private final AmqpPublisher amqpPublisher;
 
     public static BybitConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
                                        final BybitStream spotBybitStream, final BybitParser bybitParser,
-                                       final Publisher publisher) {
-        return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
+                                       final AmqpPublisher amqpPublisher) {
+        return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser, amqpPublisher);
     }
 
     private BybitConsumer(final NioReactor reactor, final BybitStream linearBybitStream, final BybitStream spotBybitStream,
-                          final BybitParser bybitParser, final Publisher publisher) {
+                          final BybitParser bybitParser, final AmqpPublisher amqpPublisher) {
         super(reactor);
         this.linearBybitStream = linearBybitStream;
         this.spotBybitStream = spotBybitStream;
         this.bybitParser = bybitParser;
-        this.publisher = publisher;
+        this.amqpPublisher = amqpPublisher;
     }
 
     @Override
@@ -62,17 +62,17 @@ public final class BybitConsumer extends AbstractReactive implements ReactiveSer
         linearBybitStream.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload -> {
                     LOGGER.info("Bybit Linear Stream: {}", payload.getData());
-                    publisher.publish(payload);
+                    amqpPublisher.publish(payload);
                 })));
         spotBybitStream.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload -> {
                     LOGGER.info("Bybit Spot Stream: {}", payload.getData());
-                    publisher.publish(payload);
+                    amqpPublisher.publish(payload);
                 })));
         bybitParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(payload -> {
                     LOGGER.info("Bybit Parser: {}", payload.getData());
-                    publisher.publish(payload);
+                    amqpPublisher.publish(payload);
                 })));
         return Promise.complete();
     }
