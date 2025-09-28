@@ -22,10 +22,9 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.consumer;
+package com.github.akarazhev.cryptoscout.client;
 
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
-import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -34,20 +33,17 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public final class CmcConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CmcConsumer.class);
     private final CmcParser cmcParser;
-    private final Publisher<Payload<Map<String, Object>>> publisher;
+    private final Publisher publisher;
 
-    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser,
-                                     final Publisher<Payload<Map<String, Object>>> publisher) {
+    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser, final Publisher publisher) {
         return new CmcConsumer(reactor, cmcParser, publisher);
     }
 
     private CmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
-                        final Publisher<Payload<Map<String, Object>>> publisher) {
+                        final Publisher publisher) {
         super(reactor);
         this.cmcParser = cmcParser;
         this.publisher = publisher;

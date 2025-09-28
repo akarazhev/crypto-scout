@@ -24,41 +24,33 @@
 
 package com.github.akarazhev.cryptoscout.module;
 
-import com.github.akarazhev.cryptoscout.consumer.AmqpClient;
-import com.github.akarazhev.cryptoscout.consumer.BybitConsumer;
-import com.github.akarazhev.cryptoscout.consumer.CmcConsumer;
-import com.github.akarazhev.cryptoscout.consumer.Publisher;
+import com.github.akarazhev.cryptoscout.client.Publisher;
+import com.github.akarazhev.cryptoscout.client.BybitConsumer;
+import com.github.akarazhev.cryptoscout.client.CmcConsumer;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
-import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Named;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
 
-import java.util.Map;
 import java.util.concurrent.Executor;
 
-public final class ConsumerModule extends AbstractModule {
+public final class ClientModule extends AbstractModule {
 
-    private ConsumerModule() {
+    private ClientModule() {
     }
 
-    public static ConsumerModule create() {
-        return new ConsumerModule();
-    }
-
-    @Provides
-    private Publisher<Payload<Map<String, Object>>> publisher(final AmqpClient amqpClient) {
-        return amqpClient;
+    public static ClientModule create() {
+        return new ClientModule();
     }
 
     @Provides
     @Eager
-    private AmqpClient amqpClient(final NioReactor reactor, final Executor executor) {
-        return AmqpClient.create(reactor, executor);
+    private Publisher publisher(final NioReactor reactor, final Executor executor) {
+        return Publisher.create(reactor, executor);
     }
 
     @Eager
@@ -66,15 +58,13 @@ public final class ConsumerModule extends AbstractModule {
     private BybitConsumer bybitConsumer(final NioReactor reactor,
                                         @Named("linearBybitStream") final BybitStream linearBybitStream,
                                         @Named("spotBybitStream") final BybitStream spotBybitStream,
-                                        final BybitParser bybitParser,
-                                        final Publisher<Payload<Map<String, Object>>> publisher) {
+                                        final BybitParser bybitParser, final Publisher publisher) {
         return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
     }
 
     @Eager
     @Provides
-    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
-                                    final Publisher<Payload<Map<String, Object>>> publisher) {
+    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser, final Publisher publisher) {
         return CmcConsumer.create(reactor, cmcParser, publisher);
     }
 }

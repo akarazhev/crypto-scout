@@ -22,11 +22,10 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.consumer;
+package com.github.akarazhev.cryptoscout.client;
 
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
-import com.github.akarazhev.jcryptolib.stream.Payload;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -35,23 +34,21 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public final class BybitConsumer extends AbstractReactive implements ReactiveService {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitConsumer.class);
     private final BybitStream linearBybitStream;
     private final BybitStream spotBybitStream;
     private final BybitParser bybitParser;
-    private final Publisher<Payload<Map<String, Object>>> publisher;
+    private final Publisher publisher;
 
     public static BybitConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
                                        final BybitStream spotBybitStream, final BybitParser bybitParser,
-                                       final Publisher<Payload<Map<String, Object>>> publisher) {
+                                       final Publisher publisher) {
         return new BybitConsumer(reactor, linearBybitStream, spotBybitStream, bybitParser, publisher);
     }
 
     private BybitConsumer(final NioReactor reactor, final BybitStream linearBybitStream, final BybitStream spotBybitStream,
-                          final BybitParser bybitParser, final Publisher<Payload<Map<String, Object>>> publisher) {
+                          final BybitParser bybitParser, final Publisher publisher) {
         super(reactor);
         this.linearBybitStream = linearBybitStream;
         this.spotBybitStream = spotBybitStream;

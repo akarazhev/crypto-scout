@@ -1,4 +1,4 @@
-package com.github.akarazhev.cryptoscout.consumer;
+package com.github.akarazhev.cryptoscout.client;
 
 import com.github.akarazhev.cryptoscout.config.AmqpConfig;
 import com.github.akarazhev.jcryptolib.util.JsonUtils;
@@ -23,35 +23,35 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.AMQP;
 
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.CONNECTION_NAME;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.CONTENT_TYPE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.DELIVERY_MODE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_COLLECTOR;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.STREAM;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.TOPIC;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_MAX_LENGTH;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_MAX_LENGTH_BYTES;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_MESSAGE_TTL;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_QUEUE_TYPE;
-import static com.github.akarazhev.cryptoscout.consumer.Constants.AMQP.X_STREAM_MAX_SEGMENT_SIZE_BYTES;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.CONNECTION_NAME;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.CONTENT_TYPE;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.DELIVERY_MODE;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_COLLECTOR;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.STREAM;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.TOPIC;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MAX_LENGTH;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MAX_LENGTH_BYTES;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MESSAGE_TTL;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_QUEUE_TYPE;
+import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_STREAM_MAX_SEGMENT_SIZE_BYTES;
 
-public final class AmqpClient extends AbstractReactive implements ReactiveService, Publisher<Payload<Map<String, Object>>> {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AmqpClient.class);
+public final class Publisher extends AbstractReactive implements ReactiveService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(Publisher.class);
     private final Executor executor;
     private volatile Connection connection;
     private volatile Channel channel;
 
-    public static AmqpClient create(final NioReactor reactor, final Executor executor) {
-        return new AmqpClient(reactor, executor);
+    public static Publisher create(final NioReactor reactor, final Executor executor) {
+        return new Publisher(reactor, executor);
     }
 
-    private AmqpClient(final NioReactor reactor, final Executor executor) {
+    private Publisher(final NioReactor reactor, final Executor executor) {
         super(reactor);
         this.executor = executor;
     }
@@ -85,7 +85,6 @@ public final class AmqpClient extends AbstractReactive implements ReactiveServic
         });
     }
 
-    @Override
     public Promise<?> publish(final Payload<Map<String, Object>> payload) {
         // offload blocking publish to executor, keep reactor non-blocking
         return Promise.ofBlocking(executor, () -> {

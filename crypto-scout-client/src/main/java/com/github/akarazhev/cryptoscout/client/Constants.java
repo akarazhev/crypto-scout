@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.consumer;
+package com.github.akarazhev.cryptoscout.client;
 
 final class Constants {
     private Constants() {
