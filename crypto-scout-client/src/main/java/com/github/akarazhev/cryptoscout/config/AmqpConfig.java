@@ -38,10 +38,10 @@ import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_BYBIT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_MAX_BYTES;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_SEGMENT_BYTES;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.SPRING_RABBITMQ_HOST;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.SPRING_RABBITMQ_PASSWORD;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.SPRING_RABBITMQ_PORT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.SPRING_RABBITMQ_USERNAME;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PORT;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
 
 public final class AmqpConfig {
     private AmqpConfig() {
@@ -96,19 +96,19 @@ public final class AmqpConfig {
         return AppConfig.getAsInt(AMQP_STREAM_SEGMENT_BYTES);
     }
 
-    public static String getSpringRabbitmqHost() {
-        return AppConfig.getAsString(SPRING_RABBITMQ_HOST);
+    public static String getAmqpRabbitmqHost() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_HOST);
     }
 
-    public static int getSpringRabbitmqPort() {
-        return AppConfig.getAsInt(SPRING_RABBITMQ_PORT);
+    public static int getAmqpRabbitmqPort() {
+        return AppConfig.getAsInt(AMQP_RABBITMQ_PORT);
     }
 
-    public static String getSpringRabbitmqUsername() {
-        return AppConfig.getAsString(SPRING_RABBITMQ_USERNAME);
+    public static String getAmqpRabbitmqUsername() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_USERNAME);
     }
 
-    public static String getSpringRabbitmqPassword() {
-        return AppConfig.getAsString(SPRING_RABBITMQ_PASSWORD);
+    public static String getAmqpRabbitmqPassword() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_PASSWORD);
     }
 }

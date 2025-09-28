@@ -173,10 +173,10 @@ public final class AmqpClient extends AbstractReactive implements ReactiveServic
 
     private Connection createConnection() throws IOException, TimeoutException {
         final var factory = new ConnectionFactory();
-        factory.setHost(AmqpConfig.getSpringRabbitmqHost());
-        factory.setPort(AmqpConfig.getSpringRabbitmqPort());
-        factory.setUsername(AmqpConfig.getSpringRabbitmqUsername());
-        factory.setPassword(AmqpConfig.getSpringRabbitmqPassword());
+        factory.setHost(AmqpConfig.getAmqpRabbitmqHost());
+        factory.setPort(AmqpConfig.getAmqpRabbitmqPort());
+        factory.setUsername(AmqpConfig.getAmqpRabbitmqUsername());
+        factory.setPassword(AmqpConfig.getAmqpRabbitmqPassword());
         return factory.newConnection(CONNECTION_NAME);
     }
 

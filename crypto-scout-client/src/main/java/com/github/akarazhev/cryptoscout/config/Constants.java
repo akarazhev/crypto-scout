@@ -46,10 +46,10 @@ final class Constants {
         static final String AMQP_QUEUE_MAX_LENGTH = "amqp.queue.max.length";
         static final String AMQP_STREAM_MAX_BYTES = "amqp.stream.max.bytes";
         static final String AMQP_STREAM_SEGMENT_BYTES = "amqp.stream.segment.bytes";
-        static final String SPRING_RABBITMQ_HOST = "spring.rabbitmq.host";
-        static final String SPRING_RABBITMQ_PORT = "spring.rabbitmq.port";
-        static final String SPRING_RABBITMQ_USERNAME = "spring.rabbitmq.username";
-        static final String SPRING_RABBITMQ_PASSWORD = "spring.rabbitmq.password";
+        static final String AMQP_RABBITMQ_HOST = "amqp.rabbitmq.host";
+        static final String AMQP_RABBITMQ_PORT = "amqp.rabbitmq.port";
+        static final String AMQP_RABBITMQ_USERNAME = "amqp.rabbitmq.username";
+        static final String AMQP_RABBITMQ_PASSWORD = "amqp.rabbitmq.password";
     }
 
     final static class ServerConfig {

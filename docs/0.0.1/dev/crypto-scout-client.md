@@ -63,7 +63,7 @@ The service is configured via `application.properties` with the following key se
 - **RabbitMQ Settings**
     - `amqp.exchange.*`: Exchange configuration
     - `amqp.queue.*`: Queue configuration
-    - `spring.rabbitmq.*`: Connection settings
+    - `amqp.rabbitmq.*`: Connection settings
 
 ## Deployment
 
@@ -82,8 +82,8 @@ ENTRYPOINT ["java", "-jar", "crypto-scout-client.jar"]
 
 The following environment variables can be used to configure the service:
 
-- `SPRING_RABBITMQ_HOST`: RabbitMQ host (default: localhost)
-- `SPRING_RABBITMQ_PORT`: RabbitMQ port (default: 5672)
+- `AMQP_RABBITMQ_HOST`: RabbitMQ host (default: localhost)
+- `AMQP_RABBITMQ_PORT`: RabbitMQ port (default: 5672)
 
 ## Development Guide
 
@@ -109,7 +109,7 @@ java -jar target/crypto-scout-client-0.0.1.jar
 
 ```bash
 docker build -t crypto-scout-client .
-docker run -e SPRING_RABBITMQ_HOST=rabbitmq -e SPRING_RABBITMQ_PORT=5672 crypto-scout-client
+docker run -e AMQP_RABBITMQ_HOST=rabbitmq -e AMQP_RABBITMQ_PORT=5672 crypto-scout-client
 ```
 
 ## Best Practices for Production Deployment

@@ -91,10 +91,10 @@ amqp.queue.client=crypto-scout-client-queue
 amqp.stream.bybit=crypto-bybit-stream
 amqp.queue.ttl.ms=21600000
 amqp.queue.max.length=2500
-spring.rabbitmq.host=${SPRING_RABBITMQ_HOST:localhost}
-spring.rabbitmq.port=${SPRING_RABBITMQ_PORT:5672}
-spring.rabbitmq.username=
-spring.rabbitmq.password=
+amqp.rabbitmq.host=${AMQP_RABBITMQ_HOST:localhost}
+amqp.rabbitmq.port=${AMQP_RABBITMQ_PORT:5672}
+amqp.rabbitmq.username=
+amqp.rabbitmq.password=
 ```
 
 ## Message Flow
@@ -131,5 +131,5 @@ RabbitMQ connection uses the following credentials:
 
 - Username: 
 - Password: 
-- Host: Configurable via environment variable `SPRING_RABBITMQ_HOST` (default: localhost)
-- Port: Configurable via environment variable `SPRING_RABBITMQ_PORT` (default: 5672)
+- Host: Configurable via environment variable `AMQP_RABBITMQ_HOST` (default: localhost)
+- Port: Configurable via environment variable `AMQP_RABBITMQ_PORT` (default: 5672)
