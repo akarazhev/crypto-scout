@@ -24,156 +24,91 @@
 
 package com.github.akarazhev.cryptoscout.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.ExchangeBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
-import org.springframework.amqp.core.TopicExchange;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.github.akarazhev.jcryptolib.config.AppConfig;
 
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CLIENT;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_COLLECTOR;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
-import static com.github.akarazhev.cryptoscout.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_COLLECTOR;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_CRYPTO;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_METRICS;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_BYBIT;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_CMC;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_COLLECTOR;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_DEAD;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_MAX_LENGTH;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_TTL_MS;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PORT;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_BYBIT;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_MAX_BYTES;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_SEGMENT_BYTES;
 
-@Configuration
-class AmqpConfig {
-
-    @Bean
-    public TopicExchange metricsExchange(@Value("${amqp.exchange.metrics}") final String name) {
-        return ExchangeBuilder.topicExchange(name)
-                .durable(true)
-                .build();
+public final class AmqpConfig {
+    private AmqpConfig() {
+        throw new UnsupportedOperationException();
     }
 
-    @Bean
-    public TopicExchange cryptoExchange(@Value("${amqp.exchange.crypto}") final String name) {
-        return ExchangeBuilder.topicExchange(name)
-                .durable(true)
-                .build();
+    public static String getAmqpExchangeMetrics() {
+        return AppConfig.getAsString(AMQP_EXCHANGE_METRICS);
     }
 
-    @Bean
-    public TopicExchange collectorExchange(@Value("${amqp.exchange.collector}") final String name) {
-        return ExchangeBuilder.topicExchange(name)
-                .durable(true)
-                .build();
+    public static String getAmqpExchangeCrypto() {
+        return AppConfig.getAsString(AMQP_EXCHANGE_CRYPTO);
     }
 
-    @Bean
-    public Queue cmcFearGreedIndexQueue(@Value("${amqp.queue.cmc}") final String queueName,
-                                        @Value("${amqp.queue.dead}") final String deadLetterQueue,
-                                        @Value("${amqp.queue.ttl.ms}") final int ttlMs,
-                                        @Value("${amqp.queue.max.length}") final int maxLength) {
-        return QueueBuilder.durable(queueName)
-                .withArgument(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE)
-                .withArgument(X_DEAD_LETTER_ROUTING_KEY, deadLetterQueue)
-                .ttl(ttlMs)
-                .maxLength(maxLength)
-                .build();
+    public static String getAmqpExchangeCollector() {
+        return AppConfig.getAsString(AMQP_EXCHANGE_COLLECTOR);
     }
 
-    @Bean
-    public Queue bybitLaunchPoolQueue(@Value("${amqp.queue.bybit}") final String queueName,
-                                      @Value("${amqp.queue.dead}") final String deadLetterQueue,
-                                      @Value("${amqp.queue.ttl.ms}") final int ttlMs,
-                                      @Value("${amqp.queue.max.length}") final int maxLength) {
-        return QueueBuilder.durable(queueName)
-                .withArgument(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE)
-                .withArgument(X_DEAD_LETTER_ROUTING_KEY, deadLetterQueue)
-                .ttl(ttlMs)
-                .maxLength(maxLength)
-                .build();
+    public static String getAmqpQueueCmc() {
+        return AppConfig.getAsString(AMQP_QUEUE_CMC);
     }
 
-    @Bean
-    public Queue cryptoBybitQueue(@Value("${amqp.stream.bybit}") final String streamName) {
-        return QueueBuilder.durable(streamName)
-                .withArgument("x-queue-type", "stream")
-                .withArgument("x-max-length-bytes", 2_000_000_000) // 2GB max size
-                .withArgument("x-stream-max-segment-size-bytes", 100_000_000) // 100MB segments
-                .build();
+    public static String getAmqpQueueBybit() {
+        return AppConfig.getAsString(AMQP_QUEUE_BYBIT);
     }
 
-    @Bean
-    public Queue clientQueue(@Value("${amqp.queue.client}") final String queueName,
-                             @Value("${amqp.queue.ttl.ms}") final int ttlMs,
-                             @Value("${amqp.queue.max.length}") final int maxLength) {
-        return QueueBuilder.durable(queueName)
-                .ttl(ttlMs)
-                .maxLength(maxLength)
-                .build();
+    public static String getAmqpQueueDead() {
+        return AppConfig.getAsString(AMQP_QUEUE_DEAD);
     }
 
-    @Bean
-    public Queue collectorQueue(@Value("${amqp.queue.collector}") final String queueName,
-                                @Value("${amqp.queue.ttl.ms}") final int ttlMs,
-                                @Value("${amqp.queue.max.length}") final int maxLength) {
-        return QueueBuilder.durable(queueName)
-                .ttl(ttlMs)
-                .maxLength(maxLength)
-                .build();
+    public static String getAmqpQueueCollector() {
+        return AppConfig.getAsString(AMQP_QUEUE_COLLECTOR);
     }
 
-    @Bean
-    public Queue metricsDeadLetterQueue(@Value("${amqp.queue.dead}") final String queueName) {
-        return QueueBuilder.durable(queueName).build();
+    public static String getAmqpStreamBybit() {
+        return AppConfig.getAsString(AMQP_STREAM_BYBIT);
     }
 
-    @Bean
-    public Binding cmcFearGreedIndexBinding(final Queue cmcFearGreedIndexQueue, final TopicExchange metricsExchange) {
-        return BindingBuilder.bind(cmcFearGreedIndexQueue)
-                .to(metricsExchange)
-                .with(ROUTING_KEY_METRICS_CMC);
+    public static int getAmqpQueueTtlMs() {
+        return AppConfig.getAsInt(AMQP_QUEUE_TTL_MS);
     }
 
-    @Bean
-    public Binding bybitLaunchPoolBinding(final Queue bybitLaunchPoolQueue, final TopicExchange metricsExchange) {
-        return BindingBuilder.bind(bybitLaunchPoolQueue)
-                .to(metricsExchange)
-                .with(ROUTING_KEY_METRICS_BYBIT);
+    public static int getAmqpQueueMaxLength() {
+        return AppConfig.getAsInt(AMQP_QUEUE_MAX_LENGTH);
     }
 
-    @Bean
-    public Binding cryptoBybitBinding(final Queue cryptoBybitQueue, final TopicExchange cryptoExchange) {
-        return BindingBuilder.bind(cryptoBybitQueue)
-                .to(cryptoExchange)
-                .with(ROUTING_KEY_CRYPTO_BYBIT);
+    public static int getAmqpStreamMaxBytes() {
+        return AppConfig.getAsInt(AMQP_STREAM_MAX_BYTES);
     }
 
-    @Bean
-    public Binding clientBinding(final Queue clientQueue, final TopicExchange clientExchange) {
-        return BindingBuilder.bind(clientQueue)
-                .to(clientExchange)
-                .with(ROUTING_KEY_CLIENT);
+    public static int getAmqpStreamSegmentBytes() {
+        return AppConfig.getAsInt(AMQP_STREAM_SEGMENT_BYTES);
     }
 
-    @Bean
-    public Binding collectorBinding(final Queue collectorQueue, final TopicExchange collectorExchange) {
-        return BindingBuilder.bind(collectorQueue)
-                .to(collectorExchange)
-                .with(ROUTING_KEY_COLLECTOR);
+    public static String getAmqpRabbitmqHost() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_HOST);
     }
 
-    @Bean
-    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
-        final var rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
-        return rabbitTemplate;
+    public static int getAmqpRabbitmqPort() {
+        return AppConfig.getAsInt(AMQP_RABBITMQ_PORT);
     }
 
-    @Bean
-    public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public static String getAmqpRabbitmqUsername() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_USERNAME);
+    }
+
+    public static String getAmqpRabbitmqPassword() {
+        return AppConfig.getAsString(AMQP_RABBITMQ_PASSWORD);
     }
 }

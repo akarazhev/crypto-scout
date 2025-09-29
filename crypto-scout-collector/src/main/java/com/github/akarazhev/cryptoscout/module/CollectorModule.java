@@ -22,17 +22,28 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout;
+package com.github.akarazhev.cryptoscout.module;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import com.github.akarazhev.cryptoscout.collector.AmqpConsumer;
+import io.activej.inject.annotation.Eager;
+import io.activej.inject.annotation.Provides;
+import io.activej.inject.module.AbstractModule;
+import io.activej.reactor.nio.NioReactor;
 
-@SpringBootApplication
-@EnableScheduling
-class CryptoScoutCollector {
+import java.util.concurrent.Executor;
 
-    public static void main(final String[] args) {
-        SpringApplication.run(CryptoScoutCollector.class, args);
+public final class CollectorModule extends AbstractModule {
+
+    private CollectorModule() {
+    }
+
+    public static CollectorModule create() {
+        return new CollectorModule();
+    }
+
+    @Provides
+    @Eager
+    private AmqpConsumer amqpConsumer(final NioReactor reactor, final Executor executor) {
+        return AmqpConsumer.create(reactor, executor);
     }
 }
