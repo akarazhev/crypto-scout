@@ -36,7 +36,7 @@ import io.activej.service.ServiceGraphModule;
 
 import static io.activej.inject.module.Modules.combine;
 
-public final class Client extends Launcher {
+final class Client extends Launcher {
 
     @Override
     protected Module getModule() {
