@@ -29,6 +29,8 @@ import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
+import com.github.akarazhev.cryptoscout.bybit.BybitService;
+import com.github.akarazhev.cryptoscout.cmc.CmcService;
 
 import java.util.concurrent.Executor;
 
@@ -43,7 +45,8 @@ public final class CollectorModule extends AbstractModule {
 
     @Provides
     @Eager
-    private AmqpConsumer amqpConsumer(final NioReactor reactor, final Executor executor) {
-        return AmqpConsumer.create(reactor, executor);
+    private AmqpConsumer amqpConsumer(final NioReactor reactor, final Executor executor,
+                                      final BybitService bybitService, final CmcService cmcService) {
+        return AmqpConsumer.create(reactor, executor, bybitService, cmcService);
     }
 }

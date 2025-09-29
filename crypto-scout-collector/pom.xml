@@ -11,6 +11,7 @@
     <groupId>com.github.akarazhev.cryptoscout</groupId>
     <artifactId>crypto-scout-collector</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
     <name>crypto-scout-collector</name>
     <description>Crypto Scout Collector</description>
     <url/>
@@ -35,8 +36,39 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
+        <jcryptolib.version>0.0.2</jcryptolib.version>
+        <activej.version>6.0-rc2</activej.version>
+        <amqp-client.version>5.26.0</amqp-client.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.github.akarazhev.jcryptolib</groupId>
+            <artifactId>jcryptolib</artifactId>
+            <version>${jcryptolib.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.activej/activej-servicegraph -->
+        <dependency>
+            <groupId>io.activej</groupId>
+            <artifactId>activej-servicegraph</artifactId>
+            <version>${activej.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.activej/activej-jmx -->
+        <dependency>
+            <groupId>io.activej</groupId>
+            <artifactId>activej-jmx</artifactId>
+            <version>${activej.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.rabbitmq/amqp-client -->
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>${amqp-client.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.github.akarazhev.cryptoscout</groupId>
             <artifactId>crypto-scout-lib</artifactId>
@@ -61,9 +93,38 @@
     </dependencies>
     <build>
         <plugins>
+            <!-- Compiler plugin -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <!-- Shade plugin to build fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.github.akarazhev.cryptoscout.Collector</mainClass>
+                                </transformer>
+                            </transformers>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
