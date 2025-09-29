@@ -112,8 +112,8 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 return null;
             }
 
-            final byte[] body = JsonUtils.object2Bytes(payload);
-            final AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
+            final var body = JsonUtils.object2Bytes(payload);
+            final var props = new AMQP.BasicProperties.Builder()
                     .contentType(CONTENT_TYPE)
                     .deliveryMode(DELIVERY_MODE) // persistent
                     .build();
