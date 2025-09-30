@@ -25,10 +25,8 @@
 package com.github.akarazhev.cryptoscout;
 
 import com.github.akarazhev.cryptoscout.module.ClientModule;
-import com.github.akarazhev.cryptoscout.module.CmcModule;
 import com.github.akarazhev.cryptoscout.module.CoreModule;
 import com.github.akarazhev.cryptoscout.module.WebModule;
-import com.github.akarazhev.cryptoscout.module.BybitModule;
 import io.activej.inject.module.Module;
 import io.activej.jmx.JmxModule;
 import io.activej.launcher.Launcher;
@@ -45,9 +43,7 @@ final class Client extends Launcher {
                 ServiceGraphModule.create(),
                 CoreModule.create(),
                 ClientModule.create(),
-                WebModule.create(),
-                BybitModule.create(),
-                CmcModule.create());
+                WebModule.create());
     }
 
     @Override

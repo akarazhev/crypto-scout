@@ -27,18 +27,27 @@ package com.github.akarazhev.cryptoscout.module;
 import com.github.akarazhev.cryptoscout.client.AmqpPublisher;
 import com.github.akarazhev.cryptoscout.client.BybitConsumer;
 import com.github.akarazhev.cryptoscout.client.CmcConsumer;
+import com.github.akarazhev.jcryptolib.bybit.config.StreamType;
+import com.github.akarazhev.jcryptolib.bybit.config.Topic;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
+import com.github.akarazhev.jcryptolib.cmc.config.Type;
 import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
+import io.activej.http.IHttpClient;
+import io.activej.http.IWebSocketClient;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Named;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executor;
 
 public final class ClientModule extends AbstractModule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientModule.class);
 
     private ClientModule() {
     }
@@ -53,6 +62,50 @@ public final class ClientModule extends AbstractModule {
         return AmqpPublisher.create(reactor, executor);
     }
 
+    @Provides
+    @Named("linearBybitStream")
+    private BybitStream linearBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
+        final var config = new com.github.akarazhev.jcryptolib.bybit.stream.DataConfig.Builder()
+                .streamType(StreamType.PML)
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
+                .topic(Topic.TICKERS_BTC_USDT)
+                .topic(Topic.ALL_LIQUIDATION_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
+                .topic(Topic.TICKERS_ETH_USDT)
+                .topic(Topic.ALL_LIQUIDATION_ETH_USDT)
+                .build();
+        LOGGER.info(config.print());
+        return BybitStream.create(reactor, webSocketClient, config);
+    }
+
+    @Provides
+    @Named("spotBybitStream")
+    private BybitStream spotBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
+        final var config = new com.github.akarazhev.jcryptolib.bybit.stream.DataConfig.Builder()
+                .streamType(StreamType.PMST)
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
+                .topic(Topic.TICKERS_BTC_USDT)
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
+                .topic(Topic.TICKERS_ETH_USDT)
+                .build();
+        LOGGER.info(config.print());
+        return BybitStream.create(reactor, webSocketClient, config);
+    }
+
+    @Provides
+    private BybitParser bybitParser(final NioReactor reactor, final IHttpClient httpClient) {
+        final var config = new com.github.akarazhev.jcryptolib.bybit.stream.DataConfig.Builder()
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.MD)
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.LPL)
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.LPD)
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.BYV)
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.BYS)
+                .type(com.github.akarazhev.jcryptolib.bybit.config.Type.ADH)
+                .build();
+        LOGGER.info(config.print());
+        return BybitParser.create(reactor, httpClient, config);
+    }
+
     @Eager
     @Provides
     private BybitConsumer bybitConsumer(final NioReactor reactor,
@@ -60,6 +113,15 @@ public final class ClientModule extends AbstractModule {
                                         @Named("spotBybitStream") final BybitStream spotBybitStream,
                                         final BybitParser bybitParser, final AmqpPublisher amqpPublisher) {
         return BybitConsumer.create(reactor, linearBybitStream, spotBybitStream, bybitParser, amqpPublisher);
+    }
+
+    @Provides
+    private CmcParser cmcParser(final NioReactor reactor, final IHttpClient httpClient) {
+        final var config = new DataConfig.Builder()
+                .type(Type.FGI)
+                .build();
+        LOGGER.info(config.print());
+        return CmcParser.create(reactor, httpClient, config);
     }
 
     @Eager
