@@ -13,8 +13,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.Map;
 
 import com.github.akarazhev.cryptoscout.config.AmqpConfig;
-import com.github.akarazhev.cryptoscout.bybit.BybitService;
-import com.github.akarazhev.cryptoscout.cmc.CmcService;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.util.JsonUtils;
 import com.rabbitmq.client.Channel;

@@ -25,12 +25,12 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.collector.AmqpConsumer;
+import com.github.akarazhev.cryptoscout.collector.BybitService;
+import com.github.akarazhev.cryptoscout.collector.CmcService;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
-import com.github.akarazhev.cryptoscout.bybit.BybitService;
-import com.github.akarazhev.cryptoscout.cmc.CmcService;
 
 import java.util.concurrent.Executor;
 
@@ -41,6 +41,16 @@ public final class CollectorModule extends AbstractModule {
 
     public static CollectorModule create() {
         return new CollectorModule();
+    }
+
+    @Provides
+    private BybitService bybitService(final NioReactor reactor, final Executor executor) {
+        return BybitService.create(reactor, executor);
+    }
+
+    @Provides
+    private CmcService cmcService(final NioReactor reactor, final Executor executor) {
+        return CmcService.create(reactor, executor);
     }
 
     @Provides
