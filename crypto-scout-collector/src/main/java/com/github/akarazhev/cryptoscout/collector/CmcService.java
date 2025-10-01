@@ -12,18 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_BTC_PRICE;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_BTC_VOLUME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_NAME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_SCORE;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_TIMESTAMP;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_BTC_PRICE;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_BTC_VOLUME;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_INSERT;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_NAME;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_SCORE;
+import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_TIMESTAMP;
 import static com.github.akarazhev.cryptoscout.collector.Converter.toBigDecimal;
 import static com.github.akarazhev.cryptoscout.collector.Converter.toOffsetDateTimeFromSeconds;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.BTC_PRICE;
@@ -32,7 +31,6 @@ import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.DATA_LIST;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.NAME;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.SCORE;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.TIMESTAMP;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_INSERT;
 
 public final class CmcService extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(CmcService.class);
@@ -82,27 +80,24 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
     }
 
     private void insertFgi(final List<Map<String, Object>> points, final int batchSize) throws Exception {
-        try (Connection con = dataSource.getConnection(); PreparedStatement ps = con.prepareStatement(CMC_FGI_INSERT)) {
-            int count = 0;
+        try (final var con = dataSource.getConnection(); final var ps = con.prepareStatement(FGI_INSERT)) {
+            var count = 0;
             for (final var point : points) {
-                // score
                 final var score = point.get(SCORE);
                 if (score instanceof Number n) {
-                    ps.setInt(CMC_FGI_SCORE, n.intValue());
+                    ps.setInt(FGI_SCORE, n.intValue());
                 } else if (score instanceof String s) {
-                    ps.setInt(CMC_FGI_SCORE, Integer.parseInt(s));
+                    ps.setInt(FGI_SCORE, Integer.parseInt(s));
                 } else {
-                    ps.setNull(CMC_FGI_SCORE, Types.INTEGER);
+                    ps.setNull(FGI_SCORE, Types.INTEGER);
                 }
-                // name
-                ps.setString(CMC_FGI_NAME, (String) point.get(NAME));
-                // timestamp (seconds)
+
+                ps.setString(FGI_NAME, (String) point.get(NAME));
                 final var ts = (String) point.get(TIMESTAMP);
-                ps.setObject(CMC_FGI_TIMESTAMP, toOffsetDateTimeFromSeconds(ts != null ? Long.parseLong(ts) : 0L));
-                // btc_price, btc_volume
-                ps.setBigDecimal(CMC_FGI_BTC_PRICE, toBigDecimal(point.get(BTC_PRICE)));
-                ps.setBigDecimal(CMC_FGI_BTC_VOLUME, toBigDecimal(point.get(BTC_VOLUME)));
-                // add to batch
+                ps.setObject(FGI_TIMESTAMP, toOffsetDateTimeFromSeconds(ts != null ? Long.parseLong(ts) : 0L));
+                ps.setBigDecimal(FGI_BTC_PRICE, toBigDecimal(point.get(BTC_PRICE)));
+                ps.setBigDecimal(FGI_BTC_VOLUME, toBigDecimal(point.get(BTC_VOLUME)));
+
                 ps.addBatch();
                 if (++count % batchSize == 0) {
                     ps.executeBatch();

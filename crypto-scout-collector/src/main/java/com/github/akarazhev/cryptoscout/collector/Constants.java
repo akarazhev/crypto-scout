@@ -34,13 +34,31 @@ final class Constants {
             throw new UnsupportedOperationException();
         }
 
-        // Insert sql
-        static final String CMC_FGI_INSERT = "INSERT INTO crypto_scout.cmc_fgi " +
+        static final String FGI_INSERT = "INSERT INTO crypto_scout.cmc_fgi " +
                 "(score, name, timestamp, btc_price, btc_volume) VALUES (?, ?, ?, ?, ?)";
-        static final int CMC_FGI_SCORE = 1;
-        static final int CMC_FGI_NAME = 2;
-        static final int CMC_FGI_TIMESTAMP = 3;
-        static final int CMC_FGI_BTC_PRICE = 4;
-        static final int CMC_FGI_BTC_VOLUME = 5;
+        static final int FGI_SCORE = 1;
+        static final int FGI_NAME = 2;
+        static final int FGI_TIMESTAMP = 3;
+        static final int FGI_BTC_PRICE = 4;
+        static final int FGI_BTC_VOLUME = 5;
+    }
+
+    final static class Bybit {
+        private Bybit() {
+            throw new UnsupportedOperationException();
+        }
+
+        static final String LPL_INSERT = "INSERT INTO crypto_scout.bybit_lpl " +
+                "(return_coin, return_coin_icon, description, website, whitepaper, rules, stake_begin_time, " +
+                "stake_end_time, trade_begin_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        static final int LPL_RETURN_COIN = 1;
+        static final int LPL_RETURN_COIN_ICON = 2;
+        static final int LPL_DESC = 3;
+        static final int LPL_WEBSITE = 4;
+        static final int LPL_WHITE_PAPER = 5;
+        static final int LPL_RULES = 6;
+        static final int LPL_STAKE_BEGIN_TIME = 7;
+        static final int LPL_STAKE_END_TIME = 8;
+        static final int LPL_TRADE_BEGIN_TIME = 9;
     }
 }

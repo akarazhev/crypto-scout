@@ -10,6 +10,14 @@ final class Converter {
         throw new UnsupportedOperationException();
     }
 
+    public static OffsetDateTime toOffsetDateTime(final Long epochMillis) {
+        if (epochMillis == null) {
+            return null;
+        }
+
+        return OffsetDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+    }
+
     public static OffsetDateTime toOffsetDateTimeFromSeconds(final long epochSeconds) {
         return OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
     }
