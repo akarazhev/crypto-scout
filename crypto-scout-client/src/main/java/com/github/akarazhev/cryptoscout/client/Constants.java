@@ -34,7 +34,6 @@ final class Constants {
             throw new UnsupportedOperationException();
         }
         // General settings
-        static final String CONNECTION_NAME = "crypto-scout-client";
         static final String CONTENT_TYPE = "application/json";
         static final int DELIVERY_MODE = 2;
         static final String TOPIC = "topic";

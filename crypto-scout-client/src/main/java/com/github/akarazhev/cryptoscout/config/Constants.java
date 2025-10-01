@@ -34,6 +34,7 @@ final class Constants {
             throw new UnsupportedOperationException();
         }
 
+        static final String CONNECTION_NAME = "crypto-scout-client";
         static final String AMQP_EXCHANGE_METRICS = "amqp.exchange.metrics";
         static final String AMQP_EXCHANGE_CRYPTO = "amqp.exchange.crypto";
         static final String AMQP_EXCHANGE_COLLECTOR = "amqp.exchange.collector";

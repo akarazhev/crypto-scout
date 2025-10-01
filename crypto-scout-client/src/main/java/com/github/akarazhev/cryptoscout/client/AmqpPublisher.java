@@ -9,21 +9,17 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.AMQP;
 
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.CONNECTION_NAME;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.CONTENT_TYPE;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.DELIVERY_MODE;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_COLLECTOR;
@@ -61,7 +57,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
         return Promise.ofBlocking(executor, () -> {
             try {
                 LOGGER.info("Starting AmqpClient...");
-                this.connection = createConnection();
+                this.connection = AmqpConfig.getConnection();
                 this.channel = connection.createChannel();
                 // Enable publisher confirms for reliability
                 this.channel.confirmSelect();
@@ -168,15 +164,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
         channel.queueBind(AmqpConfig.getAmqpQueueBybit(), AmqpConfig.getAmqpExchangeMetrics(), ROUTING_KEY_METRICS_BYBIT);
         channel.queueBind(AmqpConfig.getAmqpStreamBybit(), AmqpConfig.getAmqpExchangeCrypto(), ROUTING_KEY_CRYPTO_BYBIT);
         channel.queueBind(AmqpConfig.getAmqpQueueCollector(), AmqpConfig.getAmqpExchangeCollector(), ROUTING_KEY_COLLECTOR);
-    }
-
-    private Connection createConnection() throws IOException, TimeoutException {
-        final var factory = new ConnectionFactory();
-        factory.setHost(AmqpConfig.getAmqpRabbitmqHost());
-        factory.setPort(AmqpConfig.getAmqpRabbitmqPort());
-        factory.setUsername(AmqpConfig.getAmqpRabbitmqUsername());
-        factory.setPassword(AmqpConfig.getAmqpRabbitmqPassword());
-        return factory.newConnection(CONNECTION_NAME);
     }
 
     private void closeChannel() {
