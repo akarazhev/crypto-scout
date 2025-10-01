@@ -12,13 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -28,6 +24,8 @@ import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_B
 import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_NAME;
 import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_SCORE;
 import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.CMC_FGI_TIMESTAMP;
+import static com.github.akarazhev.cryptoscout.collector.Converter.toBigDecimal;
+import static com.github.akarazhev.cryptoscout.collector.Converter.toOffsetDateTimeFromSeconds;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.BTC_PRICE;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.BTC_VOLUME;
 import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.DATA_LIST;
@@ -113,18 +111,5 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
 
             ps.executeBatch();
         }
-    }
-
-    private static OffsetDateTime toOffsetDateTimeFromSeconds(final long epochSeconds) {
-        return OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
-    }
-
-    private static BigDecimal toBigDecimal(final Object value) {
-        return switch (value) {
-            case BigDecimal bd -> bd;
-            case String s -> s.isEmpty() ? null : new BigDecimal(s);
-            case Number n -> new BigDecimal(n.toString());
-            case null, default -> null;
-        };
     }
 }
