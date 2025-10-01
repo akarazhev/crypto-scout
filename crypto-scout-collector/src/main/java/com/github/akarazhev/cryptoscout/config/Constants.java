@@ -60,6 +60,7 @@ final class Constants {
         static final String JDBC_URL = "jdbc.datasource.url";
         static final String JDBC_USERNAME = "jdbc.datasource.username";
         static final String JDBC_PASSWORD = "jdbc.datasource.password";
+        static final String JDBC_CMC_BATCH_SIZE = "jdbc.cmc.batch-size";
     }
 
     final static class ServerConfig {

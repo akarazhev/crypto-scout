@@ -5,6 +5,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
+import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_CMC_BATCH_SIZE;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_URL;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_USERNAME;
@@ -24,6 +25,10 @@ public final class JdbcConfig {
 
     private static String getPassword() {
         return AppConfig.getAsString(JDBC_PASSWORD);
+    }
+
+    public static int getCmcBatchSize() {
+        return AppConfig.getAsInt(JDBC_CMC_BATCH_SIZE);
     }
 
     public static DataSource getDataSource() {
