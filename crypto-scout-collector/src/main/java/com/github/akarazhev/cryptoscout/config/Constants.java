@@ -52,6 +52,16 @@ final class Constants {
         static final String AMQP_RABBITMQ_PASSWORD = "amqp.rabbitmq.password";
     }
 
+    final static class JdbcConfig {
+        private JdbcConfig() {
+            throw new UnsupportedOperationException();
+        }
+
+        static final String JDBC_URL = "jdbc.datasource.url";
+        static final String JDBC_USERNAME = "jdbc.datasource.username";
+        static final String JDBC_PASSWORD = "jdbc.datasource.password";
+    }
+
     final static class ServerConfig {
         private ServerConfig() {
             throw new UnsupportedOperationException();

@@ -26,12 +26,14 @@ package com.github.akarazhev.cryptoscout.config;
 
 import com.github.akarazhev.jcryptolib.config.AppConfig;
 
+import static com.github.akarazhev.cryptoscout.config.Constants.ServerConfig.SERVER_PORT;
+
 public final class ServerConfig {
     private ServerConfig() {
         throw new UnsupportedOperationException();
     }
 
     public static int getServerPort() {
-        return AppConfig.getAsInt(Constants.ServerConfig.SERVER_PORT);
+        return AppConfig.getAsInt(SERVER_PORT);
     }
 }
