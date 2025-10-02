@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
-import java.util.Map;
 
 import com.github.akarazhev.cryptoscout.config.AmqpConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
@@ -131,11 +130,10 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     }
 
     private void declareQueuesIfNeeded() throws Exception {
-        // Ensure queues exist (publisher also declares them, this is idempotent)
-        final var args = (Map<String, Object>) null;
-        channel.queueDeclare(AmqpConfig.getAmqpQueueCmc(), true, false, false, args);
-        channel.queueDeclare(AmqpConfig.getAmqpQueueBybit(), true, false, false, args);
-        channel.queueDeclare(AmqpConfig.getAmqpStreamBybit(), true, false, false, args);
+        // Assert queues exist without redefining their arguments to avoid PRECONDITION_FAILED
+        channel.queueDeclarePassive(AmqpConfig.getAmqpQueueCmc());
+        channel.queueDeclarePassive(AmqpConfig.getAmqpQueueBybit());
+        channel.queueDeclarePassive(AmqpConfig.getAmqpStreamBybit());
     }
 
     private void closeCmcConsumer() {
