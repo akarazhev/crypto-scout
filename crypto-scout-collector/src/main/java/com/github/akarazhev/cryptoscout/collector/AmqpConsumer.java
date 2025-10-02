@@ -88,21 +88,23 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     }
 
     private void handleMessage(final byte[] body, final QueueType type, final long deliveryTag) {
-        // Deserialize off the reactor thread, then chain service.save promise and ack/nack on completion
-        Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(body, Payload.class))
-                .then(payload -> switch (type) {
-                    case CMC -> cmcService.save(payload);
-                    case BYBIT, BYBIT_STREAM -> bybitService.save(payload);
-                })
-                .whenComplete(($, ex) -> {
-                    if (ex == null) {
-                        ack(deliveryTag);
-                    } else {
-//                        LOGGER.error("Failed to process message from {}: {}", type, ex.getMessage(), ex);
-                        LOGGER.error("Failed to process message from {}: {}", type, ex);
-                        nack(deliveryTag);
-                    }
-                });
+        // Ensure we initiate the Promise on the reactor thread; RabbitMQ callbacks run on a different thread
+        reactor.execute(() ->
+                Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(body, Payload.class))
+                        .then(payload -> switch (type) {
+                            case CMC -> cmcService.save(payload);
+                            case BYBIT, BYBIT_STREAM -> bybitService.save(payload);
+                        })
+                        .whenComplete(($, ex) -> {
+                            if (ex == null) {
+                                ack(deliveryTag);
+                            } else {
+//                                LOGGER.error("Failed to process message from {}: {}", type, ex.getMessage(), ex);
+                                LOGGER.error("Failed to process message from {}", type, ex);
+                                nack(deliveryTag);
+                            }
+                        })
+        );
     }
 
     private void ack(final long deliveryTag) {
