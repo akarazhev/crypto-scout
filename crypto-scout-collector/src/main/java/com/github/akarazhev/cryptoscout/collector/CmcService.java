@@ -74,6 +74,7 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
         return Promise.ofBlocking(executor, () -> {
             if (Source.FGI.equals(payload.getSource())) {
                 insertFgi(list);
+                LOGGER.info("Inserted {} FGI points", list.size());
             }
 
             return Promise.complete();
@@ -81,7 +82,8 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
     }
 
     private void insertFgi(final List<Map<String, Object>> points) throws Exception {
-        try (final var c = dataSource.getConnection(); final var ps = c.prepareStatement(FGI_INSERT)) {
+        try (final var c = dataSource.getConnection();
+             final var ps = c.prepareStatement(FGI_INSERT)) {
             var count = 0;
             for (final var point : points) {
                 final var score = point.get(SCORE);
