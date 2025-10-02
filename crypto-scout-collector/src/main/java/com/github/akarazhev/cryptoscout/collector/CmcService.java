@@ -36,6 +36,7 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
     private final static Logger LOGGER = LoggerFactory.getLogger(CmcService.class);
     private final Executor executor;
     private final DataSource dataSource;
+    private final int batchSize;
 
     public static CmcService create(final NioReactor reactor, final Executor executor) {
         return new CmcService(reactor, executor);
@@ -45,6 +46,7 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
         super(reactor);
         this.executor = executor;
         this.dataSource = JdbcConfig.getDataSource();
+        this.batchSize = JdbcConfig.getCmcBatchSize();
     }
 
     @Override
@@ -63,25 +65,23 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
             return Promise.complete();
         }
 
-        @SuppressWarnings("unchecked")
-        final var list = (java.util.List<Map<String, Object>>) payload.getData().get(DATA_LIST);
+        @SuppressWarnings("unchecked") final var list = (java.util.List<Map<String, Object>>) payload.getData().get(DATA_LIST);
         if (list == null || list.isEmpty()) {
             LOGGER.info("No data to insert");
             return Promise.complete();
         }
 
-        final var batchSize = JdbcConfig.getCmcBatchSize();
         return Promise.ofBlocking(executor, () -> {
             if (Source.FGI.equals(payload.getSource())) {
-                insertFgi(list, batchSize);
+                insertFgi(list);
             }
 
             return Promise.complete();
         });
     }
 
-    private void insertFgi(final List<Map<String, Object>> points, final int batchSize) throws Exception {
-        try (final var con = dataSource.getConnection(); final var ps = con.prepareStatement(FGI_INSERT)) {
+    private void insertFgi(final List<Map<String, Object>> points) throws Exception {
+        try (final var c = dataSource.getConnection(); final var ps = c.prepareStatement(FGI_INSERT)) {
             var count = 0;
             for (final var point : points) {
                 final var score = point.get(SCORE);
