@@ -5,6 +5,8 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
+import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_BYBIT_BATCH_SIZE;
+import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_BYBIT_FLUSH_INTERVAL_MS;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_CMC_BATCH_SIZE;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_URL;
@@ -29,6 +31,14 @@ public final class JdbcConfig {
 
     public static int getCmcBatchSize() {
         return AppConfig.getAsInt(JDBC_CMC_BATCH_SIZE);
+    }
+
+    public static int getBybitBatchSize() {
+        return AppConfig.getAsInt(JDBC_BYBIT_BATCH_SIZE);
+    }
+
+    public static long getBybitFlushIntervalMs() {
+        return AppConfig.getAsInt(JDBC_BYBIT_FLUSH_INTERVAL_MS);
     }
 
     public static DataSource getDataSource() {

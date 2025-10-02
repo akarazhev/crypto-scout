@@ -61,6 +61,8 @@ final class Constants {
         static final String JDBC_USERNAME = "jdbc.datasource.username";
         static final String JDBC_PASSWORD = "jdbc.datasource.password";
         static final String JDBC_CMC_BATCH_SIZE = "jdbc.cmc.batch-size";
+        static final String JDBC_BYBIT_BATCH_SIZE = "jdbc.bybit.batch-size";
+        static final String JDBC_BYBIT_FLUSH_INTERVAL_MS = "jdbc.bybit.flush-interval-ms";
     }
 
     final static class ServerConfig {
