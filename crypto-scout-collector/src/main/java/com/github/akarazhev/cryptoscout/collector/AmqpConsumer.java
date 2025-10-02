@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeoutException;
 import java.util.Map;
 
 import com.github.akarazhev.cryptoscout.config.AmqpConfig;
@@ -17,9 +16,6 @@ import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.util.JsonUtils;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DeliverCallback;
-import com.rabbitmq.client.CancelCallback;
 
 public final class AmqpConsumer extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(AmqpConsumer.class);
@@ -31,6 +27,8 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     private volatile String cmcConsumerTag;
     private volatile String bybitConsumerTag;
     private volatile String bybitStreamConsumerTag;
+
+    private enum QueueType {CMC, BYBIT, BYBIT_STREAM}
 
     public static AmqpConsumer create(final NioReactor reactor, final Executor executor, final BybitService bybitService,
                                       final CmcService cmcService) {
@@ -50,25 +48,23 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         return Promise.ofBlocking(executor, () -> {
             try {
                 LOGGER.info("Starting AmqpConsumer...");
-                this.connection = createConnection();
+                this.connection = AmqpConfig.getConnection();
                 this.channel = connection.createChannel();
                 this.channel.basicQos(64); // backpressure
                 declareQueuesIfNeeded();
 
-                final DeliverCallback cmcCallback = (tag, delivery) ->
-                        handleMessage(delivery.getBody(), QueueType.CMC, delivery.getEnvelope().getDeliveryTag());
-                final DeliverCallback bybitCallback = (tag, delivery) ->
-                        handleMessage(delivery.getBody(), QueueType.BYBIT, delivery.getEnvelope().getDeliveryTag());
-                final DeliverCallback bybitStreamCallback = (tag, delivery) ->
-                        handleMessage(delivery.getBody(), QueueType.BYBIT_STREAM, delivery.getEnvelope().getDeliveryTag());
-                final CancelCallback cancelCallback = tag -> LOGGER.warn("Consumer canceled: {}", tag);
-
-                cmcConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueCmc(), false, cmcCallback,
-                        cancelCallback);
-                bybitConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueBybit(), false, bybitCallback,
-                        cancelCallback);
-                bybitStreamConsumerTag = channel.basicConsume(AmqpConfig.getAmqpStreamBybit(), false, bybitStreamCallback,
-                        cancelCallback);
+                cmcConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueCmc(), false,
+                        (tag, delivery) ->
+                                handleMessage(delivery.getBody(), QueueType.CMC, delivery.getEnvelope().getDeliveryTag()),
+                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
+                bybitConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueBybit(), false,
+                        (tag, delivery) ->
+                                handleMessage(delivery.getBody(), QueueType.BYBIT, delivery.getEnvelope().getDeliveryTag()),
+                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
+                bybitStreamConsumerTag = channel.basicConsume(AmqpConfig.getAmqpStreamBybit(), false,
+                        (tag, delivery) ->
+                                handleMessage(delivery.getBody(), QueueType.BYBIT_STREAM, delivery.getEnvelope().getDeliveryTag()),
+                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
 
                 LOGGER.info("AmqpConsumer started: consuming from queues [{}], [{}] and stream [{}]",
                         AmqpConfig.getAmqpQueueCmc(), AmqpConfig.getAmqpQueueBybit(), AmqpConfig.getAmqpStreamBybit());
@@ -83,33 +79,31 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     public Promise<?> stop() {
         return Promise.ofBlocking(executor, () -> {
             LOGGER.info("Stopping AmqpConsumer...");
-            tryCancelConsumers();
+            closeCmcConsumer();
+            closeBybitConsumer();
+            closeBybitStreamConsumer();
             closeChannel();
             closeConnection();
             LOGGER.info("AmqpConsumer stopped");
         });
     }
 
-    private enum QueueType {CMC, BYBIT, BYBIT_STREAM}
-
     private void handleMessage(final byte[] body, final QueueType type, final long deliveryTag) {
-        // Deserialize and process off the reactor thread
-        Promise.ofBlocking(executor, () -> {
-            try {
-                final var payload = JsonUtils.bytes2Object(body, Payload.class);
-                switch (type) {
+        // Deserialize off the reactor thread, then chain service.save promise and ack/nack on completion
+        Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(body, Payload.class))
+                .then(payload -> switch (type) {
                     case CMC -> cmcService.save(payload);
                     case BYBIT, BYBIT_STREAM -> bybitService.save(payload);
-                }
-
-                ack(deliveryTag);
-            } catch (final Exception ex) {
-                LOGGER.error("Failed to process message from {}: {}", type, ex.getMessage(), ex);
-                nack(deliveryTag);
-            }
-
-            return null;
-        });
+                })
+                .whenComplete(($, ex) -> {
+                    if (ex == null) {
+                        ack(deliveryTag);
+                    } else {
+//                        LOGGER.error("Failed to process message from {}: {}", type, ex.getMessage(), ex);
+                        LOGGER.error("Failed to process message from {}: {}", type, ex);
+                        nack(deliveryTag);
+                    }
+                });
     }
 
     private void ack(final long deliveryTag) {
@@ -144,16 +138,7 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         channel.queueDeclare(AmqpConfig.getAmqpStreamBybit(), true, false, false, args);
     }
 
-    private Connection createConnection() throws IOException, TimeoutException {
-        final var factory = new ConnectionFactory();
-        factory.setHost(AmqpConfig.getAmqpRabbitmqHost());
-        factory.setPort(AmqpConfig.getAmqpRabbitmqPort());
-        factory.setUsername(AmqpConfig.getAmqpRabbitmqUsername());
-        factory.setPassword(AmqpConfig.getAmqpRabbitmqPassword());
-        return factory.newConnection("collector-consumer");
-    }
-
-    private void tryCancelConsumers() {
+    private void closeCmcConsumer() {
         try {
             if (channel != null && channel.isOpen() && cmcConsumerTag != null) {
                 channel.basicCancel(cmcConsumerTag);
@@ -161,7 +146,9 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         } catch (final Exception ex) {
             LOGGER.warn("Error canceling CMC consumer", ex);
         }
+    }
 
+    private void closeBybitConsumer() {
         try {
             if (channel != null && channel.isOpen() && bybitConsumerTag != null) {
                 channel.basicCancel(bybitConsumerTag);
@@ -169,7 +156,9 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         } catch (final Exception ex) {
             LOGGER.warn("Error canceling BYBIT consumer", ex);
         }
+    }
 
+    private void closeBybitStreamConsumer() {
         try {
             if (channel != null && channel.isOpen() && bybitStreamConsumerTag != null) {
                 channel.basicCancel(bybitStreamConsumerTag);
