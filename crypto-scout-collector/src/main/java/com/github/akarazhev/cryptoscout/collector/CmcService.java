@@ -63,6 +63,7 @@ public final class CmcService extends AbstractReactive implements ReactiveServic
             return Promise.complete();
         }
 
+        @SuppressWarnings("unchecked")
         final var list = (java.util.List<Map<String, Object>>) payload.getData().get(DATA_LIST);
         if (list == null || list.isEmpty()) {
             LOGGER.info("No data to insert");
