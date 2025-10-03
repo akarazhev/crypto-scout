@@ -36,22 +36,9 @@ final class Constants {
         // General settings
         static final String CONTENT_TYPE = "application/json";
         static final int DELIVERY_MODE = 2;
-        static final String TOPIC = "topic";
-        static final String STREAM = "stream";
-        static final String X_MESSAGE_TTL = "x-message-ttl";
-        static final String X_MAX_LENGTH = "x-max-length";
-        static final String X_QUEUE_TYPE = "x-queue-type";
-        static final String X_MAX_LENGTH_BYTES = "x-max-length-bytes";
-        static final String X_STREAM_MAX_SEGMENT_SIZE_BYTES = "x-stream-max-segment-size-bytes";
-        // Dead letter
-        static final String X_DEAD_LETTER_ROUTING_KEY = "x-dead-letter-routing-key";
-        static final String X_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
-        static final String X_DEAD_LETTER_EXCHANGE_VALUE = "";
         // Routing keys
         static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
         static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
         static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
-        static final String ROUTING_KEY_COLLECTOR = "collector";
-        static final String ROUTING_KEY_TELEGRAM = "telegram";
     }
 }

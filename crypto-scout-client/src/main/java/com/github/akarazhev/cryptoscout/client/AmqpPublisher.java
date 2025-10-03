@@ -9,7 +9,6 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.Map;
 
@@ -22,20 +21,9 @@ import com.rabbitmq.client.AMQP;
 
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.CONTENT_TYPE;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.DELIVERY_MODE;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_COLLECTOR;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_METRICS_BYBIT;
 import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.ROUTING_KEY_METRICS_CMC;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.STREAM;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.TOPIC;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_EXCHANGE;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_EXCHANGE_VALUE;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_DEAD_LETTER_ROUTING_KEY;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MAX_LENGTH;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MAX_LENGTH_BYTES;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_MESSAGE_TTL;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_QUEUE_TYPE;
-import static com.github.akarazhev.cryptoscout.client.Constants.AMQP.X_STREAM_MAX_SEGMENT_SIZE_BYTES;
 
 public final class AmqpPublisher extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(AmqpPublisher.class);
@@ -61,8 +49,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 this.channel = connection.createChannel();
                 // Enable publisher confirms for reliability
                 this.channel.confirmSelect();
-                declareExchanges();
-                declareQueuesAndBindings();
                 LOGGER.info("AmqpClient started and topology declared");
             } catch (final Exception ex) {
                 LOGGER.error("Failed to start AmqpClient", ex);
@@ -126,44 +112,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
 
             return null;
         }).whenException(ex -> LOGGER.error("Failed to publish payload: {}", ex.getMessage(), ex));
-    }
-
-    private void declareExchanges() throws Exception {
-        // durable topic exchanges
-        channel.exchangeDeclare(AmqpConfig.getAmqpExchangeMetrics(), TOPIC, true);
-        channel.exchangeDeclare(AmqpConfig.getAmqpExchangeCrypto(), TOPIC, true);
-        channel.exchangeDeclare(AmqpConfig.getAmqpExchangeCollector(), TOPIC, true);
-    }
-
-    private void declareQueuesAndBindings() throws Exception {
-        // Dead-lettered metric queues
-        final var dlArgs = new HashMap<String, Object>();
-        dlArgs.put(X_DEAD_LETTER_EXCHANGE, X_DEAD_LETTER_EXCHANGE_VALUE);
-        dlArgs.put(X_DEAD_LETTER_ROUTING_KEY, AmqpConfig.getAmqpQueueDead());
-        dlArgs.put(X_MESSAGE_TTL, AmqpConfig.getAmqpQueueTtlMs());
-        dlArgs.put(X_MAX_LENGTH, AmqpConfig.getAmqpQueueMaxLength());
-
-        channel.queueDeclare(AmqpConfig.getAmqpQueueCmc(), true, false, false, dlArgs);
-        channel.queueDeclare(AmqpConfig.getAmqpQueueBybit(), true, false, false, dlArgs);
-        // Dead-letter queue itself
-        channel.queueDeclare(AmqpConfig.getAmqpQueueDead(), true, false, false, null);
-        // Client and collector queues
-        final var ccArgs = new HashMap<String, Object>();
-        ccArgs.put(X_MESSAGE_TTL, AmqpConfig.getAmqpQueueTtlMs());
-        ccArgs.put(X_MAX_LENGTH, AmqpConfig.getAmqpQueueMaxLength());
-
-        channel.queueDeclare(AmqpConfig.getAmqpQueueCollector(), true, false, false, ccArgs);
-        // Stream queue for crypto bybit
-        final var streamArgs = new HashMap<String, Object>();
-        streamArgs.put(X_QUEUE_TYPE, STREAM);
-        streamArgs.put(X_MAX_LENGTH_BYTES, AmqpConfig.getAmqpStreamMaxBytes());
-        streamArgs.put(X_STREAM_MAX_SEGMENT_SIZE_BYTES, AmqpConfig.getAmqpStreamSegmentBytes());
-        channel.queueDeclare(AmqpConfig.getAmqpStreamBybit(), true, false, false, streamArgs);
-        // Bindings
-        channel.queueBind(AmqpConfig.getAmqpQueueCmc(), AmqpConfig.getAmqpExchangeMetrics(), ROUTING_KEY_METRICS_CMC);
-        channel.queueBind(AmqpConfig.getAmqpQueueBybit(), AmqpConfig.getAmqpExchangeMetrics(), ROUTING_KEY_METRICS_BYBIT);
-        channel.queueBind(AmqpConfig.getAmqpStreamBybit(), AmqpConfig.getAmqpExchangeCrypto(), ROUTING_KEY_CRYPTO_BYBIT);
-        channel.queueBind(AmqpConfig.getAmqpQueueCollector(), AmqpConfig.getAmqpExchangeCollector(), ROUTING_KEY_COLLECTOR);
     }
 
     private void closeChannel() {
