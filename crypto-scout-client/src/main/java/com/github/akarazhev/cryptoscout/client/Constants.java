@@ -34,11 +34,11 @@ final class Constants {
             throw new UnsupportedOperationException();
         }
         // General settings
+        static final String CONNECTION_NAME = "crypto-scout-client";
         static final String CONTENT_TYPE = "application/json";
         static final int DELIVERY_MODE = 2;
         // Routing keys
         static final String ROUTING_KEY_METRICS_CMC = "metrics.cmc";
         static final String ROUTING_KEY_METRICS_BYBIT = "metrics.bybit";
-        static final String ROUTING_KEY_CRYPTO_BYBIT = "crypto.bybit";
     }
 }

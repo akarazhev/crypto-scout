@@ -27,16 +27,18 @@ package com.github.akarazhev.cryptoscout.config;
 import com.github.akarazhev.jcryptolib.config.AppConfig;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.stream.Environment;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_CRYPTO;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_METRICS;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_STREAM_PORT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PORT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_BYBIT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.CONNECTION_NAME;
 
 public final class AmqpConfig {
@@ -46,10 +48,6 @@ public final class AmqpConfig {
 
     public static String getAmqpExchangeMetrics() {
         return AppConfig.getAsString(AMQP_EXCHANGE_METRICS);
-    }
-
-    public static String getAmqpExchangeCrypto() {
-        return AppConfig.getAsString(AMQP_EXCHANGE_CRYPTO);
     }
 
     private static String getAmqpRabbitmqHost() {
@@ -68,6 +66,14 @@ public final class AmqpConfig {
         return AppConfig.getAsString(AMQP_RABBITMQ_PASSWORD);
     }
 
+    private static int getAmqpRabbitmqStreamPort() {
+        return AppConfig.getAsInt(AMQP_RABBITMQ_STREAM_PORT);
+    }
+
+    public static String getAmqpStreamBybit() {
+        return AppConfig.getAsString(AMQP_STREAM_BYBIT);
+    }
+
     public static Connection getConnection() throws IOException, TimeoutException {
         final var factory = new ConnectionFactory();
         factory.setHost(AmqpConfig.getAmqpRabbitmqHost());
@@ -75,5 +81,14 @@ public final class AmqpConfig {
         factory.setUsername(AmqpConfig.getAmqpRabbitmqUsername());
         factory.setPassword(AmqpConfig.getAmqpRabbitmqPassword());
         return factory.newConnection(CONNECTION_NAME);
+    }
+
+    public static Environment getEnvironment() {
+        return Environment.builder()
+                .host(AmqpConfig.getAmqpRabbitmqHost())
+                .port(AmqpConfig.getAmqpRabbitmqStreamPort())
+                .username(AmqpConfig.getAmqpRabbitmqUsername())
+                .password(AmqpConfig.getAmqpRabbitmqPassword())
+                .build();
     }
 }
