@@ -7,27 +7,26 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.Executor;
 
 import com.github.akarazhev.cryptoscout.config.AmqpConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.util.JsonUtils;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
+import com.rabbitmq.stream.Consumer;
+import com.rabbitmq.stream.Environment;
+import com.rabbitmq.stream.OffsetSpecification;
 
 public final class AmqpConsumer extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(AmqpConsumer.class);
     private final Executor executor;
     private final BybitService bybitService;
     private final CmcService cmcService;
-    private volatile Connection connection;
-    private volatile Channel channel;
-    private volatile String cmcConsumerTag;
-    private volatile String bybitConsumerTag;
-    private volatile String bybitStreamConsumerTag;
+    private volatile Environment environment;
+    private volatile Consumer metricsCmcConsumer;
+    private volatile Consumer metricsBybitConsumer;
+    private volatile Consumer streamBybitConsumer;
 
-    private enum QueueType {CMC, BYBIT, BYBIT_STREAM}
+    private enum StreamType {CMC, BYBIT, BYBIT_STREAM}
 
     public static AmqpConsumer create(final NioReactor reactor, final Executor executor, final BybitService bybitService,
                                       final CmcService cmcService) {
@@ -47,26 +46,35 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         return Promise.ofBlocking(executor, () -> {
             try {
                 LOGGER.info("Starting AmqpConsumer...");
-                this.connection = AmqpConfig.getConnection();
-                this.channel = connection.createChannel();
-                this.channel.basicQos(64); // backpressure
-                declareQueuesIfNeeded();
-
-                cmcConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueCmc(), false,
-                        (tag, delivery) ->
-                                handleMessage(delivery.getBody(), QueueType.CMC, delivery.getEnvelope().getDeliveryTag()),
-                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
-                bybitConsumerTag = channel.basicConsume(AmqpConfig.getAmqpQueueBybit(), false,
-                        (tag, delivery) ->
-                                handleMessage(delivery.getBody(), QueueType.BYBIT, delivery.getEnvelope().getDeliveryTag()),
-                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
-                bybitStreamConsumerTag = channel.basicConsume(AmqpConfig.getAmqpStreamBybit(), false,
-                        (tag, delivery) ->
-                                handleMessage(delivery.getBody(), QueueType.BYBIT_STREAM, delivery.getEnvelope().getDeliveryTag()),
-                        tag -> LOGGER.warn("Consumer canceled: {}", tag));
-
-                LOGGER.info("AmqpConsumer started: consuming from queues [{}], [{}] and stream [{}]",
-                        AmqpConfig.getAmqpQueueCmc(), AmqpConfig.getAmqpQueueBybit(), AmqpConfig.getAmqpStreamBybit());
+                environment = AmqpConfig.getEnvironment();
+                metricsCmcConsumer = environment.consumerBuilder()
+                        .name(AmqpConfig.getAmqpStreamMetricsCmc())
+                        .stream(AmqpConfig.getAmqpStreamMetricsCmc())
+                        .offset(OffsetSpecification.first())
+                        .manualTrackingStrategy()
+                        .builder()
+                        .messageHandler((context, message) ->
+                                handleMessage(message.getBodyAsBinary(), StreamType.CMC, context::storeOffset))
+                        .build();
+                metricsBybitConsumer = environment.consumerBuilder()
+                        .name(AmqpConfig.getAmqpStreamMetricsBybit())
+                        .stream(AmqpConfig.getAmqpStreamMetricsBybit())
+                        .offset(OffsetSpecification.first())
+                        .manualTrackingStrategy()
+                        .builder()
+                        .messageHandler((context, message) ->
+                                handleMessage(message.getBodyAsBinary(), StreamType.BYBIT, context::storeOffset))
+                        .build();
+                streamBybitConsumer = environment.consumerBuilder()
+                        .name(AmqpConfig.getAmqpStreamCryptoBybit())
+                        .stream(AmqpConfig.getAmqpStreamCryptoBybit())
+                        .offset(OffsetSpecification.first())
+                        .manualTrackingStrategy()
+                        .builder()
+                        .messageHandler((context, message) ->
+                                handleMessage(message.getBodyAsBinary(), StreamType.BYBIT_STREAM, context::storeOffset))
+                        .build();
+                LOGGER.info("AmqpConsumer started");
             } catch (final Exception ex) {
                 LOGGER.error("Failed to start AmqpConsumer", ex);
                 throw new RuntimeException(ex);
@@ -78,17 +86,20 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     public Promise<?> stop() {
         return Promise.ofBlocking(executor, () -> {
             LOGGER.info("Stopping AmqpConsumer...");
-            closeCmcConsumer();
-            closeBybitConsumer();
-            closeBybitStreamConsumer();
-            closeChannel();
-            closeConnection();
+            closeConsumer(metricsCmcConsumer);
+            metricsCmcConsumer = null;
+            closeConsumer(metricsBybitConsumer);
+            metricsBybitConsumer = null;
+            closeConsumer(streamBybitConsumer);
+            streamBybitConsumer = null;
+            closeEnvironment();
             LOGGER.info("AmqpConsumer stopped");
         });
     }
 
-    private void handleMessage(final byte[] body, final QueueType type, final long deliveryTag) {
-        // Ensure we initiate the Promise on the reactor thread; RabbitMQ callbacks run on a different thread
+    private void handleMessage(final byte[] body, final StreamType type, final Runnable storeOffset) {
+        // Ensure we initiate the Promise on the reactor thread; stream callbacks run on a different thread
+        LOGGER.info("Received payload: {}", new String(body));
         reactor.execute(() ->
                 Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(body, Payload.class))
                         .then(payload -> switch (type) {
@@ -97,94 +108,36 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
                         })
                         .whenComplete(($, ex) -> {
                             if (ex == null) {
-                                ack(deliveryTag);
+                                try {
+                                    storeOffset.run();
+                                } catch (final Exception e) {
+                                    LOGGER.warn("Failed to store offset: {}", e.getMessage(), e);
+                                }
                             } else {
-//                                LOGGER.error("Failed to process message from {}: {}", type, ex.getMessage(), ex);
-                                LOGGER.error("Failed to process message from {}", type, ex);
-                                nack(deliveryTag);
+                                LOGGER.error("Failed to process stream message from {}", type, ex);
                             }
                         })
         );
     }
 
-    private void ack(final long deliveryTag) {
+    private void closeConsumer(final Consumer consumer) {
         try {
-            synchronized (this) {
-                if (channel != null && channel.isOpen()) {
-                    channel.basicAck(deliveryTag, false);
-                }
-            }
-        } catch (final IOException ex) {
-            LOGGER.warn("Ack failed: {}", ex.getMessage(), ex);
-        }
-    }
-
-    private void nack(final long deliveryTag) {
-        try {
-            synchronized (this) {
-                if (channel != null && channel.isOpen()) {
-                    channel.basicNack(deliveryTag, false, false); // dead-letter
-                }
-            }
-        } catch (final IOException ex) {
-            LOGGER.warn("Nack failed: {}", ex.getMessage(), ex);
-        }
-    }
-
-    private void declareQueuesIfNeeded() throws Exception {
-        // Assert queues exist without redefining their arguments to avoid PRECONDITION_FAILED
-        channel.queueDeclarePassive(AmqpConfig.getAmqpQueueCmc());
-        channel.queueDeclarePassive(AmqpConfig.getAmqpQueueBybit());
-        channel.queueDeclarePassive(AmqpConfig.getAmqpStreamBybit());
-    }
-
-    private void closeCmcConsumer() {
-        try {
-            if (channel != null && channel.isOpen() && cmcConsumerTag != null) {
-                channel.basicCancel(cmcConsumerTag);
+            if (consumer != null) {
+                consumer.close();
             }
         } catch (final Exception ex) {
-            LOGGER.warn("Error canceling CMC consumer", ex);
+            LOGGER.warn("Error closing stream consumer", ex);
         }
     }
 
-    private void closeBybitConsumer() {
+    private void closeEnvironment() {
         try {
-            if (channel != null && channel.isOpen() && bybitConsumerTag != null) {
-                channel.basicCancel(bybitConsumerTag);
+            if (environment != null) {
+                environment.close();
+                environment = null;
             }
         } catch (final Exception ex) {
-            LOGGER.warn("Error canceling BYBIT consumer", ex);
-        }
-    }
-
-    private void closeBybitStreamConsumer() {
-        try {
-            if (channel != null && channel.isOpen() && bybitStreamConsumerTag != null) {
-                channel.basicCancel(bybitStreamConsumerTag);
-            }
-        } catch (final Exception ex) {
-            LOGGER.warn("Error canceling BYBIT stream consumer", ex);
-        }
-    }
-
-    private void closeChannel() {
-        try {
-            if (channel != null && channel.isOpen()) {
-                channel.close();
-            }
-        } catch (final Exception ex) {
-            LOGGER.warn("Error closing AMQP channel", ex);
-        }
-    }
-
-    private void closeConnection() {
-        try {
-            if (connection != null && connection.isOpen()) {
-                connection.close();
-            }
-        } catch (final Exception ex) {
-            LOGGER.warn("Error closing AMQP connection", ex);
+            LOGGER.warn("Error closing stream environment", ex);
         }
     }
 }
