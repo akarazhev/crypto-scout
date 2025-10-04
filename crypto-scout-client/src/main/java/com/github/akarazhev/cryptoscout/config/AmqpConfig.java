@@ -27,13 +27,13 @@ package com.github.akarazhev.cryptoscout.config;
 import com.github.akarazhev.jcryptolib.config.AppConfig;
 import com.rabbitmq.stream.Environment;
 
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_STREAM_PORT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_CRYPTO_BYBIT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_BYBIT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_CMC;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_PORT;
 
 public final class AmqpConfig {
     private AmqpConfig() {
@@ -52,8 +52,8 @@ public final class AmqpConfig {
         return AppConfig.getAsString(AMQP_RABBITMQ_PASSWORD);
     }
 
-    private static int getAmqpRabbitmqStreamPort() {
-        return AppConfig.getAsInt(AMQP_RABBITMQ_STREAM_PORT);
+    private static int getAmqpStreamPort() {
+        return AppConfig.getAsInt(AMQP_STREAM_PORT);
     }
 
     public static String getAmqpStreamCryptoBybit() {
@@ -71,7 +71,7 @@ public final class AmqpConfig {
     public static Environment getEnvironment() {
         return Environment.builder()
                 .host(AmqpConfig.getAmqpRabbitmqHost())
-                .port(AmqpConfig.getAmqpRabbitmqStreamPort())
+                .port(AmqpConfig.getAmqpStreamPort())
                 .username(AmqpConfig.getAmqpRabbitmqUsername())
                 .password(AmqpConfig.getAmqpRabbitmqPassword())
                 .build();

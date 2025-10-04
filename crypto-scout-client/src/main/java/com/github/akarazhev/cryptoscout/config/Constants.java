@@ -37,7 +37,7 @@ final class Constants {
         static final String AMQP_RABBITMQ_HOST = "amqp.rabbitmq.host";
         static final String AMQP_RABBITMQ_USERNAME = "amqp.rabbitmq.username";
         static final String AMQP_RABBITMQ_PASSWORD = "amqp.rabbitmq.password";
-        static final String AMQP_RABBITMQ_STREAM_PORT = "amqp.stream.port";
+        static final String AMQP_STREAM_PORT = "amqp.stream.port";
         static final String AMQP_STREAM_CRYPTO_BYBIT = "amqp.stream.crypto.bybit";
         static final String AMQP_STREAM_METRICS_BYBIT = "amqp.stream.metrics.bybit";
         static final String AMQP_STREAM_METRICS_CMC = "amqp.stream.metrics.cmc";
