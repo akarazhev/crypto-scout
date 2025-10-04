@@ -58,31 +58,24 @@ public final class BybitConsumer extends AbstractReactive implements ReactiveSer
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting the service...");
+        LOGGER.info("Starting BybitConsumer...");
         linearBybitStream.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
-                    LOGGER.info("Bybit Linear Stream: {}", payload.getData());
-                    amqpPublisher.publish(payload);
-                })));
+                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
         spotBybitStream.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
-                    LOGGER.info("Bybit Spot Stream: {}", payload.getData());
-                    amqpPublisher.publish(payload);
-                })));
+                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
         bybitParser.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
-                    LOGGER.info("Bybit Parser: {}", payload.getData());
-                    amqpPublisher.publish(payload);
-                })));
+                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
+        LOGGER.info("BybitConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping the service...");
+        LOGGER.info("Stopping BybitConsumer...");
         bybitParser.stop();
         spotBybitStream.stop();
         linearBybitStream.stop();
+        LOGGER.info("BybitConsumer stopped");
         return Promise.complete();
     }
 }

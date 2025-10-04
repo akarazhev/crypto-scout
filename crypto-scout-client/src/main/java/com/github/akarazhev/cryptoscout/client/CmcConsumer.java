@@ -51,19 +51,18 @@ public final class CmcConsumer extends AbstractReactive implements ReactiveServi
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting the service...");
+        LOGGER.info("Starting CmcConsumer...");
         cmcParser.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(payload -> {
-                    LOGGER.info("CMC Parser: {}", payload.getData());
-                    amqpPublisher.publish(payload);
-                })));
+                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
+        LOGGER.info("CmcConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping the service...");
+        LOGGER.info("Stopping CmcConsumer...");
         cmcParser.stop();
+        LOGGER.info("CmcConsumer stopped");
         return Promise.complete();
     }
 }
