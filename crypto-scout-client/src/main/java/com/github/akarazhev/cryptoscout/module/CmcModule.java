@@ -25,25 +25,40 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.client.AmqpPublisher;
+import com.github.akarazhev.cryptoscout.client.CmcConsumer;
+import com.github.akarazhev.jcryptolib.cmc.config.Type;
+import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.cmc.stream.DataConfig;
+import io.activej.http.IHttpClient;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.nio.NioReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executor;
+public final class CmcModule extends AbstractModule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmcModule.class);
 
-public final class ClientModule extends AbstractModule {
-
-    private ClientModule() {
+    private CmcModule() {
     }
 
-    public static ClientModule create() {
-        return new ClientModule();
+    public static CmcModule create() {
+        return new CmcModule();
     }
 
     @Provides
+    private CmcParser cmcParser(final NioReactor reactor, final IHttpClient httpClient) {
+        final var config = new DataConfig.Builder()
+                .type(Type.FGI)
+                .build();
+        LOGGER.info(config.print());
+        return CmcParser.create(reactor, httpClient, config);
+    }
+
     @Eager
-    private AmqpPublisher amqpPublisher(final NioReactor reactor, final Executor executor) {
-        return AmqpPublisher.create(reactor, executor);
+    @Provides
+    private CmcConsumer cmcConsumer(final NioReactor reactor, final CmcParser cmcParser, final AmqpPublisher amqpPublisher) {
+        return CmcConsumer.create(reactor, cmcParser, amqpPublisher);
     }
 }
