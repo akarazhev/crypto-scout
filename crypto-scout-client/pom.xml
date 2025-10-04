@@ -37,7 +37,6 @@
         <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
         <jcryptolib.version>0.0.2</jcryptolib.version>
         <activej.version>6.0-rc2</activej.version>
-        <amqp-client.version>5.26.0</amqp-client.version>
         <stream-client.version>1.2.0</stream-client.version>
     </properties>
     <dependencies>
@@ -57,12 +56,6 @@
             <groupId>io.activej</groupId>
             <artifactId>activej-jmx</artifactId>
             <version>${activej.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.rabbitmq/amqp-client -->
-        <dependency>
-            <groupId>com.rabbitmq</groupId>
-            <artifactId>amqp-client</artifactId>
-            <version>${amqp-client.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.rabbitmq/stream-client -->
         <dependency>
