@@ -67,8 +67,8 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 LOGGER.info("Starting AmqpPublisher...");
                 environment = AmqpConfig.getEnvironment();
                 streamBybitProducer = environment.producerBuilder()
-                        .name(AmqpConfig.getAmqpStreamBybit())
-                        .stream(AmqpConfig.getAmqpStreamBybit())
+                        .name(AmqpConfig.getAmqpStreamCryptoBybit())
+                        .stream(AmqpConfig.getAmqpStreamCryptoBybit())
                         .build();
                 metricsBybitProducer = environment.producerBuilder()
                         .name(AmqpConfig.getAmqpStreamMetricsBybit())
