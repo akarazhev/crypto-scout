@@ -120,7 +120,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 producer.close();
             }
         } catch (final Exception ex) {
-            LOGGER.warn("Error closing RabbitMQ producer", ex);
+            LOGGER.warn("Error closing stream producer", ex);
         }
     }
 
@@ -131,7 +131,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 environment = null;
             }
         } catch (final Exception ex) {
-            LOGGER.warn("Error closing RabbitMQ environment", ex);
+            LOGGER.warn("Error closing stream environment", ex);
         }
     }
 }
