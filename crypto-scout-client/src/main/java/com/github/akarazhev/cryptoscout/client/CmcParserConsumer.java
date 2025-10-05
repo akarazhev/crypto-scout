@@ -33,17 +33,18 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class CmcConsumer extends AbstractReactive implements ReactiveService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CmcConsumer.class);
+public final class CmcParserConsumer extends AbstractReactive implements ReactiveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmcParserConsumer.class);
     private final CmcParser cmcParser;
     private final AmqpPublisher amqpPublisher;
 
-    public static CmcConsumer create(final NioReactor reactor, final CmcParser cmcParser, final AmqpPublisher amqpPublisher) {
-        return new CmcConsumer(reactor, cmcParser, amqpPublisher);
+    public static CmcParserConsumer create(final NioReactor reactor, final CmcParser cmcParser,
+                                           final AmqpPublisher amqpPublisher) {
+        return new CmcParserConsumer(reactor, cmcParser, amqpPublisher);
     }
 
-    private CmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
-                        final AmqpPublisher amqpPublisher) {
+    private CmcParserConsumer(final NioReactor reactor, final CmcParser cmcParser,
+                              final AmqpPublisher amqpPublisher) {
         super(reactor);
         this.cmcParser = cmcParser;
         this.amqpPublisher = amqpPublisher;
@@ -51,18 +52,18 @@ public final class CmcConsumer extends AbstractReactive implements ReactiveServi
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting CmcConsumer...");
+        LOGGER.info("Starting CmcParserConsumer...");
         cmcParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
-        LOGGER.info("CmcConsumer started");
+        LOGGER.info("CmcParserConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping CmcConsumer...");
+        LOGGER.info("Stopping CmcParserConsumer...");
         cmcParser.stop();
-        LOGGER.info("CmcConsumer stopped");
+        LOGGER.info("CmcParserConsumer stopped");
         return Promise.complete();
     }
 }
