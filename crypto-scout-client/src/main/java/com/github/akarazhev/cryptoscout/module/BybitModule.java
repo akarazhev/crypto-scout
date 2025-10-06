@@ -43,8 +43,8 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.akarazhev.cryptoscout.module.Constants.Service.LINEAR_BYBIT_STREAM;
-import static com.github.akarazhev.cryptoscout.module.Constants.Service.SPOT_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.LINEAR_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.SPOT_BYBIT_STREAM;
 
 public final class BybitModule extends AbstractModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitModule.class);

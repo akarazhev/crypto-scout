@@ -29,12 +29,15 @@ final class Constants {
         throw new UnsupportedOperationException();
     }
 
-    final static class Service {
-        private Service() {
+    final static class Config {
+        private Config() {
             throw new UnsupportedOperationException();
         }
 
         static final String SPOT_BYBIT_STREAM = "spotBybitStream";
         static final String LINEAR_BYBIT_STREAM = "linearBybitStream";
+        static final String OK_RESPONSE = "ok";
+        static final String HEALTH_API = "/health";
+        static final String DEFAULT_DNS = "8.8.8.8";
     }
 }

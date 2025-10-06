@@ -46,6 +46,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.DEFAULT_DNS;
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.HEALTH_API;
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.OK_RESPONSE;
 import static io.activej.http.HttpUtils.inetAddress;
 
 /**
@@ -62,7 +65,7 @@ public final class WebModule extends AbstractModule {
 
     @Provides
     private IDnsClient dnsClient(final NioReactor reactor) {
-        return DnsClient.builder(reactor, inetAddress("8.8.8.8"))
+        return DnsClient.builder(reactor, inetAddress(DEFAULT_DNS))
                 .withTimeout(Duration.ofSeconds(5))
                 .build();
     }
@@ -88,8 +91,8 @@ public final class WebModule extends AbstractModule {
     @Provides
     private AsyncServlet servlet(final Reactor reactor) {
         return RoutingServlet.builder(reactor)
-                .with(HttpMethod.GET, "/health", (request) ->
-                        HttpResponse.ok200().withPlainText("OK").toPromise())
+                .with(HttpMethod.GET, HEALTH_API, (request) ->
+                        HttpResponse.ok200().withPlainText(OK_RESPONSE).toPromise())
                 .build();
     }
 
