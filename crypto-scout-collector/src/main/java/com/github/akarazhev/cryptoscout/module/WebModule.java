@@ -36,6 +36,9 @@ import io.activej.inject.module.AbstractModule;
 import io.activej.reactor.Reactor;
 import io.activej.reactor.nio.NioReactor;
 
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.HEALTH_API;
+import static com.github.akarazhev.cryptoscout.module.Constants.Config.OK_RESPONSE;
+
 /**
  * Http module. Http server + routing. Fully async (Promise-based).
  */
@@ -51,8 +54,8 @@ public final class WebModule extends AbstractModule {
     @Provides
     private AsyncServlet servlet(final Reactor reactor) {
         return RoutingServlet.builder(reactor)
-                .with(HttpMethod.GET, "/health", (request) ->
-                        HttpResponse.ok200().withPlainText("OK").toPromise())
+                .with(HttpMethod.GET, HEALTH_API, (request) ->
+                        HttpResponse.ok200().withPlainText(OK_RESPONSE).toPromise())
                 .build();
     }
 
