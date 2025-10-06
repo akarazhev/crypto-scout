@@ -43,6 +43,9 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.github.akarazhev.cryptoscout.module.Constants.Service.LINEAR_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.module.Constants.Service.SPOT_BYBIT_STREAM;
+
 public final class BybitModule extends AbstractModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(BybitModule.class);
 
@@ -54,7 +57,7 @@ public final class BybitModule extends AbstractModule {
     }
 
     @Provides
-    @Named("linearBybitStream")
+    @Named(LINEAR_BYBIT_STREAM)
     private BybitStream linearBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PML)
@@ -70,7 +73,7 @@ public final class BybitModule extends AbstractModule {
     }
 
     @Provides
-    @Named("spotBybitStream")
+    @Named(SPOT_BYBIT_STREAM)
     private BybitStream spotBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PMST)
@@ -107,8 +110,8 @@ public final class BybitModule extends AbstractModule {
     @Eager
     @Provides
     private CryptoBybitConsumer cryptoBybitConsumer(final NioReactor reactor,
-                                                    @Named("linearBybitStream") final BybitStream linearBybitStream,
-                                                    @Named("spotBybitStream") final BybitStream spotBybitStream,
+                                                    @Named(LINEAR_BYBIT_STREAM) final BybitStream linearBybitStream,
+                                                    @Named(SPOT_BYBIT_STREAM) final BybitStream spotBybitStream,
                                                     final AmqpPublisher amqpPublisher) {
         return CryptoBybitConsumer.create(reactor, linearBybitStream, spotBybitStream, amqpPublisher);
     }
