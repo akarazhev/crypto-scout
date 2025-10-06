@@ -3,6 +3,7 @@ package com.github.akarazhev.cryptoscout.collector;
 import com.github.akarazhev.cryptoscout.config.JdbcConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
+import com.github.akarazhev.jcryptolib.stream.Source;
 import io.activej.async.service.ReactiveService;
 import io.activej.promise.Promise;
 import io.activej.reactor.AbstractReactive;
@@ -127,13 +128,17 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
             final var spotBtc = new ArrayList<Map<String, Object>>();
             final var spotEth = new ArrayList<Map<String, Object>>();
             for (final var payload : snapshot) {
-                final var source = payload.getSource();
                 final var data = payload.getData();
                 final var topic = (String) data.get(TOPIC);
-                if (Objects.equals(topic, TICKERS_BTC_USDT)) {
-                    spotBtc.add(data);
-                } else if (Objects.equals(topic, TICKERS_ETH_USDT)) {
-                    spotEth.add(data);
+                final var source = payload.getSource();
+                if (Source.PMST.equals(source)) {
+                    if (Objects.equals(topic, TICKERS_BTC_USDT)) {
+                        spotBtc.add(data);
+                    } else if (Objects.equals(topic, TICKERS_ETH_USDT)) {
+                        spotEth.add(data);
+                    }
+                } else if (Source.PML.equals(source)) {
+                    // TODO: implement futures
                 }
             }
 

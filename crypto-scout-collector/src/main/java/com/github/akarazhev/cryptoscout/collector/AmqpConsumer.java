@@ -106,7 +106,6 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
     }
 
     private void consume(final StreamType type, final MessageHandler.Context context, final Message message) {
-        LOGGER.info("Received payload: {}", new String(message.getBodyAsBinary()));
         reactor.execute(() ->
                 Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(message.getBodyAsBinary(), Payload.class))
                         .then(payload -> switch (type) {
