@@ -25,6 +25,7 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.config.ServerConfig;
+import com.github.akarazhev.jcryptolib.bybit.config.Config;
 import io.activej.dns.DnsClient;
 import io.activej.dns.IDnsClient;
 import io.activej.http.AsyncServlet;
@@ -66,7 +67,6 @@ public final class WebModule extends AbstractModule {
     @Provides
     private IDnsClient dnsClient(final NioReactor reactor) {
         return DnsClient.builder(reactor, inetAddress(DEFAULT_DNS))
-                .withTimeout(Duration.ofSeconds(5))
                 .build();
     }
 
@@ -74,7 +74,7 @@ public final class WebModule extends AbstractModule {
     private IWebSocketClient webSocketClient(final NioReactor reactor, final IDnsClient dnsClient, final Executor executor)
             throws NoSuchAlgorithmException {
         return HttpClient.builder(reactor, dnsClient)
-                .withConnectTimeout(Duration.ofMillis(10000))
+                .withConnectTimeout(Duration.ofMillis(Config.getConnectTimeoutMs()))
                 .withSslEnabled(SSLContext.getDefault(), executor)
                 .build();
     }
@@ -83,7 +83,7 @@ public final class WebModule extends AbstractModule {
     private IHttpClient httpClient(final NioReactor reactor, final IDnsClient dnsClient, final Executor executor)
             throws NoSuchAlgorithmException {
         return HttpClient.builder(reactor, dnsClient)
-                .withConnectTimeout(Duration.ofMillis(10000))
+                .withConnectTimeout(Duration.ofMillis(Config.getConnectTimeoutMs()))
                 .withSslEnabled(SSLContext.getDefault(), executor)
                 .build();
     }
