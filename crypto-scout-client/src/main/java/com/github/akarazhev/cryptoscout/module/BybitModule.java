@@ -86,12 +86,12 @@ public final class BybitModule extends AbstractModule {
     @Provides
     private BybitParser bybitParser(final NioReactor reactor, final IHttpClient httpClient) {
         final var config = new DataConfig.Builder()
-                .type(Type.MD)
+//                .type(Type.MD)
                 .type(Type.LPL)
-                .type(Type.LPD)
-                .type(Type.BYV)
-                .type(Type.BYS)
-                .type(Type.ADH)
+//                .type(Type.LPD)
+//                .type(Type.BYV)
+//                .type(Type.BYS)
+//                .type(Type.ADH)
                 .build();
         LOGGER.info(config.print());
         return BybitParser.create(reactor, httpClient, config);

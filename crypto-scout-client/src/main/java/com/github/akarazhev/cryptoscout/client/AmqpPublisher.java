@@ -102,14 +102,10 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     }
 
     public Promise<?> publish(final Payload<Map<String, Object>> payload) {
+        LOGGER.info("Publishing payload: {}", payload);
         final var provider = payload.getProvider();
         final var source = payload.getSource();
-        final var producer =
-                Provider.CMC.equals(provider) && Source.FGI.equals(source) ? metricsCmcProducer :
-                        Provider.BYBIT.equals(provider) && Source.LPL.equals(source) ? metricsBybitProducer :
-                                Provider.BYBIT.equals(provider) && Source.PMST.equals(source) ? cryptoBybitProducer :
-                                        null;
-
+        final var producer = getProducer(provider, source);
         if (producer == null) {
             LOGGER.debug("Skipping publish: no stream route for provider={} source={}", provider, source);
             return Promise.of(null);
@@ -136,6 +132,22 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
         }
 
         return settablePromise;
+    }
+
+    private Producer getProducer(final Provider provider, final Source source) {
+        return Provider.CMC.equals(provider) ? metricsCmcProducer :
+                Provider.BYBIT.equals(provider) && isMetricsBybit(source) ? metricsBybitProducer :
+                        Provider.BYBIT.equals(provider) && isCryptoBybit(source) ? cryptoBybitProducer :
+                                null;
+    }
+
+    private boolean isMetricsBybit(final Source source) {
+        return Source.MD.equals(source) || Source.LPL.equals(source) || Source.LPD.equals(source) ||
+                Source.BYV.equals(source) || Source.BYS.equals(source) || Source.ADH.equals(source);
+    }
+
+    private boolean isCryptoBybit(final Source source) {
+        return Source.PMST.equals(source) || Source.PML.equals(source);
     }
 
     private void closeProducer(final Producer producer) {
