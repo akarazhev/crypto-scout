@@ -24,7 +24,7 @@
 
 package com.github.akarazhev.cryptoscout.client;
 
-import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
+import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -33,37 +33,37 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class CmcParserConsumer extends AbstractReactive implements ReactiveService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CmcParserConsumer.class);
-    private final CmcParser cmcParser;
+public final class MetricsBybitConsumer extends AbstractReactive implements ReactiveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsBybitConsumer.class);
+    private final BybitParser bybitParser;
     private final AmqpPublisher amqpPublisher;
 
-    public static CmcParserConsumer create(final NioReactor reactor, final CmcParser cmcParser,
-                                           final AmqpPublisher amqpPublisher) {
-        return new CmcParserConsumer(reactor, cmcParser, amqpPublisher);
+    public static MetricsBybitConsumer create(final NioReactor reactor, final BybitParser bybitParser,
+                                              final AmqpPublisher amqpPublisher) {
+        return new MetricsBybitConsumer(reactor, bybitParser, amqpPublisher);
     }
 
-    private CmcParserConsumer(final NioReactor reactor, final CmcParser cmcParser,
-                              final AmqpPublisher amqpPublisher) {
+    private MetricsBybitConsumer(final NioReactor reactor, final BybitParser bybitParser,
+                                 final AmqpPublisher amqpPublisher) {
         super(reactor);
-        this.cmcParser = cmcParser;
+        this.bybitParser = bybitParser;
         this.amqpPublisher = amqpPublisher;
     }
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting CmcParserConsumer...");
-        cmcParser.start().then(stream ->
+        LOGGER.info("Starting MetricsBybitConsumer...");
+        bybitParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
-        LOGGER.info("CmcParserConsumer started");
+        LOGGER.info("MetricsBybitConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping CmcParserConsumer...");
-        cmcParser.stop();
-        LOGGER.info("CmcParserConsumer stopped");
+        LOGGER.info("Stopping MetricsBybitConsumer...");
+        bybitParser.stop();
+        LOGGER.info("MetricsBybitConsumer stopped");
         return Promise.complete();
     }
 }

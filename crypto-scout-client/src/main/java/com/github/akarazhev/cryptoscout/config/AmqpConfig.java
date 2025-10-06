@@ -27,12 +27,12 @@ package com.github.akarazhev.cryptoscout.config;
 import com.github.akarazhev.jcryptolib.config.AppConfig;
 import com.rabbitmq.stream.Environment;
 
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_METRICS_CMC_STREAM;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_BYBIT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_CMC;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_CRYPTO_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_METRICS_BYBIT_STREAM;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_PORT;
 
 public final class AmqpConfig {
@@ -56,16 +56,16 @@ public final class AmqpConfig {
         return AppConfig.getAsInt(AMQP_STREAM_PORT);
     }
 
-    public static String getAmqpStreamCryptoBybit() {
-        return AppConfig.getAsString(AMQP_STREAM_CRYPTO_BYBIT);
+    public static String getAmqpCryptoBybitStream() {
+        return AppConfig.getAsString(AMQP_CRYPTO_BYBIT_STREAM);
     }
 
-    public static String getAmqpStreamMetricsBybit() {
-        return AppConfig.getAsString(AMQP_STREAM_METRICS_BYBIT);
+    public static String getAmqpMetricsBybitStream() {
+        return AppConfig.getAsString(AMQP_METRICS_BYBIT_STREAM);
     }
 
-    public static String getAmqpStreamMetricsCmc() {
-        return AppConfig.getAsString(AMQP_STREAM_METRICS_CMC);
+    public static String getAmqpMetricsCmcStream() {
+        return AppConfig.getAsString(AMQP_METRICS_CMC_STREAM);
     }
 
     public static Environment getEnvironment() {

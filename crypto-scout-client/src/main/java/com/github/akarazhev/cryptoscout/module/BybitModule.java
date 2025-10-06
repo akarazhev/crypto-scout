@@ -25,8 +25,8 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.client.AmqpPublisher;
-import com.github.akarazhev.cryptoscout.client.BybitParserConsumer;
-import com.github.akarazhev.cryptoscout.client.BybitStreamConsumer;
+import com.github.akarazhev.cryptoscout.client.MetricsBybitConsumer;
+import com.github.akarazhev.cryptoscout.client.CryptoBybitConsumer;
 import com.github.akarazhev.jcryptolib.bybit.config.StreamType;
 import com.github.akarazhev.jcryptolib.bybit.config.Topic;
 import com.github.akarazhev.jcryptolib.bybit.config.Type;
@@ -99,17 +99,17 @@ public final class BybitModule extends AbstractModule {
 
     @Eager
     @Provides
-    private BybitParserConsumer bybitParserConsumer(final NioReactor reactor, final BybitParser bybitParser,
-                                                    final AmqpPublisher amqpPublisher) {
-        return BybitParserConsumer.create(reactor, bybitParser, amqpPublisher);
+    private MetricsBybitConsumer metricsBybitConsumer(final NioReactor reactor, final BybitParser bybitParser,
+                                                      final AmqpPublisher amqpPublisher) {
+        return MetricsBybitConsumer.create(reactor, bybitParser, amqpPublisher);
     }
 
     @Eager
     @Provides
-    private BybitStreamConsumer bybitStreamConsumer(final NioReactor reactor,
+    private CryptoBybitConsumer cryptoBybitConsumer(final NioReactor reactor,
                                                     @Named("linearBybitStream") final BybitStream linearBybitStream,
                                                     @Named("spotBybitStream") final BybitStream spotBybitStream,
                                                     final AmqpPublisher amqpPublisher) {
-        return BybitStreamConsumer.create(reactor, linearBybitStream, spotBybitStream, amqpPublisher);
+        return CryptoBybitConsumer.create(reactor, linearBybitStream, spotBybitStream, amqpPublisher);
     }
 }

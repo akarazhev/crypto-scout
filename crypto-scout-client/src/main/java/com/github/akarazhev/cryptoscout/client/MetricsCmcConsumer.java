@@ -24,7 +24,7 @@
 
 package com.github.akarazhev.cryptoscout.client;
 
-import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
+import com.github.akarazhev.jcryptolib.cmc.stream.CmcParser;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -33,42 +33,37 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class BybitStreamConsumer extends AbstractReactive implements ReactiveService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BybitStreamConsumer.class);
-    private final BybitStream linearBybitStream;
-    private final BybitStream spotBybitStream;
+public final class MetricsCmcConsumer extends AbstractReactive implements ReactiveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsCmcConsumer.class);
+    private final CmcParser cmcParser;
     private final AmqpPublisher amqpPublisher;
 
-    public static BybitStreamConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
-                                             final BybitStream spotBybitStream, final AmqpPublisher amqpPublisher) {
-        return new BybitStreamConsumer(reactor, linearBybitStream, spotBybitStream, amqpPublisher);
+    public static MetricsCmcConsumer create(final NioReactor reactor, final CmcParser cmcParser,
+                                            final AmqpPublisher amqpPublisher) {
+        return new MetricsCmcConsumer(reactor, cmcParser, amqpPublisher);
     }
 
-    private BybitStreamConsumer(final NioReactor reactor, final BybitStream linearBybitStream,
-                                final BybitStream spotBybitStream, final AmqpPublisher amqpPublisher) {
+    private MetricsCmcConsumer(final NioReactor reactor, final CmcParser cmcParser,
+                               final AmqpPublisher amqpPublisher) {
         super(reactor);
-        this.linearBybitStream = linearBybitStream;
-        this.spotBybitStream = spotBybitStream;
+        this.cmcParser = cmcParser;
         this.amqpPublisher = amqpPublisher;
     }
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting BybitStreamConsumer...");
-        linearBybitStream.start().then(stream ->
+        LOGGER.info("Starting MetricsCmcConsumer...");
+        cmcParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
-        spotBybitStream.start().then(stream ->
-                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
-        LOGGER.info("BybitStreamConsumer started");
+        LOGGER.info("MetricsCmcConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping BybitStreamConsumer...");
-        spotBybitStream.stop();
-        linearBybitStream.stop();
-        LOGGER.info("BybitStreamConsumer stopped");
+        LOGGER.info("Stopping MetricsCmcConsumer...");
+        cmcParser.stop();
+        LOGGER.info("MetricsCmcConsumer stopped");
         return Promise.complete();
     }
 }

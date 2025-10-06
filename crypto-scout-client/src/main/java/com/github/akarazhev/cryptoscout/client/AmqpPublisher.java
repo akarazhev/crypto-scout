@@ -47,7 +47,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     private final static Logger LOGGER = LoggerFactory.getLogger(AmqpPublisher.class);
     private final Executor executor;
     private volatile Environment environment;
-    private volatile Producer streamBybitProducer;
+    private volatile Producer cryptoBybitProducer;
     private volatile Producer metricsBybitProducer;
     private volatile Producer metricsCmcProducer;
 
@@ -66,17 +66,17 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
             try {
                 LOGGER.info("Starting AmqpPublisher...");
                 environment = AmqpConfig.getEnvironment();
-                streamBybitProducer = environment.producerBuilder()
-                        .name(AmqpConfig.getAmqpStreamCryptoBybit())
-                        .stream(AmqpConfig.getAmqpStreamCryptoBybit())
+                cryptoBybitProducer = environment.producerBuilder()
+                        .name(AmqpConfig.getAmqpCryptoBybitStream())
+                        .stream(AmqpConfig.getAmqpCryptoBybitStream())
                         .build();
                 metricsBybitProducer = environment.producerBuilder()
-                        .name(AmqpConfig.getAmqpStreamMetricsBybit())
-                        .stream(AmqpConfig.getAmqpStreamMetricsBybit())
+                        .name(AmqpConfig.getAmqpMetricsBybitStream())
+                        .stream(AmqpConfig.getAmqpMetricsBybitStream())
                         .build();
                 metricsCmcProducer = environment.producerBuilder()
-                        .name(AmqpConfig.getAmqpStreamMetricsCmc())
-                        .stream(AmqpConfig.getAmqpStreamMetricsCmc())
+                        .name(AmqpConfig.getAmqpMetricsCmcStream())
+                        .stream(AmqpConfig.getAmqpMetricsCmcStream())
                         .build();
                 LOGGER.info("AmqpPublisher started");
             } catch (final Exception ex) {
@@ -90,8 +90,8 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     public Promise<?> stop() {
         return Promise.ofBlocking(executor, () -> {
             LOGGER.info("Stopping AmqpPublisher...");
-            closeProducer(streamBybitProducer);
-            streamBybitProducer = null;
+            closeProducer(cryptoBybitProducer);
+            cryptoBybitProducer = null;
             closeProducer(metricsBybitProducer);
             metricsBybitProducer = null;
             closeProducer(metricsCmcProducer);
@@ -107,7 +107,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
         final var producer =
                 Provider.CMC.equals(provider) && Source.FGI.equals(source) ? metricsCmcProducer :
                         Provider.BYBIT.equals(provider) && Source.LPL.equals(source) ? metricsBybitProducer :
-                                Provider.BYBIT.equals(provider) && Source.PMST.equals(source) ? streamBybitProducer :
+                                Provider.BYBIT.equals(provider) && Source.PMST.equals(source) ? cryptoBybitProducer :
                                         null;
 
         if (producer == null) {

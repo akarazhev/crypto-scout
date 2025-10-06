@@ -24,7 +24,7 @@
 
 package com.github.akarazhev.cryptoscout.client;
 
-import com.github.akarazhev.jcryptolib.bybit.stream.BybitParser;
+import com.github.akarazhev.jcryptolib.bybit.stream.BybitStream;
 import io.activej.async.service.ReactiveService;
 import io.activej.datastream.consumer.StreamConsumers;
 import io.activej.promise.Promise;
@@ -33,36 +33,42 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class BybitParserConsumer extends AbstractReactive implements ReactiveService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BybitParserConsumer.class);
-    private final BybitParser bybitParser;
+public final class CryptoBybitConsumer extends AbstractReactive implements ReactiveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CryptoBybitConsumer.class);
+    private final BybitStream linearBybitStream;
+    private final BybitStream spotBybitStream;
     private final AmqpPublisher amqpPublisher;
 
-    public static BybitParserConsumer create(final NioReactor reactor, final BybitParser bybitParser,
-                                             final AmqpPublisher amqpPublisher) {
-        return new BybitParserConsumer(reactor, bybitParser, amqpPublisher);
+    public static CryptoBybitConsumer create(final NioReactor reactor, final BybitStream linearBybitStream,
+                                             final BybitStream spotBybitStream, final AmqpPublisher amqpPublisher) {
+        return new CryptoBybitConsumer(reactor, linearBybitStream, spotBybitStream, amqpPublisher);
     }
 
-    private BybitParserConsumer(final NioReactor reactor, final BybitParser bybitParser, final AmqpPublisher amqpPublisher) {
+    private CryptoBybitConsumer(final NioReactor reactor, final BybitStream linearBybitStream,
+                                final BybitStream spotBybitStream, final AmqpPublisher amqpPublisher) {
         super(reactor);
-        this.bybitParser = bybitParser;
+        this.linearBybitStream = linearBybitStream;
+        this.spotBybitStream = spotBybitStream;
         this.amqpPublisher = amqpPublisher;
     }
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting BybitParserConsumer...");
-        bybitParser.start().then(stream ->
+        LOGGER.info("Starting CryptoBybitConsumer...");
+        linearBybitStream.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
-        LOGGER.info("BybitParserConsumer started");
+        spotBybitStream.start().then(stream ->
+                stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
+        LOGGER.info("CryptoBybitConsumer started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping BybitParserConsumer...");
-        bybitParser.stop();
-        LOGGER.info("BybitParserConsumer stopped");
+        LOGGER.info("Stopping CryptoBybitConsumer...");
+        spotBybitStream.stop();
+        linearBybitStream.stop();
+        LOGGER.info("CryptoBybitConsumer stopped");
         return Promise.complete();
     }
 }
