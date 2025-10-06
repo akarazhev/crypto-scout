@@ -102,7 +102,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     }
 
     public Promise<?> publish(final Payload<Map<String, Object>> payload) {
-        LOGGER.info("Publishing payload: {}", payload);
         final var provider = payload.getProvider();
         final var source = payload.getSource();
         final var producer = getProducer(provider, source);
