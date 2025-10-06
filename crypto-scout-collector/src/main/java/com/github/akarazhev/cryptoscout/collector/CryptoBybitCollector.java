@@ -3,10 +3,8 @@ package com.github.akarazhev.cryptoscout.collector;
 import com.github.akarazhev.cryptoscout.config.JdbcConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
-import com.github.akarazhev.jcryptolib.stream.Source;
 import io.activej.async.service.ReactiveService;
 import io.activej.promise.Promise;
-import io.activej.promise.Promises;
 import io.activej.reactor.AbstractReactive;
 import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
@@ -21,16 +19,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_DESC;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_INSERT;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_RETURN_COIN;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_RETURN_COIN_ICON;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_RULES;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_STAKE_BEGIN_TIME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_STAKE_END_TIME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_TRADE_BEGIN_TIME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_WEBSITE;
-import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.LPL_WHITE_PAPER;
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_BTC_USDT;
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_CROSS_SEQUENCE;
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_ETH_USDT;
@@ -48,25 +36,16 @@ import static com.github.akarazhev.cryptoscout.collector.Utils.toBigDecimal;
 import static com.github.akarazhev.cryptoscout.collector.Utils.toOffsetDateTime;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.CS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.DATA;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.DESC;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.HIGH_PRICE_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.LAST_PRICE;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.LOW_PRICE_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.PREV_PRICE_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.PRICE_24H_PCNT;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.RETURN_COIN;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.RETURN_COIN_ICON;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.RULES;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.STAKE_BEGIN_TIME;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.STAKE_END_TIME;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TOPIC;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TRADE_BEGIN_TIME;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TURNOVER_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.USD_INDEX_PRICE;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.VOLUME_24H;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WEBSITE;
-import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WHITE_PAPER;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_BTC_USDT;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_ETH_USDT;
 
@@ -76,8 +55,7 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
     private final DataSource dataSource;
     private final int batchSize;
     private final long flushIntervalMs;
-    private final Queue<Map<String, Object>> tickersBuffer = new ConcurrentLinkedQueue<>();
-    private final Queue<Map<String, Object>> lplBuffer = new ConcurrentLinkedQueue<>();
+    private final Queue<Payload<Map<String, Object>>> buffer = new ConcurrentLinkedQueue<>();
 
     public static CryptoBybitCollector create(final NioReactor reactor, final Executor executor) {
         return new CryptoBybitCollector(reactor, executor);
@@ -93,59 +71,47 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
 
     @Override
     public Promise<?> start() {
+        LOGGER.info("Starting CryptoBybitCollector...");
         reactor.delayBackground(flushIntervalMs, this::scheduledFlush);
-        LOGGER.info("Started Bybit service");
+        LOGGER.info("CryptoBybitCollector started");
         return Promise.complete();
     }
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Flushing all buffers");
-        return flushAll();
+        LOGGER.info("Stopping CryptoBybitCollector...");
+        final var promise = flush();
+        LOGGER.info("CryptoBybitCollector stopped");
+        return promise;
     }
 
     public Promise<?> save(final Payload<Map<String, Object>> payload) {
         if (!Provider.BYBIT.equals(payload.getProvider())) {
+            LOGGER.info("Invalid payload: {}", payload);
             return Promise.complete();
         }
 
-        final var source = payload.getSource();
-        if (Source.LPL.equals(source)) {
-            lplBuffer.add(payload.getData());
-            if (lplBuffer.size() >= batchSize) {
-                return flushLpl();
-            }
-        } else if (Source.PMST.equals(source)) {
-            final var data = payload.getData();
-            final var topic = (String) data.get(TOPIC);
-            if (Objects.equals(topic, TICKERS_BTC_USDT) || Objects.equals(topic, TICKERS_ETH_USDT)) {
-                tickersBuffer.add(data);
-                if (tickersBuffer.size() >= batchSize) {
-                    return flushTickers();
-                }
-            }
+        buffer.add(payload);
+        if (buffer.size() >= batchSize) {
+            return flush();
         }
 
         return Promise.complete();
     }
 
     private void scheduledFlush() {
-        flushAll().whenComplete(($, e) ->
+        flush().whenComplete(($, e) ->
                 reactor.delayBackground(flushIntervalMs, this::scheduledFlush));
     }
 
-    private Promise<?> flushAll() {
-        return Promises.all(flushTickers(), flushLpl());
-    }
-
-    private Promise<?> flushTickers() {
-        if (tickersBuffer.isEmpty()) {
+    private Promise<?> flush() {
+        if (buffer.isEmpty()) {
             return Promise.complete();
         }
 
-        final var snapshot = new ArrayList<Map<String, Object>>();
+        final var snapshot = new ArrayList<Payload<Map<String, Object>>>();
         while (true) {
-            final var item = tickersBuffer.poll();
+            final var item = buffer.poll();
             if (item == null) {
                 break;
             }
@@ -158,53 +124,29 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
         }
 
         return Promise.ofBlocking(executor, () -> {
-            final var btc = new ArrayList<Map<String, Object>>();
-            final var eth = new ArrayList<Map<String, Object>>();
-            for (final var m : snapshot) {
-                final var topic = (String) m.get(TOPIC);
+            final var spotBtc = new ArrayList<Map<String, Object>>();
+            final var spotEth = new ArrayList<Map<String, Object>>();
+            for (final var payload : snapshot) {
+                final var source = payload.getSource();
+                final var data = payload.getData();
+                final var topic = (String) data.get(TOPIC);
                 if (Objects.equals(topic, TICKERS_BTC_USDT)) {
-                    btc.add(m);
+                    spotBtc.add(data);
                 } else if (Objects.equals(topic, TICKERS_ETH_USDT)) {
-                    eth.add(m);
+                    spotEth.add(data);
                 }
             }
 
-            if (!btc.isEmpty()) {
-                insertSpot(SPOT_TICKERS_BTC_USDT, btc);
+            if (!spotBtc.isEmpty()) {
+                insertSpot(SPOT_TICKERS_BTC_USDT, spotBtc);
                 LOGGER.info("Inserted {} BTC-USDT spot tickers", snapshot.size());
             }
 
-            if (!eth.isEmpty()) {
-                insertSpot(SPOT_TICKERS_ETH_USDT, eth);
+            if (!spotEth.isEmpty()) {
+                insertSpot(SPOT_TICKERS_ETH_USDT, spotEth);
                 LOGGER.info("Inserted {} ETH-USDT spot tickers", snapshot.size());
             }
 
-            return null;
-        });
-    }
-
-    private Promise<?> flushLpl() {
-        if (lplBuffer.isEmpty()) {
-            return Promise.complete();
-        }
-
-        final var snapshot = new ArrayList<Map<String, Object>>();
-        while (true) {
-            final var item = lplBuffer.poll();
-            if (item == null) {
-                break;
-            }
-
-            snapshot.add(item);
-        }
-
-        if (snapshot.isEmpty()) {
-            return Promise.complete();
-        }
-
-        return Promise.ofBlocking(executor, () -> {
-            insertLpl(snapshot);
-            LOGGER.info("Inserted {} LPL points", snapshot.size());
             return null;
         });
     }
@@ -248,36 +190,6 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
                     ps.setBigDecimal(SPOT_TICKERS_USD_INDEX_PRICE, usd);
                 } else {
                     ps.setNull(SPOT_TICKERS_USD_INDEX_PRICE, Types.NUMERIC);
-                }
-
-                ps.addBatch();
-                if (++count % batchSize == 0) {
-                    ps.executeBatch();
-                }
-            }
-
-            ps.executeBatch();
-        }
-    }
-
-    private void insertLpl(final Iterable<Map<String, Object>> rows) throws Exception {
-        try (final var c = dataSource.getConnection();
-             final var ps = c.prepareStatement(LPL_INSERT)) {
-            var count = 0;
-            for (final var row : rows) {
-                ps.setString(LPL_RETURN_COIN, (String) row.get(RETURN_COIN));
-                ps.setString(LPL_RETURN_COIN_ICON, (String) row.get(RETURN_COIN_ICON));
-                ps.setString(LPL_DESC, (String) row.get(DESC));
-                ps.setString(LPL_WEBSITE, (String) row.get(WEBSITE));
-                ps.setString(LPL_WHITE_PAPER, (String) row.get(WHITE_PAPER));
-                ps.setString(LPL_RULES, (String) row.get(RULES));
-                ps.setObject(LPL_STAKE_BEGIN_TIME, toOffsetDateTime((Long) row.get(STAKE_BEGIN_TIME)));
-                ps.setObject(LPL_STAKE_END_TIME, toOffsetDateTime((Long) row.get(STAKE_END_TIME)));
-                final var tradeBegin = (Long) row.get(TRADE_BEGIN_TIME);
-                if (tradeBegin != null) {
-                    ps.setObject(LPL_TRADE_BEGIN_TIME, toOffsetDateTime(tradeBegin));
-                } else {
-                    ps.setNull(LPL_TRADE_BEGIN_TIME, Types.TIMESTAMP_WITH_TIMEZONE);
                 }
 
                 ps.addBatch();
