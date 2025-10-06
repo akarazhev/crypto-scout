@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-final class Converter {
-    private Converter() {
+final class Utils {
+    private Utils() {
         throw new UnsupportedOperationException();
     }
 

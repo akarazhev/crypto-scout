@@ -25,8 +25,9 @@
 package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.collector.AmqpConsumer;
-import com.github.akarazhev.cryptoscout.collector.BybitService;
-import com.github.akarazhev.cryptoscout.collector.CmcService;
+import com.github.akarazhev.cryptoscout.collector.CryptoBybitCollector;
+import com.github.akarazhev.cryptoscout.collector.MetricsBybitCollector;
+import com.github.akarazhev.cryptoscout.collector.MetricsCmcCollector;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
@@ -44,19 +45,26 @@ public final class CollectorModule extends AbstractModule {
     }
 
     @Provides
-    private BybitService bybitService(final NioReactor reactor, final Executor executor) {
-        return BybitService.create(reactor, executor);
+    private CryptoBybitCollector cryptoBybitCollector(final NioReactor reactor, final Executor executor) {
+        return CryptoBybitCollector.create(reactor, executor);
     }
 
     @Provides
-    private CmcService cmcService(final NioReactor reactor, final Executor executor) {
-        return CmcService.create(reactor, executor);
+    private MetricsBybitCollector metricsBybitCollector(final NioReactor reactor, final Executor executor) {
+        return MetricsBybitCollector.create(reactor, executor);
+    }
+
+    @Provides
+    private MetricsCmcCollector metricsCmcCollector(final NioReactor reactor, final Executor executor) {
+        return MetricsCmcCollector.create(reactor, executor);
     }
 
     @Provides
     @Eager
     private AmqpConsumer amqpConsumer(final NioReactor reactor, final Executor executor,
-                                      final BybitService bybitService, final CmcService cmcService) {
-        return AmqpConsumer.create(reactor, executor, bybitService, cmcService);
+                                      final CryptoBybitCollector cryptoBybitCollector,
+                                      final MetricsBybitCollector metricsBybitCollector,
+                                      final MetricsCmcCollector metricsCmcCollector) {
+        return AmqpConsumer.create(reactor, executor, cryptoBybitCollector, metricsBybitCollector, metricsCmcCollector);
     }
 }

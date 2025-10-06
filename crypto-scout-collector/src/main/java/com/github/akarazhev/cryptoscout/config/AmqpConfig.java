@@ -32,15 +32,15 @@ import com.rabbitmq.stream.Environment;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_EXCHANGE_COLLECTOR;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_QUEUE_COLLECTOR;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_COLLECTOR_EXCHANGE;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_COLLECTOR_QUEUE;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_HOST;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_PORT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_RABBITMQ_USERNAME;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_CRYPTO_BYBIT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_BYBIT;
-import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_METRICS_CMC;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_CRYPTO_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_METRICS_BYBIT_STREAM;
+import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_METRICS_CMC_STREAM;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_STREAM_PORT;
 import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.CONNECTION_NAME;
 
@@ -65,24 +65,24 @@ public final class AmqpConfig {
         return AppConfig.getAsInt(AMQP_STREAM_PORT);
     }
 
-    public static String getAmqpStreamCryptoBybit() {
-        return AppConfig.getAsString(AMQP_STREAM_CRYPTO_BYBIT);
+    public static String getAmqpCryptoBybitStream() {
+        return AppConfig.getAsString(AMQP_CRYPTO_BYBIT_STREAM);
     }
 
-    public static String getAmqpStreamMetricsBybit() {
-        return AppConfig.getAsString(AMQP_STREAM_METRICS_BYBIT);
+    public static String getAmqpMetricsBybitStream() {
+        return AppConfig.getAsString(AMQP_METRICS_BYBIT_STREAM);
     }
 
-    public static String getAmqpStreamMetricsCmc() {
-        return AppConfig.getAsString(AMQP_STREAM_METRICS_CMC);
+    public static String getAmqpMetricsCmcStream() {
+        return AppConfig.getAsString(AMQP_METRICS_CMC_STREAM);
     }
 
-    public static String getAmqpExchangeCollector() {
-        return AppConfig.getAsString(AMQP_EXCHANGE_COLLECTOR);
+    public static String getAmqpCollectorExchange() {
+        return AppConfig.getAsString(AMQP_COLLECTOR_EXCHANGE);
     }
 
-    public static String getAmqpQueueCollector() {
-        return AppConfig.getAsString(AMQP_QUEUE_COLLECTOR);
+    public static String getAmqpCollectorQueue() {
+        return AppConfig.getAsString(AMQP_COLLECTOR_QUEUE);
     }
 
     public static int getAmqpRabbitmqPort() {

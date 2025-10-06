@@ -1,5 +1,7 @@
 package com.github.akarazhev.cryptoscout.collector;
 
+import com.rabbitmq.stream.Message;
+import com.rabbitmq.stream.MessageHandler;
 import io.activej.async.service.ReactiveService;
 import io.activej.promise.Promise;
 import io.activej.reactor.AbstractReactive;
@@ -19,8 +21,9 @@ import com.rabbitmq.stream.OffsetSpecification;
 public final class AmqpConsumer extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(AmqpConsumer.class);
     private final Executor executor;
-    private final BybitService bybitService;
-    private final CmcService cmcService;
+    private final CryptoBybitCollector cryptoBybitCollector;
+    private final MetricsBybitCollector metricsBybitCollector;
+    private final MetricsCmcCollector metricsCmcCollector;
     private volatile Environment environment;
     private volatile Consumer metricsCmcConsumer;
     private volatile Consumer metricsBybitConsumer;
@@ -28,17 +31,22 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
 
     private enum StreamType {CMC, BYBIT, BYBIT_STREAM}
 
-    public static AmqpConsumer create(final NioReactor reactor, final Executor executor, final BybitService bybitService,
-                                      final CmcService cmcService) {
-        return new AmqpConsumer(reactor, executor, bybitService, cmcService);
+    public static AmqpConsumer create(final NioReactor reactor, final Executor executor,
+                                      final CryptoBybitCollector cryptoBybitCollector,
+                                      final MetricsBybitCollector metricsBybitCollector,
+                                      final MetricsCmcCollector metricsCmcCollector) {
+        return new AmqpConsumer(reactor, executor, cryptoBybitCollector, metricsBybitCollector, metricsCmcCollector);
     }
 
-    private AmqpConsumer(final NioReactor reactor, final Executor executor, final BybitService bybitService,
-                         final CmcService cmcService) {
+    private AmqpConsumer(final NioReactor reactor, final Executor executor,
+                         final CryptoBybitCollector cryptoBybitCollector,
+                         final MetricsBybitCollector metricsBybitCollector,
+                         final MetricsCmcCollector metricsCmcCollector) {
         super(reactor);
         this.executor = executor;
-        this.bybitService = bybitService;
-        this.cmcService = cmcService;
+        this.cryptoBybitCollector = cryptoBybitCollector;
+        this.metricsBybitCollector = metricsBybitCollector;
+        this.metricsCmcCollector = metricsCmcCollector;
     }
 
     @Override
@@ -48,31 +56,31 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
                 LOGGER.info("Starting AmqpConsumer...");
                 environment = AmqpConfig.getEnvironment();
                 metricsCmcConsumer = environment.consumerBuilder()
-                        .name(AmqpConfig.getAmqpStreamMetricsCmc())
-                        .stream(AmqpConfig.getAmqpStreamMetricsCmc())
+                        .name(AmqpConfig.getAmqpMetricsCmcStream())
+                        .stream(AmqpConfig.getAmqpMetricsCmcStream())
                         .offset(OffsetSpecification.first())
                         .manualTrackingStrategy()
                         .builder()
                         .messageHandler((context, message) ->
-                                handleMessage(message.getBodyAsBinary(), StreamType.CMC, context::storeOffset))
+                                consume(StreamType.CMC, context, message))
                         .build();
                 metricsBybitConsumer = environment.consumerBuilder()
-                        .name(AmqpConfig.getAmqpStreamMetricsBybit())
-                        .stream(AmqpConfig.getAmqpStreamMetricsBybit())
+                        .name(AmqpConfig.getAmqpMetricsBybitStream())
+                        .stream(AmqpConfig.getAmqpMetricsBybitStream())
                         .offset(OffsetSpecification.first())
                         .manualTrackingStrategy()
                         .builder()
                         .messageHandler((context, message) ->
-                                handleMessage(message.getBodyAsBinary(), StreamType.BYBIT, context::storeOffset))
+                                consume(StreamType.BYBIT, context, message))
                         .build();
                 streamBybitConsumer = environment.consumerBuilder()
-                        .name(AmqpConfig.getAmqpStreamCryptoBybit())
-                        .stream(AmqpConfig.getAmqpStreamCryptoBybit())
+                        .name(AmqpConfig.getAmqpCryptoBybitStream())
+                        .stream(AmqpConfig.getAmqpCryptoBybitStream())
                         .offset(OffsetSpecification.first())
                         .manualTrackingStrategy()
                         .builder()
                         .messageHandler((context, message) ->
-                                handleMessage(message.getBodyAsBinary(), StreamType.BYBIT_STREAM, context::storeOffset))
+                                consume(StreamType.BYBIT_STREAM, context, message))
                         .build();
                 LOGGER.info("AmqpConsumer started");
             } catch (final Exception ex) {
@@ -97,22 +105,18 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
         });
     }
 
-    private void handleMessage(final byte[] body, final StreamType type, final Runnable storeOffset) {
-        // Ensure we initiate the Promise on the reactor thread; stream callbacks run on a different thread
-        LOGGER.info("Received payload: {}", new String(body));
+    private void consume(final StreamType type, final MessageHandler.Context context, final Message message) {
+        LOGGER.info("Received payload: {}", new String(message.getBodyAsBinary()));
         reactor.execute(() ->
-                Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(body, Payload.class))
+                Promise.ofBlocking(executor, () -> JsonUtils.bytes2Object(message.getBodyAsBinary(), Payload.class))
                         .then(payload -> switch (type) {
-                            case CMC -> cmcService.save(payload);
-                            case BYBIT, BYBIT_STREAM -> bybitService.save(payload);
+                            case CMC -> metricsCmcCollector.save(payload);
+                            case BYBIT -> metricsBybitCollector.save(payload);
+                            case BYBIT_STREAM -> cryptoBybitCollector.save(payload);
                         })
                         .whenComplete(($, ex) -> {
                             if (ex == null) {
-                                try {
-                                    storeOffset.run();
-                                } catch (final Exception e) {
-                                    LOGGER.warn("Failed to store offset: {}", e.getMessage(), e);
-                                }
+                                context.storeOffset();
                             } else {
                                 LOGGER.error("Failed to process stream message from {}", type, ex);
                             }

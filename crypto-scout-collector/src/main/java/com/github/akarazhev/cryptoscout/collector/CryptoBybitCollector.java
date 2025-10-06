@@ -1,9 +1,9 @@
 package com.github.akarazhev.cryptoscout.collector;
 
+import com.github.akarazhev.cryptoscout.config.JdbcConfig;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
-import com.github.akarazhev.cryptoscout.config.JdbcConfig;
 import io.activej.async.service.ReactiveService;
 import io.activej.promise.Promise;
 import io.activej.promise.Promises;
@@ -44,8 +44,8 @@ import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TI
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_TURNOVER_24H;
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_USD_INDEX_PRICE;
 import static com.github.akarazhev.cryptoscout.collector.Constants.Bybit.SPOT_TICKERS_VOLUME_24H;
-import static com.github.akarazhev.cryptoscout.collector.Converter.toBigDecimal;
-import static com.github.akarazhev.cryptoscout.collector.Converter.toOffsetDateTime;
+import static com.github.akarazhev.cryptoscout.collector.Utils.toBigDecimal;
+import static com.github.akarazhev.cryptoscout.collector.Utils.toOffsetDateTime;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.CS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.DATA;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.DESC;
@@ -70,8 +70,8 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.WHITE_PAP
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_BTC_USDT;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_ETH_USDT;
 
-public final class BybitService extends AbstractReactive implements ReactiveService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(BybitService.class);
+public final class CryptoBybitCollector extends AbstractReactive implements ReactiveService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(CryptoBybitCollector.class);
     private final Executor executor;
     private final DataSource dataSource;
     private final int batchSize;
@@ -79,11 +79,11 @@ public final class BybitService extends AbstractReactive implements ReactiveServ
     private final Queue<Map<String, Object>> tickersBuffer = new ConcurrentLinkedQueue<>();
     private final Queue<Map<String, Object>> lplBuffer = new ConcurrentLinkedQueue<>();
 
-    public static BybitService create(final NioReactor reactor, final Executor executor) {
-        return new BybitService(reactor, executor);
+    public static CryptoBybitCollector create(final NioReactor reactor, final Executor executor) {
+        return new CryptoBybitCollector(reactor, executor);
     }
 
-    private BybitService(final NioReactor reactor, final Executor executor) {
+    private CryptoBybitCollector(final NioReactor reactor, final Executor executor) {
         super(reactor);
         this.executor = executor;
         this.dataSource = JdbcConfig.getDataSource();
