@@ -126,30 +126,30 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
         }
 
         return Promise.ofBlocking(executor, () -> {
-            final var spotBtc = new ArrayList<Map<String, Object>>();
-            final var spotEth = new ArrayList<Map<String, Object>>();
+            final var spotTickersBtcUsdt = new ArrayList<Map<String, Object>>();
+            final var spotTickersEthUsdt = new ArrayList<Map<String, Object>>();
             for (final var payload : snapshot) {
                 final var data = payload.getData();
                 final var topic = (String) data.get(TOPIC);
                 final var source = payload.getSource();
                 if (Source.PMST.equals(source)) {
                     if (Objects.equals(topic, TICKERS_BTC_USDT)) {
-                        spotBtc.add(data);
+                        spotTickersBtcUsdt.add(data);
                     } else if (Objects.equals(topic, TICKERS_ETH_USDT)) {
-                        spotEth.add(data);
+                        spotTickersEthUsdt.add(data);
                     }
                 } else if (Source.PML.equals(source)) {
                     // TODO: implement futures
                 }
             }
 
-            if (!spotBtc.isEmpty()) {
-                insertSpot(SPOT_TICKERS_BTC_USDT, spotBtc);
+            if (!spotTickersBtcUsdt.isEmpty()) {
+                insertSpot(SPOT_TICKERS_BTC_USDT, spotTickersBtcUsdt);
                 LOGGER.info("Inserted {} BTC-USDT spot tickers", snapshot.size());
             }
 
-            if (!spotEth.isEmpty()) {
-                insertSpot(SPOT_TICKERS_ETH_USDT, spotEth);
+            if (!spotTickersEthUsdt.isEmpty()) {
+                insertSpot(SPOT_TICKERS_ETH_USDT, spotTickersEthUsdt);
                 LOGGER.info("Inserted {} ETH-USDT spot tickers", snapshot.size());
             }
 
