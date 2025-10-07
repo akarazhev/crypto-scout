@@ -60,13 +60,13 @@ public final class BybitModule extends AbstractModule {
     @Named(LINEAR_BYBIT_STREAM)
     private BybitStream linearBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
-                .streamType(StreamType.PML)
-                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
-                .topic(Topic.TICKERS_BTC_USDT)
-                .topic(Topic.ALL_LIQUIDATION_BTC_USDT)
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
-                .topic(Topic.TICKERS_ETH_USDT)
-                .topic(Topic.ALL_LIQUIDATION_ETH_USDT)
+                .streamType(StreamType.PML) // Public Mainnet Linear
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT) // publicTrade.BTCUSDT
+                .topic(Topic.TICKERS_BTC_USDT) // tickers.BTCUSDT
+                .topic(Topic.ALL_LIQUIDATION_BTC_USDT) // allLiquidation.BTCUSDT
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT) // publicTrade.ETHUSDT
+                .topic(Topic.TICKERS_ETH_USDT) // tickers.ETHUSDT
+                .topic(Topic.ALL_LIQUIDATION_ETH_USDT) // allLiquidation.ETHUSDT
                 .build();
         LOGGER.info(config.print());
         return BybitStream.create(reactor, webSocketClient, config);
@@ -76,11 +76,11 @@ public final class BybitModule extends AbstractModule {
     @Named(SPOT_BYBIT_STREAM)
     private BybitStream spotBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
-                .streamType(StreamType.PMST)
-                .topic(Topic.PUBLIC_TRADE_BTC_USDT)
-                .topic(Topic.TICKERS_BTC_USDT)
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT)
-                .topic(Topic.TICKERS_ETH_USDT)
+                .streamType(StreamType.PMST) // Public Mainnet Spot
+                .topic(Topic.PUBLIC_TRADE_BTC_USDT) // publicTrade.BTCUSDT
+                .topic(Topic.TICKERS_BTC_USDT) // tickers.BTCUSDT
+                .topic(Topic.PUBLIC_TRADE_ETH_USDT) // publicTrade.ETHUSDT
+                .topic(Topic.TICKERS_ETH_USDT) // tickers.ETHUSDT
                 .build();
         LOGGER.info(config.print());
         return BybitStream.create(reactor, webSocketClient, config);
@@ -89,12 +89,12 @@ public final class BybitModule extends AbstractModule {
     @Provides
     private BybitParser bybitParser(final NioReactor reactor, final IHttpClient httpClient) {
         final var config = new DataConfig.Builder()
-                .type(Type.MD)
-                .type(Type.LPL)
-                .type(Type.LPD)
-                .type(Type.BYV)
-                .type(Type.BYS)
-                .type(Type.ADH)
+                .type(Type.MD) // Mega Drop
+                .type(Type.LPL) // Launch Pool
+                .type(Type.LPD) // Launchpad
+                .type(Type.BYV) // ByVotes Spot
+                .type(Type.BYS) // ByStarter
+                .type(Type.ADH) // Airdrop Hunt
                 .build();
         LOGGER.info(config.print());
         return BybitParser.create(reactor, httpClient, config);
