@@ -8,7 +8,6 @@ import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKAR
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKARI_MAX_LIFETIME_MS;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKARI_MAXIMUM_POOL_SIZE;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKARI_MINIMUM_IDLE;
-import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKARI_POOL_NAME;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.HIKARI_REGISTER_MBEANS;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_BYBIT_BATCH_SIZE;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_BYBIT_FLUSH_INTERVAL_MS;
@@ -17,6 +16,7 @@ import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_PASSWORD;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_URL;
 import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.JDBC_USERNAME;
+import static com.github.akarazhev.cryptoscout.config.Constants.JdbcConfig.POOL_NAME;
 
 public final class JdbcConfig {
     private JdbcConfig() {
@@ -33,10 +33,6 @@ public final class JdbcConfig {
 
     private static String getPassword() {
         return AppConfig.getAsString(JDBC_PASSWORD);
-    }
-
-    private static String getPoolName() {
-        return AppConfig.getAsString(HIKARI_POOL_NAME);
     }
 
     private static int getMaximumPoolSize() {
@@ -84,7 +80,7 @@ public final class JdbcConfig {
         config.setJdbcUrl(getUrl());
         config.setUsername(getUsername());
         config.setPassword(getPassword());
-        config.setPoolName(getPoolName());
+        config.setPoolName(POOL_NAME);
         config.setMaximumPoolSize(getMaximumPoolSize());
         config.setMinimumIdle(getMinimumIdle());
         config.setConnectionTimeout(getConnectionTimeoutMs());

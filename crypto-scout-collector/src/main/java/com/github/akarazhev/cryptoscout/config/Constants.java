@@ -52,6 +52,7 @@ final class Constants {
             throw new UnsupportedOperationException();
         }
 
+        static final String POOL_NAME = "crypto-scout-collector-pool";
         static final String JDBC_URL = "jdbc.datasource.url";
         static final String JDBC_USERNAME = "jdbc.datasource.username";
         static final String JDBC_PASSWORD = "jdbc.datasource.password";
@@ -60,7 +61,6 @@ final class Constants {
         static final String JDBC_BYBIT_BATCH_SIZE = "jdbc.bybit.batch-size";
         static final String JDBC_BYBIT_FLUSH_INTERVAL_MS = "jdbc.bybit.flush-interval-ms";
         // HikariCP pool configuration
-        static final String HIKARI_POOL_NAME = "jdbc.hikari.pool-name";
         static final String HIKARI_MAXIMUM_POOL_SIZE = "jdbc.hikari.maximum-pool-size";
         static final String HIKARI_MINIMUM_IDLE = "jdbc.hikari.minimum-idle";
         static final String HIKARI_CONNECTION_TIMEOUT_MS = "jdbc.hikari.connection-timeout-ms";
