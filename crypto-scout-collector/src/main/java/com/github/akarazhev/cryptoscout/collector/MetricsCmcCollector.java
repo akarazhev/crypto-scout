@@ -43,14 +43,15 @@ public final class MetricsCmcCollector extends AbstractReactive implements React
     private final long flushIntervalMs;
     private final Queue<Payload<Map<String, Object>>> buffer = new ConcurrentLinkedQueue<>();
 
-    public static MetricsCmcCollector create(final NioReactor reactor, final Executor executor) {
-        return new MetricsCmcCollector(reactor, executor);
+    public static MetricsCmcCollector create(final NioReactor reactor, final Executor executor,
+                                             final JdbcDataSource jdbcDataSource) {
+        return new MetricsCmcCollector(reactor, executor, jdbcDataSource);
     }
 
-    private MetricsCmcCollector(final NioReactor reactor, final Executor executor) {
+    private MetricsCmcCollector(final NioReactor reactor, final Executor executor, final JdbcDataSource jdbcDataSource) {
         super(reactor);
         this.executor = executor;
-        this.dataSource = JdbcConfig.getDataSource();
+        this.dataSource = jdbcDataSource.getDataSource();
         this.batchSize = JdbcConfig.getCmcBatchSize();
         this.flushIntervalMs = JdbcConfig.getCmcFlushIntervalMs();
     }

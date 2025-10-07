@@ -48,14 +48,15 @@ public final class MetricsBybitCollector extends AbstractReactive implements Rea
     private final long flushIntervalMs;
     private final Queue<Payload<Map<String, Object>>> buffer = new ConcurrentLinkedQueue<>();
 
-    public static MetricsBybitCollector create(final NioReactor reactor, final Executor executor) {
-        return new MetricsBybitCollector(reactor, executor);
+    public static MetricsBybitCollector create(final NioReactor reactor, final Executor executor,
+                                               final JdbcDataSource jdbcDataSource) {
+        return new MetricsBybitCollector(reactor, executor, jdbcDataSource);
     }
 
-    private MetricsBybitCollector(final NioReactor reactor, final Executor executor) {
+    private MetricsBybitCollector(final NioReactor reactor, final Executor executor, final JdbcDataSource jdbcDataSource) {
         super(reactor);
         this.executor = executor;
-        this.dataSource = JdbcConfig.getDataSource();
+        this.dataSource = jdbcDataSource.getDataSource();
         this.batchSize = JdbcConfig.getBybitBatchSize();
         this.flushIntervalMs = JdbcConfig.getBybitFlushIntervalMs();
     }

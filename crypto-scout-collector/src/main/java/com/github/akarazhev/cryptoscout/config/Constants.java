@@ -59,6 +59,14 @@ final class Constants {
         static final String JDBC_CMC_FLUSH_INTERVAL_MS = "jdbc.cmc.flush-interval-ms";
         static final String JDBC_BYBIT_BATCH_SIZE = "jdbc.bybit.batch-size";
         static final String JDBC_BYBIT_FLUSH_INTERVAL_MS = "jdbc.bybit.flush-interval-ms";
+        // HikariCP pool configuration
+        static final String HIKARI_POOL_NAME = "jdbc.hikari.pool-name";
+        static final String HIKARI_MAXIMUM_POOL_SIZE = "jdbc.hikari.maximum-pool-size";
+        static final String HIKARI_MINIMUM_IDLE = "jdbc.hikari.minimum-idle";
+        static final String HIKARI_CONNECTION_TIMEOUT_MS = "jdbc.hikari.connection-timeout-ms";
+        static final String HIKARI_IDLE_TIMEOUT_MS = "jdbc.hikari.idle-timeout-ms";
+        static final String HIKARI_MAX_LIFETIME_MS = "jdbc.hikari.max-lifetime-ms";
+        static final String HIKARI_REGISTER_MBEANS = "jdbc.hikari.register-mbeans";
     }
 
     final static class ServerConfig {

@@ -26,6 +26,7 @@ package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.collector.AmqpConsumer;
 import com.github.akarazhev.cryptoscout.collector.CryptoBybitCollector;
+import com.github.akarazhev.cryptoscout.collector.JdbcDataSource;
 import com.github.akarazhev.cryptoscout.collector.MetricsBybitCollector;
 import com.github.akarazhev.cryptoscout.collector.MetricsCmcCollector;
 import io.activej.inject.annotation.Eager;
@@ -45,18 +46,26 @@ public final class CollectorModule extends AbstractModule {
     }
 
     @Provides
-    private CryptoBybitCollector cryptoBybitCollector(final NioReactor reactor, final Executor executor) {
-        return CryptoBybitCollector.create(reactor, executor);
+    private JdbcDataSource jdbcDataSource(final NioReactor reactor, final Executor executor) {
+        return JdbcDataSource.create(reactor, executor);
     }
 
     @Provides
-    private MetricsBybitCollector metricsBybitCollector(final NioReactor reactor, final Executor executor) {
-        return MetricsBybitCollector.create(reactor, executor);
+    private CryptoBybitCollector cryptoBybitCollector(final NioReactor reactor, final Executor executor,
+                                                      final JdbcDataSource jdbcDataSource) {
+        return CryptoBybitCollector.create(reactor, executor, jdbcDataSource);
     }
 
     @Provides
-    private MetricsCmcCollector metricsCmcCollector(final NioReactor reactor, final Executor executor) {
-        return MetricsCmcCollector.create(reactor, executor);
+    private MetricsBybitCollector metricsBybitCollector(final NioReactor reactor, final Executor executor,
+                                                        final JdbcDataSource jdbcDataSource) {
+        return MetricsBybitCollector.create(reactor, executor, jdbcDataSource);
+    }
+
+    @Provides
+    private MetricsCmcCollector metricsCmcCollector(final NioReactor reactor, final Executor executor,
+                                                    final JdbcDataSource jdbcDataSource) {
+        return MetricsCmcCollector.create(reactor, executor, jdbcDataSource);
     }
 
     @Provides
