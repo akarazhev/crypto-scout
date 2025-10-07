@@ -145,12 +145,12 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
 
             if (!spotTickersBtcUsdt.isEmpty()) {
                 insertSpot(SPOT_TICKERS_BTC_USDT, spotTickersBtcUsdt);
-                LOGGER.info("Inserted {} BTC-USDT spot tickers", snapshot.size());
+                LOGGER.info("Inserted {} BTC-USDT spot tickers", spotTickersBtcUsdt.size());
             }
 
             if (!spotTickersEthUsdt.isEmpty()) {
                 insertSpot(SPOT_TICKERS_ETH_USDT, spotTickersEthUsdt);
-                LOGGER.info("Inserted {} ETH-USDT spot tickers", snapshot.size());
+                LOGGER.info("Inserted {} ETH-USDT spot tickers", spotTickersEthUsdt.size());
             }
 
             return null;
