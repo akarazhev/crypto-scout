@@ -66,7 +66,6 @@ public final class MetricsBybitCollector extends AbstractReactive implements Rea
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting MetricsBybitCollector...");
         reactor.delayBackground(flushIntervalMs, this::scheduledFlush);
         LOGGER.info("MetricsBybitCollector started");
         return Promise.complete();
@@ -74,7 +73,6 @@ public final class MetricsBybitCollector extends AbstractReactive implements Rea
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping MetricsBybitCollector...");
         final var promise = flush();
         LOGGER.info("MetricsBybitCollector stopped");
         return promise;
@@ -82,7 +80,7 @@ public final class MetricsBybitCollector extends AbstractReactive implements Rea
 
     public Promise<?> save(final Payload<Map<String, Object>> payload) {
         if (!Provider.BYBIT.equals(payload.getProvider())) {
-            LOGGER.info("Invalid payload: {}", payload);
+            LOGGER.warn("Invalid payload: {}", payload);
             return Promise.complete();
         }
 

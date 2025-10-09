@@ -65,7 +65,6 @@ public final class MetricsCmcCollector extends AbstractReactive implements React
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting MetricsCmcCollector...");
         reactor.delayBackground(flushIntervalMs, this::scheduledFlush);
         LOGGER.info("MetricsCmcCollector started");
         return Promise.complete();
@@ -73,7 +72,6 @@ public final class MetricsCmcCollector extends AbstractReactive implements React
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping MetricsCmcCollector...");
         final var promise = flush();
         LOGGER.info("MetricsCmcCollector stopped");
         return promise;
@@ -81,7 +79,7 @@ public final class MetricsCmcCollector extends AbstractReactive implements React
 
     public Promise<?> save(final Payload<Map<String, Object>> payload) {
         if (!Provider.CMC.equals(payload.getProvider())) {
-            LOGGER.info("Invalid payload: {}", payload);
+            LOGGER.warn("Invalid payload: {}", payload);
             return Promise.complete();
         }
 
