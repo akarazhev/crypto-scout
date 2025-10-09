@@ -26,9 +26,12 @@ package com.github.akarazhev.cryptoscout.module;
 
 import com.github.akarazhev.cryptoscout.collector.AmqpConsumer;
 import com.github.akarazhev.cryptoscout.collector.CryptoBybitCollector;
-import com.github.akarazhev.cryptoscout.collector.JdbcDataSource;
+import com.github.akarazhev.cryptoscout.collector.db.CollectorDataSource;
 import com.github.akarazhev.cryptoscout.collector.MetricsBybitCollector;
 import com.github.akarazhev.cryptoscout.collector.MetricsCmcCollector;
+import com.github.akarazhev.cryptoscout.collector.db.CryptoBybitRepository;
+import com.github.akarazhev.cryptoscout.collector.db.MetricsBybitRepository;
+import com.github.akarazhev.cryptoscout.collector.db.MetricsCmcRepository;
 import io.activej.inject.annotation.Eager;
 import io.activej.inject.annotation.Provides;
 import io.activej.inject.module.AbstractModule;
@@ -46,26 +49,41 @@ public final class CollectorModule extends AbstractModule {
     }
 
     @Provides
-    private JdbcDataSource jdbcDataSource(final NioReactor reactor, final Executor executor) {
-        return JdbcDataSource.create(reactor, executor);
+    private CollectorDataSource jdbcDataSource(final NioReactor reactor, final Executor executor) {
+        return CollectorDataSource.create(reactor, executor);
+    }
+
+    @Provides
+    private MetricsBybitRepository metricsBybitRepository(final NioReactor reactor, final CollectorDataSource collectorDataSource) {
+        return MetricsBybitRepository.create(reactor, collectorDataSource);
+    }
+
+    @Provides
+    private MetricsCmcRepository metricsCmcRepository(final NioReactor reactor, final CollectorDataSource collectorDataSource) {
+        return MetricsCmcRepository.create(reactor, collectorDataSource);
+    }
+
+    @Provides
+    private CryptoBybitRepository cryptoBybitRepository(final NioReactor reactor, final CollectorDataSource collectorDataSource) {
+        return CryptoBybitRepository.create(reactor, collectorDataSource);
     }
 
     @Provides
     private CryptoBybitCollector cryptoBybitCollector(final NioReactor reactor, final Executor executor,
-                                                      final JdbcDataSource jdbcDataSource) {
-        return CryptoBybitCollector.create(reactor, executor, jdbcDataSource);
+                                                      final CryptoBybitRepository cryptoBybitRepository) {
+        return CryptoBybitCollector.create(reactor, executor, cryptoBybitRepository);
     }
 
     @Provides
     private MetricsBybitCollector metricsBybitCollector(final NioReactor reactor, final Executor executor,
-                                                        final JdbcDataSource jdbcDataSource) {
-        return MetricsBybitCollector.create(reactor, executor, jdbcDataSource);
+                                                        final MetricsBybitRepository metricsBybitRepository) {
+        return MetricsBybitCollector.create(reactor, executor, metricsBybitRepository);
     }
 
     @Provides
     private MetricsCmcCollector metricsCmcCollector(final NioReactor reactor, final Executor executor,
-                                                    final JdbcDataSource jdbcDataSource) {
-        return MetricsCmcCollector.create(reactor, executor, jdbcDataSource);
+                                                    final MetricsCmcRepository metricsCmcRepository) {
+        return MetricsCmcCollector.create(reactor, executor, metricsCmcRepository);
     }
 
     @Provides

@@ -1,5 +1,30 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2025 Andrey Karazhev
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.github.akarazhev.cryptoscout.collector;
 
+import com.github.akarazhev.cryptoscout.collector.db.MetricsCmcRepository;
 import com.github.akarazhev.jcryptolib.stream.Payload;
 import com.github.akarazhev.jcryptolib.stream.Provider;
 import com.github.akarazhev.jcryptolib.stream.Source;
@@ -11,47 +36,29 @@ import io.activej.reactor.nio.NioReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_BTC_PRICE;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_BTC_VOLUME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_INSERT;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_NAME;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_SCORE;
-import static com.github.akarazhev.cryptoscout.collector.Constants.CMC.FGI_TIMESTAMP;
-import static com.github.akarazhev.cryptoscout.collector.Utils.toBigDecimal;
-import static com.github.akarazhev.cryptoscout.collector.Utils.toOffsetDateTimeFromSeconds;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.BTC_PRICE;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.BTC_VOLUME;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.DATA_LIST;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.NAME;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.SCORE;
-import static com.github.akarazhev.jcryptolib.cmc.Constants.Response.TIMESTAMP;
-
 public final class MetricsCmcCollector extends AbstractReactive implements ReactiveService {
     private final static Logger LOGGER = LoggerFactory.getLogger(MetricsCmcCollector.class);
     private final Executor executor;
-    private final DataSource dataSource;
+    private final MetricsCmcRepository metricsCmcRepository;
     private final int batchSize;
     private final long flushIntervalMs;
     private final Queue<Payload<Map<String, Object>>> buffer = new ConcurrentLinkedQueue<>();
 
     public static MetricsCmcCollector create(final NioReactor reactor, final Executor executor,
-                                             final JdbcDataSource jdbcDataSource) {
-        return new MetricsCmcCollector(reactor, executor, jdbcDataSource);
+                                             final MetricsCmcRepository metricsCmcRepository) {
+        return new MetricsCmcCollector(reactor, executor, metricsCmcRepository);
     }
 
-    private MetricsCmcCollector(final NioReactor reactor, final Executor executor, final JdbcDataSource jdbcDataSource) {
+    private MetricsCmcCollector(final NioReactor reactor, final Executor executor, final MetricsCmcRepository metricsCmcRepository) {
         super(reactor);
         this.executor = executor;
-        this.dataSource = jdbcDataSource.getDataSource();
+        this.metricsCmcRepository = metricsCmcRepository;
         this.batchSize = JdbcConfig.getCmcBatchSize();
         this.flushIntervalMs = JdbcConfig.getCmcFlushIntervalMs();
     }
@@ -120,45 +127,10 @@ public final class MetricsCmcCollector extends AbstractReactive implements React
             }
 
             if (!fgi.isEmpty()) {
-                insertFgi(fgi);
-                LOGGER.info("Inserted {} FGI points", fgi.size());
+                LOGGER.info("Inserted {} FGI points", metricsCmcRepository.insertFgi(fgi));
             }
 
             return null;
         });
-    }
-
-    private void insertFgi(final List<Map<String, Object>> fgis) throws Exception {
-        try (final var c = dataSource.getConnection();
-             final var ps = c.prepareStatement(FGI_INSERT)) {
-            var count = 0;
-            for (final var fgi : fgis) {
-                if (fgi != null && fgi.containsKey(DATA_LIST)) {
-                    for (final var dl : (List<Map<String, Object>>) fgi.get(DATA_LIST)) {
-                        final var score = dl.get(SCORE);
-                        if (score instanceof Number n) {
-                            ps.setInt(FGI_SCORE, n.intValue());
-                        } else if (score instanceof String s) {
-                            ps.setInt(FGI_SCORE, Integer.parseInt(s));
-                        } else {
-                            ps.setNull(FGI_SCORE, Types.INTEGER);
-                        }
-
-                        ps.setString(FGI_NAME, (String) dl.get(NAME));
-                        final var ts = (String) dl.get(TIMESTAMP);
-                        ps.setObject(FGI_TIMESTAMP, toOffsetDateTimeFromSeconds(ts != null ? Long.parseLong(ts) : 0L));
-                        ps.setBigDecimal(FGI_BTC_PRICE, toBigDecimal(dl.get(BTC_PRICE)));
-                        ps.setBigDecimal(FGI_BTC_VOLUME, toBigDecimal(dl.get(BTC_VOLUME)));
-
-                        ps.addBatch();
-                        if (++count % batchSize == 0) {
-                            ps.executeBatch();
-                        }
-                    }
-                }
-            }
-
-            ps.executeBatch();
-        }
     }
 }

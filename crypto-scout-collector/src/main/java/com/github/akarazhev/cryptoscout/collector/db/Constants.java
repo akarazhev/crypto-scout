@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.collector;
+package com.github.akarazhev.cryptoscout.collector.db;
 
-final class Constants {
+public final class Constants {
     private Constants() {
         throw new UnsupportedOperationException();
     }
@@ -44,7 +44,7 @@ final class Constants {
         static final int FGI_BTC_VOLUME = 5;
     }
 
-    final static class Bybit {
+    public final static class Bybit {
         private Bybit() {
             throw new UnsupportedOperationException();
         }
@@ -66,8 +66,8 @@ final class Constants {
                 "high_price_24h, low_price_24h, prev_price_24h, volume_24h, turnover_24h, price_24h_pcnt, " +
                 "usd_index_price) VALUES " +
                 "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        static final String SPOT_TICKERS_BTC_USDT = "crypto_scout.bybit_spot_tickers_btc_usdt";
-        static final String SPOT_TICKERS_ETH_USDT = "crypto_scout.bybit_spot_tickers_eth_usdt";
+        public static final String SPOT_TICKERS_BTC_USDT = "crypto_scout.bybit_spot_tickers_btc_usdt";
+        public static final String SPOT_TICKERS_ETH_USDT = "crypto_scout.bybit_spot_tickers_eth_usdt";
         static final int SPOT_TICKERS_TIMESTAMP = 1;
         static final int SPOT_TICKERS_CROSS_SEQUENCE = 2;
         static final int SPOT_TICKERS_LAST_PRICE = 3;

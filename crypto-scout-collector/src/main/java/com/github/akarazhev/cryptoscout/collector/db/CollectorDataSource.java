@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.github.akarazhev.cryptoscout.collector;
+package com.github.akarazhev.cryptoscout.collector.db;
 
 import com.github.akarazhev.cryptoscout.config.JdbcConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -36,16 +36,16 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.util.concurrent.Executor;
 
-public final class JdbcDataSource extends AbstractReactive implements ReactiveService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(JdbcDataSource.class);
+public final class CollectorDataSource extends AbstractReactive implements ReactiveService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(CollectorDataSource.class);
     private final Executor executor;
     private final HikariDataSource dataSource;
 
-    public static JdbcDataSource create(final NioReactor reactor, final Executor executor) {
-        return new JdbcDataSource(reactor, executor);
+    public static CollectorDataSource create(final NioReactor reactor, final Executor executor) {
+        return new CollectorDataSource(reactor, executor);
     }
 
-    private JdbcDataSource(final NioReactor reactor, final Executor executor) {
+    private CollectorDataSource(final NioReactor reactor, final Executor executor) {
         super(reactor);
         this.executor = executor;
         dataSource = new HikariDataSource(JdbcConfig.getHikariConfig());
