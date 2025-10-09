@@ -53,7 +53,8 @@ public final class CollectorDataSource extends AbstractReactive implements React
 
     @Override
     public Promise<?> start() {
-        return Promise.ofBlocking(executor, () -> LOGGER.info("JdbcDataSource started"));
+        LOGGER.info("CollectorDataSource started");
+        return Promise.complete();
     }
 
     public DataSource getDataSource() {
@@ -63,12 +64,11 @@ public final class CollectorDataSource extends AbstractReactive implements React
     @Override
     public Promise<?> stop() {
         return Promise.ofBlocking(executor, () -> {
-            LOGGER.info("Stopping JdbcDataSource...");
             if (dataSource.isRunning()) {
                 dataSource.close();
             }
 
-            LOGGER.info("JdbcDataSource stopped");
+            LOGGER.info("CollectorDataSource stopped");
         });
     }
 }
