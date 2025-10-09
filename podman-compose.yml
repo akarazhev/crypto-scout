@@ -1,0 +1,146 @@
+version: "3.9"
+
+services:
+  crypto-scout-collector:
+    build:
+      context: ../crypto-scout-collector
+      dockerfile: Dockerfile
+    container_name: crypto-scout-collector-collector
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - AMQP_RABBITMQ_HOST=rabbitmq
+      - AMQP_RABBITMQ_PORT=5672
+      - AMQP_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - AMQP_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - AMQP_RABBITMQ_CONNECTION_TIMEOUT=5000
+      - AMQP_RABBITMQ_STREAM_ENABLED=true
+      - AMQP_RABBITMQ_STREAM_HOST=rabbitmq
+      - AMQP_RABBITMQ_STREAM_PORT=5552
+      - AMQP_RABBITMQ_PUBLISHER_CONFIRMS=true
+      - AMQP_RABBITMQ_TEMPLATE_EXCHANGE=crypto.events
+      - AMQP_RABBITMQ_TEMPLATE_ROUTING_KEY=crypto.price.update
+      - AMQP_RABBITMQ_STREAM_NAME=crypto.price.stream
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cryptoscout
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=sa
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar crypto-scout-collector.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  crypto-scout-client:
+    build:
+      context: ../crypto-scout-client
+      dockerfile: Dockerfile
+    container_name: crypto-scout-client
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - AMQP_RABBITMQ_HOST=rabbitmq
+      - AMQP_RABBITMQ_PORT=5672
+      - AMQP_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - AMQP_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - AMQP_RABBITMQ_CONNECTION_TIMEOUT=5000
+      # Client-specific settings
+      - CLIENT_CONNECT_TIMEOUT_MS=10000
+      # CoinMarketCap settings
+      - CMC_CONNECT_TIMEOUT_MS=10000
+      - CMC_FETCH_INTERVAL_MS=600000
+      - CMC_CIRCUIT_BREAKER_THRESHOLD=5
+      - CMC_CIRCUIT_BREAKER_TIMEOUT_MS=30000
+      - CMC_RATE_LIMIT_MS=2100
+      - CMC_RETRY_BASE_MS=1000
+      - CMC_RETRY_MAX_MS=60000
+      - CMC_RETRY_JITTER=0.2
+      # RabbitMQ settings
+      - AMQP_EXCHANGE_METRICS=metrics-exchange
+      - AMQP_QUEUE_CMC=metrics-cmc-queue
+      - AMQP_QUEUE_BYBIT=metrics-bybit-queue
+      - AMQP_QUEUE_DEAD=metrics-dead-letter-queue
+      - AMQP_QUEUE_CLIENT=crypto-scout-client-queue
+      - AMQP_QUEUE_TTL_MS=21600000
+      - AMQP_QUEUE_MAX_LENGTH=2500
+      # Stream settings
+      - AMQP_RABBITMQ_STREAM_ENABLED=true
+      - AMQP_RABBITMQ_STREAM_HOST=rabbitmq
+      - AMQP_RABBITMQ_STREAM_PORT=5552
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=5
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_MAX_CONCURRENCY=10
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_PREFETCH=10
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar crypto-scout-client.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  crypto-scout-telegram:
+    build:
+      context: ../crypto-scout-telegram
+      dockerfile: Dockerfile
+    container_name: crypto-scout-telegram
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - crypto-scout
+    environment:
+      - AMQP_RABBITMQ_HOST=rabbitmq
+      - AMQP_RABBITMQ_PORT=5672
+      - AMQP_RABBITMQ_USERNAME_FILE=/run/secrets/rabbitmq_user
+      - AMQP_RABBITMQ_PASSWORD_FILE=/run/secrets/rabbitmq_pass
+      - AMQP_RABBITMQ_CONNECTION_TIMEOUT=5000
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=3
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_MAX_CONCURRENCY=5
+      - AMQP_RABBITMQ_LISTENER_SIMPLE_PREFETCH=10
+      - AMQP_RABBITMQ_TEMPLATE_EXCHANGE=service.events
+      - AMQP_RABBITMQ_TEMPLATE_ROUTING_KEY=service.command.telegram
+      - AMQP_RABBITMQ_TEMPLATE_QUEUE=service.commands
+      - AMQP_RABBITMQ_LISTENER_QUEUES=service.notifications
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_pass
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && java -jar crypto-scout-telegram.jar" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+secrets:
+  rabbitmq_user:
+    file: ./rabbitmq/rabbitmq_user
+  rabbitmq_pass:
+    file: ./rabbitmq/rabbitmq_pass
+
+networks:
+  crypto-scout:
