@@ -54,7 +54,6 @@ public final class CryptoBybitConsumer extends AbstractReactive implements React
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting CryptoBybitConsumer...");
         linearBybitStream.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
         spotBybitStream.start().then(stream ->
@@ -65,7 +64,6 @@ public final class CryptoBybitConsumer extends AbstractReactive implements React
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping CryptoBybitConsumer...");
         spotBybitStream.stop();
         linearBybitStream.stop();
         LOGGER.info("CryptoBybitConsumer stopped");

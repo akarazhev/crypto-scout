@@ -64,7 +64,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     public Promise<?> start() {
         return Promise.ofBlocking(executor, () -> {
             try {
-                LOGGER.info("Starting AmqpPublisher...");
                 environment = AmqpConfig.getEnvironment();
                 cryptoBybitProducer = environment.producerBuilder()
                         .name(AmqpConfig.getAmqpCryptoBybitStream())
@@ -89,7 +88,6 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
     @Override
     public Promise<?> stop() {
         return Promise.ofBlocking(executor, () -> {
-            LOGGER.info("Stopping AmqpPublisher...");
             closeProducer(cryptoBybitProducer);
             cryptoBybitProducer = null;
             closeProducer(metricsBybitProducer);

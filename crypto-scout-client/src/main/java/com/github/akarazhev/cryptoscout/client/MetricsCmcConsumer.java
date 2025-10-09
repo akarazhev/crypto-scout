@@ -52,7 +52,6 @@ public final class MetricsCmcConsumer extends AbstractReactive implements Reacti
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting MetricsCmcConsumer...");
         cmcParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
         LOGGER.info("MetricsCmcConsumer started");
@@ -61,7 +60,6 @@ public final class MetricsCmcConsumer extends AbstractReactive implements Reacti
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping MetricsCmcConsumer...");
         cmcParser.stop();
         LOGGER.info("MetricsCmcConsumer stopped");
         return Promise.complete();

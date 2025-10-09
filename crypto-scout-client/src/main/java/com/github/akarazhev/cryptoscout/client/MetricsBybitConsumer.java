@@ -52,7 +52,6 @@ public final class MetricsBybitConsumer extends AbstractReactive implements Reac
 
     @Override
     public Promise<?> start() {
-        LOGGER.info("Starting MetricsBybitConsumer...");
         bybitParser.start().then(stream ->
                 stream.streamTo(StreamConsumers.ofConsumer(amqpPublisher::publish)));
         LOGGER.info("MetricsBybitConsumer started");
@@ -61,7 +60,6 @@ public final class MetricsBybitConsumer extends AbstractReactive implements Reac
 
     @Override
     public Promise<?> stop() {
-        LOGGER.info("Stopping MetricsBybitConsumer...");
         bybitParser.stop();
         LOGGER.info("MetricsBybitConsumer stopped");
         return Promise.complete();
