@@ -44,15 +44,14 @@ public final class Constants {
         static final int FGI_BTC_VOLUME = 5;
     }
 
-    public final static class Bybit {
+    final static class Bybit {
         private Bybit() {
             throw new UnsupportedOperationException();
         }
 
         static final String LPL_INSERT = "INSERT INTO crypto_scout.bybit_lpl " +
                 "(return_coin, return_coin_icon, description, website, whitepaper, rules, stake_begin_time, " +
-                "stake_end_time, trade_begin_time) VALUES " +
-                "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "stake_end_time, trade_begin_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         static final int LPL_RETURN_COIN = 1;
         static final int LPL_RETURN_COIN_ICON = 2;
         static final int LPL_DESC = 3;
@@ -62,21 +61,19 @@ public final class Constants {
         static final int LPL_STAKE_BEGIN_TIME = 7;
         static final int LPL_STAKE_END_TIME = 8;
         static final int LPL_TRADE_BEGIN_TIME = 9;
-        static final String SPOT_TICKERS_INSERT = "INSERT INTO %s (timestamp, cross_sequence, last_price, " +
-                "high_price_24h, low_price_24h, prev_price_24h, volume_24h, turnover_24h, price_24h_pcnt, " +
-                "usd_index_price) VALUES " +
-                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        public static final String SPOT_TICKERS_BTC_USDT = "crypto_scout.bybit_spot_tickers_btc_usdt";
-        public static final String SPOT_TICKERS_ETH_USDT = "crypto_scout.bybit_spot_tickers_eth_usdt";
-        static final int SPOT_TICKERS_TIMESTAMP = 1;
-        static final int SPOT_TICKERS_CROSS_SEQUENCE = 2;
-        static final int SPOT_TICKERS_LAST_PRICE = 3;
-        static final int SPOT_TICKERS_HIGH_PRICE_24H = 4;
-        static final int SPOT_TICKERS_LOW_PRICE_24H = 5;
-        static final int SPOT_TICKERS_PREV_PRICE_24H = 6;
-        static final int SPOT_TICKERS_VOLUME_24H = 7;
-        static final int SPOT_TICKERS_TURNOVER_24H = 8;
-        static final int SPOT_TICKERS_PRICE_24H_PCNT = 9;
-        static final int SPOT_TICKERS_USD_INDEX_PRICE = 10;
+        static final String SPOT_TICKERS_INSERT = "INSERT INTO crypto_scout.bybit_spot_tickers " +
+                "(symbol, timestamp, cross_sequence, last_price, high_price_24h, low_price_24h, prev_price_24h, " +
+                "volume_24h, turnover_24h, price_24h_pcnt, usd_index_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        static final int SPOT_TICKERS_SYMBOL = 1;
+        static final int SPOT_TICKERS_TIMESTAMP = 2;
+        static final int SPOT_TICKERS_CROSS_SEQUENCE = 3;
+        static final int SPOT_TICKERS_LAST_PRICE = 4;
+        static final int SPOT_TICKERS_HIGH_PRICE_24H = 5;
+        static final int SPOT_TICKERS_LOW_PRICE_24H = 6;
+        static final int SPOT_TICKERS_PREV_PRICE_24H = 7;
+        static final int SPOT_TICKERS_VOLUME_24H = 8;
+        static final int SPOT_TICKERS_TURNOVER_24H = 9;
+        static final int SPOT_TICKERS_PRICE_24H_PCNT = 10;
+        static final int SPOT_TICKERS_USD_INDEX_PRICE = 11;
     }
 }

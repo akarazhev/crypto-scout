@@ -41,6 +41,7 @@ import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_LOW_PRICE_24H;
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_PREV_PRICE_24H;
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_PRICE_24H_PCNT;
+import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_SYMBOL;
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_TIMESTAMP;
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_TURNOVER_24H;
 import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_USD_INDEX_PRICE;
@@ -54,6 +55,7 @@ import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.LAST_PRIC
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.LOW_PRICE_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.PREV_PRICE_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.PRICE_24H_PCNT;
+import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.SYMBOL;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TS;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TURNOVER_24H;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.USD_INDEX_PRICE;
@@ -83,10 +85,10 @@ public final class CryptoBybitRepository extends AbstractReactive implements Rea
         return Promise.complete();
     }
 
-    public int insertSpot(final String table, final Iterable<Map<String, Object>> rows) throws Exception {
+    public int insertSpotTickers(final Iterable<Map<String, Object>> rows) throws Exception {
         int count = 0;
         try (final var c = dataSource.getConnection();
-             final var ps = c.prepareStatement(String.format(SPOT_TICKERS_INSERT, table))) {
+             final var ps = c.prepareStatement(String.format(SPOT_TICKERS_INSERT))) {
             for (final var row : rows) {
                 final var dObj = row.get(DATA);
                 if (!(dObj instanceof Map<?, ?> map)) {
@@ -109,6 +111,7 @@ public final class CryptoBybitRepository extends AbstractReactive implements Rea
                 }
 
                 @SuppressWarnings("unchecked") final var d = (Map<String, Object>) map;
+                ps.setString(SPOT_TICKERS_SYMBOL, (String) d.get(SYMBOL));
                 ps.setBigDecimal(SPOT_TICKERS_LAST_PRICE, toBigDecimal(d.get(LAST_PRICE)));
                 ps.setBigDecimal(SPOT_TICKERS_HIGH_PRICE_24H, toBigDecimal(d.get(HIGH_PRICE_24H)));
                 ps.setBigDecimal(SPOT_TICKERS_LOW_PRICE_24H, toBigDecimal(d.get(LOW_PRICE_24H)));

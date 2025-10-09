@@ -43,8 +43,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
-import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_BTC_USDT;
-import static com.github.akarazhev.cryptoscout.collector.db.Constants.Bybit.SPOT_TICKERS_ETH_USDT;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Response.TOPIC;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_BTC_USDT;
 import static com.github.akarazhev.jcryptolib.bybit.Constants.Topic.TICKERS_ETH_USDT;
@@ -124,31 +122,22 @@ public final class CryptoBybitCollector extends AbstractReactive implements Reac
         }
 
         return Promise.ofBlocking(executor, () -> {
-            final var spotTickersBtcUsdt = new ArrayList<Map<String, Object>>();
-            final var spotTickersEthUsdt = new ArrayList<Map<String, Object>>();
+            final var spotTickers = new ArrayList<Map<String, Object>>();
             for (final var payload : snapshot) {
                 final var data = payload.getData();
                 final var topic = (String) data.get(TOPIC);
                 final var source = payload.getSource();
                 if (Source.PMST.equals(source)) {
-                    if (Objects.equals(topic, TICKERS_BTC_USDT)) {
-                        spotTickersBtcUsdt.add(data);
-                    } else if (Objects.equals(topic, TICKERS_ETH_USDT)) {
-                        spotTickersEthUsdt.add(data);
+                    if (Objects.equals(topic, TICKERS_BTC_USDT) || Objects.equals(topic, TICKERS_ETH_USDT)) {
+                        spotTickers.add(data);
                     }
                 } else if (Source.PML.equals(source)) {
                     // TODO: implement futures
                 }
             }
 
-            if (!spotTickersBtcUsdt.isEmpty()) {
-                LOGGER.info("Inserted {} BTC-USDT spot tickers",
-                        cryptoBybitRepository.insertSpot(SPOT_TICKERS_BTC_USDT, spotTickersBtcUsdt));
-            }
-
-            if (!spotTickersEthUsdt.isEmpty()) {
-                LOGGER.info("Inserted {} ETH-USDT spot tickers",
-                        cryptoBybitRepository.insertSpot(SPOT_TICKERS_ETH_USDT, spotTickersEthUsdt));
+            if (!spotTickers.isEmpty()) {
+                LOGGER.info("Inserted {} spot tickers", cryptoBybitRepository.insertSpotTickers(spotTickers));
             }
 
             return null;
