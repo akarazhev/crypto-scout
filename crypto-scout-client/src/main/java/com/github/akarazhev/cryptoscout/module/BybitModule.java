@@ -61,11 +61,11 @@ public final class BybitModule extends AbstractModule {
     private BybitStream linearBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PML) // Public Mainnet Linear
-                .topic(Topic.PUBLIC_TRADE_BTC_USDT) // publicTrade.BTCUSDT
                 .topic(Topic.TICKERS_BTC_USDT) // tickers.BTCUSDT
-                .topic(Topic.ALL_LIQUIDATION_BTC_USDT) // allLiquidation.BTCUSDT
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT) // publicTrade.ETHUSDT
                 .topic(Topic.TICKERS_ETH_USDT) // tickers.ETHUSDT
+                .topic(Topic.KLINE_1_BTC_USDT) // kline.1.BTCUSDT
+                .topic(Topic.KLINE_1_ETH_USDT) // kline.1.ETHUSDT
+                .topic(Topic.ALL_LIQUIDATION_BTC_USDT) // allLiquidation.BTCUSDT
                 .topic(Topic.ALL_LIQUIDATION_ETH_USDT) // allLiquidation.ETHUSDT
                 .build();
         LOGGER.info(config.print());
@@ -77,10 +77,10 @@ public final class BybitModule extends AbstractModule {
     private BybitStream spotBybitStream(final NioReactor reactor, final IWebSocketClient webSocketClient) {
         final var config = new DataConfig.Builder()
                 .streamType(StreamType.PMST) // Public Mainnet Spot
-                .topic(Topic.PUBLIC_TRADE_BTC_USDT) // publicTrade.BTCUSDT
                 .topic(Topic.TICKERS_BTC_USDT) // tickers.BTCUSDT
-                .topic(Topic.PUBLIC_TRADE_ETH_USDT) // publicTrade.ETHUSDT
                 .topic(Topic.TICKERS_ETH_USDT) // tickers.ETHUSDT
+                .topic(Topic.KLINE_1_BTC_USDT) // kline.1.BTCUSDT
+                .topic(Topic.KLINE_1_ETH_USDT) // kline.1.ETHUSDT
                 .build();
         LOGGER.info(config.print());
         return BybitStream.create(reactor, webSocketClient, config);
