@@ -1,0 +1,30 @@
+{
+  "name": "crypto-scout-opencode",
+  "version": "0.0.1",
+  "description": "OpenCode configuration for the crypto-scout ecosystem",
+  "private": true,
+  "license": "MIT",
+  "agents": [
+    "agents/developer.md",
+    "agents/reviewer.md",
+    "agents/writer.md"
+  ],
+  "skills": [
+    "skills/java-ecosystem/SKILL.md",
+    "skills/maven-build/SKILL.md",
+    "skills/podman-orchestration/SKILL.md",
+    "skills/timescaledb-data/SKILL.md",
+    "skills/rabbitmq-messaging/SKILL.md",
+    "skills/project-architecture/SKILL.md"
+  ],
+  "metadata": {
+    "project": "crypto-scout",
+    "language": "java",
+    "version": "25",
+    "framework": "activej",
+    "buildTool": "maven",
+    "containerPlatform": "podman",
+    "database": "timescaledb",
+    "messaging": "rabbitmq"
+  }
+}
