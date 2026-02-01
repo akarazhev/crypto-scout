@@ -16,5 +16,7 @@
     <modules>
         <module>crypto-scout-test</module>
         <module>crypto-scout-client</module>
+        <module>crypto-scout-collector</module>
+        <module>crypto-scout-analyst</module>
     </modules>
 </project>
