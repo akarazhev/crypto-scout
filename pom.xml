@@ -15,5 +15,6 @@
     </licenses>
     <modules>
         <module>crypto-scout-test</module>
+        <module>crypto-scout-client</module>
     </modules>
 </project>
