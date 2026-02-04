@@ -46,11 +46,12 @@ flowchart TB
 
 | Module | Purpose | Technology |
 |--------|---------|------------|
+| [jcryptolib](jcryptolib/) | Core cryptocurrency library (Bybit streams, CMC parser, analysis) | ActiveJ, DSL-JSON |
 | [crypto-scout-mq](crypto-scout-mq/) | RabbitMQ infrastructure with Streams and AMQP | RabbitMQ 4.1.4 |
 | [crypto-scout-test](crypto-scout-test/) | Shared test utilities and mock data | JUnit 6, Podman |
 | [crypto-scout-client](crypto-scout-client/) | Real-time data collection from Bybit and CMC | ActiveJ, WebSocket |
 | [crypto-scout-collector](crypto-scout-collector/) | Data persistence to TimescaleDB | JDBC, HikariCP |
-| [crypto-scout-analyst](crypto-scout-analyst/) | Market analysis and alerting (WIP) | ActiveJ |
+| [crypto-scout-analyst](crypto-scout-analyst/) | Market analysis and alerting | ActiveJ |
 
 ## Features
 
@@ -64,6 +65,8 @@ flowchart TB
 
 ## Quick Start
 
+> **Note:** `jcryptolib` and `crypto-scout-mq` are prerequisites for the other modules. Build `jcryptolib` first, then start `crypto-scout-mq` before running services.
+
 ### Prerequisites
 
 - Java 25 JDK (Temurin recommended)
@@ -76,6 +79,8 @@ flowchart TB
 ```bash
 git clone <repository-url>
 cd crypto-scout
+
+# Build all modules (includes jcryptolib)
 mvn -q -DskipTests install
 ```
 
@@ -319,6 +324,16 @@ crypto-scout/
 ├── LICENSE                           # MIT License
 ├── README.md                         # This file
 │
+├── jcryptolib/                       # Core cryptocurrency library
+│   ├── pom.xml
+│   ├── src/main/java/.../jcryptolib/
+│   │   ├── bybit/stream/             # Bybit WebSocket streaming
+│   │   ├── cmc/parser/               # CoinMarketCap REST parser
+│   │   ├── analysis/engine/          # Technical analysis indicators
+│   │   ├── stream/                   # Core streaming abstractions
+│   │   └── resilience/               # Circuit breaker, rate limiter
+│   └── README.md
+│
 ├── crypto-scout-mq/                  # RabbitMQ infrastructure
 │   ├── podman-compose.yml
 │   ├── rabbitmq/
@@ -357,9 +372,15 @@ crypto-scout/
 │   │   └── crypto_scout_tables.sql
 │   └── README.md
 │
-└── crypto-scout-analyst/             # Analysis service (WIP)
-    ├── pom.xml
-    └── README.md
+├── crypto-scout-analyst/             # Analysis service
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── README.md
+│
+└── crypto-scout-mq/                  # RabbitMQ infrastructure (not a Java module)
+    ├── podman-compose.yml
+    ├── rabbitmq/
+    └── script/
 ```
 
 ## Technology Stack
@@ -370,7 +391,9 @@ crypto-scout/
 | Build Tool | Maven | 3.9+ |
 | Framework | ActiveJ | 6.0-rc2 |
 | Messaging | RabbitMQ | 4.1.4 |
+| JSON Library | DSL-JSON | 2.0.2 |
 | Database | TimescaleDB | PG17 |
+| Analysis | ta4j-core | 0.22.1 (optional) |
 | Connection Pool | HikariCP | 7.0.2 |
 | Testing | JUnit | 6.1.0-M1 |
 | Container | Podman | Latest |
