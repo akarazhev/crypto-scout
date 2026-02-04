@@ -138,6 +138,15 @@ The developer agent will:
 
 ```
 crypto-scout/
+├── jcryptolib/                # Core cryptocurrency library
+│   ├── src/main/java/.../jcryptolib/
+│   │   ├── bybit/stream/      # Bybit WebSocket streaming
+│   │   ├── cmc/parser/        # CoinMarketCap REST parser
+│   │   ├── analysis/engine/   # Technical analysis indicators
+│   │   ├── stream/            # Core streaming abstractions
+│   │   └── resilience/        # Circuit breaker, rate limiter
+│   └── pom.xml
+│
 ├── crypto-scout-mq/           # RabbitMQ infrastructure
 │   ├── podman-compose.yml
 │   └── rabbitmq/
@@ -175,7 +184,8 @@ crypto-scout/
 │   └── podman-compose.yml
 │
 └── crypto-scout-analyst/      # Analysis service
-    └── src/main/java/.../analyst/
+    ├── src/main/java/.../analyst/
+    └── podman-compose.yml
 ```
 
 ## Key Conventions

@@ -22,6 +22,10 @@ flowchart TB
         CMC["CoinMarketCap API<br/>REST"]
     end
     
+    subgraph Library["Core Library"]
+        JCL["jcryptolib<br/>(Bybit Stream, CMC Parser,<br/>Analysis Engine)"]
+    end
+    
     subgraph Messaging["RabbitMQ Messaging"]
         EX["crypto-scout-exchange"]
         BS["bybit-stream"]
@@ -39,8 +43,9 @@ flowchart TB
         DB[("TimescaleDB<br/>Time-series data")]
     end
     
-    Bybit -->|WebSocket| Client
-    CMC -->|REST| Client
+    Bybit -->|WebSocket| JCL
+    CMC -->|REST| JCL
+    JCL -->|Uses| Client
     Client -->|Publish| BS
     Client -->|Publish| CS
     BS -->|Consume| Collector
@@ -120,16 +125,25 @@ StreamService
 
 **Offset Management**: DB-backed offsets for exactly-once processing
 
+### jcryptolib
+**Purpose**: Core cryptocurrency library shared across all services
+
+**Components**:
+- **Bybit Streaming**: WebSocket client with resilience patterns
+- **CMC Parser**: REST API client with scheduling
+- **Analysis Engine**: Technical indicators (SMA, EMA, Bitcoin Risk)
+- **Resilience**: Circuit breaker, rate limiter, health checks
+
+**Usage**: Dependency for all other Java modules
+
 ### crypto-scout-analyst
 **Purpose**: Market analysis and alerting
 
-**Current**: Placeholder for future analytical capabilities
-
-**Planned**:
-- Real-time market analysis
-- Alert generation
-- Risk assessment
-- Trading signals
+**Components**:
+- Stream consumers with transformers
+- DataService for async processing
+- AnalystEngine integration from jcryptolib
+- Real-time analysis pipeline
 
 ## Data Flow Patterns
 

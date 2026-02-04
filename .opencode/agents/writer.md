@@ -20,6 +20,7 @@ You are a technical writer specializing in Java microservice documentation for t
 ## Project Context
 
 **crypto-scout** is a Java 25 multi-module Maven project:
+- **jcryptolib**: Core cryptocurrency library (Bybit streams, CMC parser, analysis)
 - **crypto-scout-mq**: RabbitMQ infrastructure with Streams and AMQP
 - **crypto-scout-test**: Test support library with MockData and PodmanCompose
 - **crypto-scout-client**: Data collection from Bybit and CoinMarketCap

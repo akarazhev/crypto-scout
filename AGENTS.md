@@ -8,6 +8,7 @@ This document provides guidelines for agentic coding contributors to the crypto-
 
 | Module | Purpose | Technology |
 |--------|---------|------------|
+| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j |
 | `crypto-scout-mq` | RabbitMQ infrastructure | RabbitMQ 4.1.4, Streams, AMQP |
 | `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data |
 | `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP |
@@ -296,7 +297,15 @@ static final Duration TIMEOUT = Duration.ofMinutes(Long.getLong("timeout.key", 3
 
 ### crypto-scout-analyst (Analysis)
 - Subscribes to streams for real-time analysis
-- Placeholder for future analytical capabilities
+- Stream transformers and data processors
+- Async analysis pipeline with ActiveJ datastreams
+
+### jcryptolib (Core Library)
+- **Bybit Streaming**: WebSocket client with auto-reconnection, circuit breaker, ping/pong
+- **CMC Parser**: REST API client with rate limiting and scheduling
+- **Analysis Engine**: Technical indicators (SMA, EMA, Bitcoin Risk)
+- **Resilience**: Circuit breaker, rate limiter, health checks
+- **Stream Abstractions**: Payload, Provider, Source enums
 
 ## Key Dependencies
 

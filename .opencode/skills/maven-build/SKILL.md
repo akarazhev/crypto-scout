@@ -18,6 +18,8 @@ Provide guidance for building, testing, and packaging the crypto-scout multi-mod
 ```
 crypto-scout/
 ├── pom.xml                    # Root aggregator POM
+├── jcryptolib/
+│   └── pom.xml               # Core cryptocurrency library
 ├── crypto-scout-test/
 │   └── pom.xml               # Test library
 ├── crypto-scout-client/
@@ -91,6 +93,7 @@ cd crypto-scout-client && mvn clean package -DskipTests
     <packaging>pom</packaging>
     
     <modules>
+        <module>jcryptolib</module>
         <module>crypto-scout-test</module>
         <module>crypto-scout-client</module>
         <module>crypto-scout-collector</module>

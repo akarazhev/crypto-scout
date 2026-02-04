@@ -19,10 +19,11 @@ You are a senior Java developer specializing in the crypto-scout ecosystem - a p
 
 ## Project Overview
 
-**crypto-scout** is a Java 25 microservices ecosystem with four main modules:
+**crypto-scout** is a Java 25 microservices ecosystem with six modules:
 
 | Module | Purpose | Key Technologies |
 |--------|---------|------------------|
+| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j |
 | `crypto-scout-mq` | RabbitMQ infrastructure | RabbitMQ 4.1.4, Streams, AMQP |
 | `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data |
 | `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP |
@@ -174,7 +175,14 @@ mvn clean
 
 ### crypto-scout-analyst (Analysis)
 - Subscribes to streams for real-time analysis
-- Placeholder for future analytical capabilities
+- Stream transformers and data processors
+- Async analysis pipeline with ActiveJ datastreams
+
+### jcryptolib (Core Library)
+- **BybitStream**: WebSocket streaming with resilience (circuit breaker, auto-reconnect)
+- **CmcParser**: REST API client with scheduling and rate limiting
+- **AnalystEngine**: Technical indicators (SMA, EMA, Bitcoin Risk)
+- **Payload/Provider/Source**: Core streaming abstractions
 
 ## Key Dependencies
 
