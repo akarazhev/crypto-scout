@@ -2,7 +2,7 @@
 description: Senior Java developer for the crypto-scout ecosystem - multi-module Maven project with RabbitMQ Streams and TimescaleDB
 code: developer
 mode: primary
-model: zai-coding-plan/glm-4.7
+model: opencode/kimi-k2.5-free
 temperature: 0.2
 tools:
   write: true
