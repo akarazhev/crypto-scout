@@ -6,14 +6,60 @@ This document provides guidelines for agentic coding contributors to the crypto-
 
 **crypto-scout** is a Java 25 multi-module Maven ecosystem for cryptocurrency market data collection, persistence, and analysis:
 
-| Module | Purpose | Technology |
-|--------|---------|------------|
-| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j |
-| `crypto-scout-mq` | RabbitMQ infrastructure | RabbitMQ 4.1.4, Streams, AMQP |
-| `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data |
-| `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP |
-| `crypto-scout-collector` | Data persistence service | JDBC, TimescaleDB, HikariCP |
-| `crypto-scout-analyst` | Analysis service | ActiveJ, Streams consumer |
+| Module | Purpose | Technology | Version | Java Files |
+|--------|---------|------------|---------|------------|
+| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j | 0.0.4 | ~70 |
+| `crypto-scout-mq` | RabbitMQ infrastructure | RabbitMQ 4.1.4, Streams, AMQP | - | 0 |
+| `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data | 0.0.1 | ~15 |
+| `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP | 0.0.1 | ~15 |
+| `crypto-scout-collector` | Data persistence service | JDBC, TimescaleDB, HikariCP | 0.0.1 | ~30 |
+| `crypto-scout-analyst` | Analysis service | ActiveJ, Streams consumer | 0.0.1 | ~25 |
+
+**Total: ~155 Java source files across 5 Java modules**
+
+## Directory Structure
+
+```
+crypto-scout/                    # Root Aggregator (Maven parent)
+├── .opencode/                   # OpenCode configuration
+│   ├── agents/                  # Agent definitions (developer, reviewer, writer)
+│   └── skills/                  # Skill definitions
+├── crypto-scout-mq/             # RabbitMQ Infrastructure (non-Java module)
+│   ├── rabbitmq/                # RabbitMQ config files
+│   ├── script/                  # Setup scripts
+│   └── secret/                  # Environment secrets
+├── jcryptolib/                  # Core Library (v0.0.4)
+│   ├── doc/                     # Documentation and specs
+│   └── src/
+│       ├── main/java/           # ~40 source files
+│       │   ├── analysis/        # Analysis engine and indicators
+│       │   ├── bybit/           # Bybit streaming client
+│       │   ├── cmc/             # CoinMarketCap parser
+│       │   ├── config/          # Configuration
+│       │   ├── exception/       # 10 exception types
+│       │   ├── resilience/      # Circuit breaker, rate limiter
+│       │   ├── stream/          # Stream abstractions
+│       │   └── util/            # JSON, time, security utilities
+│       └── test/java/           # ~30 test files
+├── crypto-scout-test/           # Test Support Library (v0.0.1)
+│   └── src/
+│       ├── main/                # Test utilities and mock data
+│       │   ├── java/            # PodmanCompose, MockData, publishers
+│       │   └── resources/       # Mock JSON data, SQL scripts
+│       └── test/java/           # Self-tests for test library
+├── crypto-scout-client/         # Data Collection Service (v0.0.1)
+│   └── src/main/java/           # Client.java launcher, consumers
+├── crypto-scout-collector/      # Data Persistence Service (v0.0.1)
+│   ├── script/                  # SQL table definitions
+│   └── src/
+│       ├── main/java/           # Collector.java launcher, repositories
+│       └── test/java/           # Repository and service tests
+└── crypto-scout-analyst/        # Analysis Service (v0.0.1)
+    ├── script/                  # SQL init scripts
+    └── src/
+        ├── main/java/           # Analyst.java launcher, transformers
+        └── test/java/           # Data service tests
+```
 
 ## System Architecture
 
@@ -276,36 +322,121 @@ static final Duration TIMEOUT = Duration.ofMinutes(Long.getLong("timeout.key", 3
 
 ## Module-Specific Guidelines
 
-### crypto-scout-test (Test Library)
-- Mock data fixtures in `src/main/resources/`
-- PodmanCompose for container lifecycle management
-- StreamTestPublisher/Consumer for RabbitMQ Streams testing
-- AmqpTestPublisher/Consumer for AMQP testing
-- DBUtils for database test operations
+### jcryptolib (Core Library) - ~70 files
+Located in: `jcryptolib/src/main/java/com/github/akarazhev/jcryptolib/`
 
-### crypto-scout-client (Data Collection)
-- ActiveJ modules: CoreModule, WebModule, ClientModule, BybitSpotModule, BybitLinearModule, CmcParserModule
-- AmqpPublisher routes payloads to streams based on provider
-- Health endpoint at `/health` for container orchestration
-- Module toggles: `bybit.stream.module.enabled`, `cmc.parser.module.enabled`
+**Packages:**
+- `analysis/` - Analysis engine with indicators (SMA, EMA, Bitcoin Risk)
+- `bybit/stream/` - WebSocket client with auto-reconnection, circuit breaker, ping/pong
+- `cmc/parser/` - REST API client with rate limiting and scheduling
+- `config/` - Application configuration
+- `exception/` - 10 exception types (ApiException, BybitApiException, CmcApiException, etc.)
+- `resilience/` - Circuit breaker, rate limiter, health checks
+- `stream/` - Stream abstractions (Payload, Provider, Source, Statistic, RestMetrics)
+- `util/` - JsonUtils, ParserUtils, TimeUtils, ValueUtils, SecUtils
 
-### crypto-scout-collector (Data Persistence)
-- StreamService consumes from RabbitMQ Streams
-- BybitStreamService and CryptoScoutService for data processing
-- Repository pattern for database access
+### crypto-scout-test (Test Library) - ~15 files
+Located in: `crypto-scout-test/src/main/java/com/github/akarazhev/cryptoscout/test/`
+
+**Key Classes:**
+- `PodmanCompose` - Container lifecycle management
+- `MockData` - Mock data fixtures (bybit-spot, bybit-linear, crypto-scout)
+- `StreamTestPublisher` / `StreamTestConsumer` - RabbitMQ Streams testing
+- `AmqpTestPublisher` / `AmqpTestConsumer` - AMQP testing
+- `DBUtils` - Database test operations
+- `Assertions` - Custom test assertions
+
+**Resources:** `src/main/resources/` contains:
+- `bybit-spot/` - Spot market mock data (tickers, klines, orderbook)
+- `bybit-linear/` - Linear market mock data (tickers, klines, orderbook)
+- `crypto-scout/` - Crypto scout mock data (FGI, BTC risk, LPL)
+- `podman/` - Test container configuration
+
+### crypto-scout-client (Data Collection) - ~15 files
+Located in: `crypto-scout-client/src/main/java/com/github/akarazhev/cryptoscout/`
+
+**Launcher:** `Client.java`
+
+**ActiveJ Modules:**
+- `CoreModule` - Core dependency injection
+- `WebModule` - HTTP server with health endpoint at `/health`
+- `ClientModule` - Client configuration
+- `BybitSpotModule` - Bybit spot market consumers
+- `BybitLinearModule` - Bybit linear market consumers
+- `CmcParserModule` - CoinMarketCap parser consumer
+
+**Consumers:**
+- `BybitSpotBtcUsdtConsumer` / `BybitSpotEthUsdtConsumer`
+- `BybitLinearBtcUsdtConsumer` / `BybitLinearEthUsdtConsumer`
+- `CmcParserConsumer`
+
+**Publishing:** `AmqpPublisher` routes payloads to streams based on provider
+
+### crypto-scout-collector (Data Persistence) - ~30 files
+Located in: `crypto-scout-collector/src/main/java/com/github/akarazhev/cryptoscout/`
+
+**Launcher:** `Collector.java`
+
+**Stream Processing:**
+- `StreamService` - Consumes from RabbitMQ Streams
+- `BybitStreamService` - Bybit data processing
+- `CryptoScoutService` - Crypto scout data processing
+- `DataService` - General data operations
+
+**Repositories:**
+- `BybitSpotRepository` - Spot market persistence
+- `BybitLinearRepository` - Linear market persistence
+- `CryptoScoutRepository` - Crypto scout data persistence
+- `AnalystRepository` - Analysis results persistence
+- `StreamOffsetsRepository` - Offset management
+
+**Database:**
+- `CollectorDataSource` - HikariCP connection pool
 - Offset management in `crypto_scout.stream_offsets` table
 
-### crypto-scout-analyst (Analysis)
-- Subscribes to streams for real-time analysis
-- Stream transformers and data processors
-- Async analysis pipeline with ActiveJ datastreams
+**SQL Scripts:** Located in `script/`
+- `bybit_spot_tables.sql` - Spot market table definitions
+- `bybit_linear_tables.sql` - Linear market table definitions
+- `crypto_scout_tables.sql` - Crypto scout table definitions
+- `analyst_tables.sql` - Analysis table definitions
 
-### jcryptolib (Core Library)
-- **Bybit Streaming**: WebSocket client with auto-reconnection, circuit breaker, ping/pong
-- **CMC Parser**: REST API client with rate limiting and scheduling
-- **Analysis Engine**: Technical indicators (SMA, EMA, Bitcoin Risk)
-- **Resilience**: Circuit breaker, rate limiter, health checks
-- **Stream Abstractions**: Payload, Provider, Source enums
+### crypto-scout-analyst (Analysis) - ~25 files
+Located in: `crypto-scout-analyst/src/main/java/com/github/akarazhev/cryptoscout/`
+
+**Launcher:** `Analyst.java`
+
+**Stream Processing:**
+- `StreamService` - Stream subscription and management
+- `StreamIn` - Stream input handling
+- `BytesToPayloadTransformer` - Byte[] to Payload transformation
+- `AnalystTransformer` - Analysis transformation logic
+- `StreamPublisher` - Output publishing
+- `MessageSupplier` - Message supply for streams
+
+**Services:**
+- `BybitStreamService` - Bybit stream analysis
+- `CryptoScoutService` - Crypto scout analysis
+- `DataService` - Async data processing with ActiveJ datastreams
+- `HealthService` - Health check endpoint
+
+**Database:**
+- `AnalystDataSource` - Connection pool
+- `StreamOffsetsRepository` - Offset tracking
+
+### crypto-scout-mq (Infrastructure)
+Located in: `crypto-scout-mq/` (non-Java module)
+
+**Configuration:**
+- `rabbitmq/rabbitmq.conf` - RabbitMQ configuration
+- `rabbitmq/definitions.json` - Queue/stream definitions
+- `rabbitmq/enabled_plugins` - Enabled plugins (streams, management)
+
+**Scripts:**
+- `script/network.sh` - Network setup
+- `script/rmq_compose.sh` - Container orchestration
+- `script/rmq_user.sh` - User management
+
+**Secrets:** `secret/rabbitmq.env` - Credentials (600 permissions)
 
 ## Key Dependencies
 
@@ -319,6 +450,8 @@ static final Duration TIMEOUT = Duration.ofMinutes(Long.getLong("timeout.key", 3
 | PostgreSQL | 42.7.9 | Database driver |
 | HikariCP | 7.0.2 | Connection pooling |
 | JUnit | 6.1.0-M1 | Testing |
+| DSL-JSON | 2.0.2 | JSON parsing |
+| ta4j | 0.22.1 | Technical analysis |
 
 ## Resource Management
 
@@ -358,6 +491,9 @@ java -jar crypto-scout-client/target/crypto-scout-client-0.0.1.jar
 
 # Run collector
 java -jar crypto-scout-collector/target/crypto-scout-collector-0.0.1.jar
+
+# Run analyst
+java -jar crypto-scout-analyst/target/crypto-scout-analyst-0.0.1.jar
 ```
 
 ### Health Checks
@@ -369,7 +505,9 @@ curl http://localhost:15672/api/health/checks/virtual-hosts -u crypto_scout_mq:p
 podman exec crypto-scout-collector-db pg_isready -U crypto_scout_db
 
 # Services
-curl http://localhost:8081/health
+curl http://localhost:8081/health  # Client
+curl http://localhost:8082/health  # Collector
+curl http://localhost:8083/health  # Analyst
 ```
 
 ## Security Best Practices
@@ -411,6 +549,8 @@ podman exec -it crypto-scout-collector-db psql -U crypto_scout_db -d crypto_scou
 
 # Check table counts
 SELECT COUNT(*) FROM crypto_scout.bybit_spot_tickers;
+SELECT COUNT(*) FROM crypto_scout.bybit_linear_tickers;
+SELECT COUNT(*) FROM crypto_scout.crypto_scout_fgi;
 ```
 
 ## License
