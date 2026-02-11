@@ -138,53 +138,112 @@ The developer agent will:
 
 ```
 crypto-scout/
-├── jcryptolib/                # Core cryptocurrency library
+├── pom.xml                      # Root aggregator POM (version 0.0.1)
+│
+├── jcryptolib/                  # Core cryptocurrency library (v0.0.4)
 │   ├── src/main/java/.../jcryptolib/
-│   │   ├── bybit/stream/      # Bybit WebSocket streaming
-│   │   ├── cmc/parser/        # CoinMarketCap REST parser
-│   │   ├── analysis/engine/   # Technical analysis indicators
-│   │   ├── stream/            # Core streaming abstractions
-│   │   └── resilience/        # Circuit breaker, rate limiter
+│   │   ├── bybit/
+│   │   │   ├── stream/          # BybitStream, BybitParser, PingPongHandler
+│   │   │   └── config/          # Config, Type, StreamType, Topic
+│   │   ├── cmc/
+│   │   │   ├── parser/          # CmcParser, CmcConfig
+│   │   │   └── config/          # Config, Type, Range
+│   │   ├── analysis/
+│   │   │   ├── engine/          # AnalystEngine, indicators (SMA, EMA, BitcoinRisk)
+│   │   │   └── config/          # Type
+│   │   ├── stream/              # Payload, Message, Provider, Source, Statistic
+│   │   ├── resilience/          # CircuitBreaker, RateLimiter, HealthCheck
+│   │   ├── util/                # JsonUtils, ParserUtils, TimeUtils, ValueUtils, SecUtils
+│   │   ├── config/              # AppConfig
+│   │   └── exception/           # 10 exception types
 │   └── pom.xml
 │
-├── crypto-scout-mq/           # RabbitMQ infrastructure
-│   ├── podman-compose.yml
-│   └── rabbitmq/
-│       ├── definitions.json
-│       ├── rabbitmq.conf
-│       └── enabled_plugins
-│
-├── crypto-scout-test/         # Test library
+├── crypto-scout-test/           # Test library
 │   ├── src/main/java/.../test/
 │   │   ├── MockData.java
 │   │   ├── PodmanCompose.java
 │   │   ├── StreamTestPublisher.java
-│   │   └── DBUtils.java
+│   │   ├── StreamTestConsumer.java
+│   │   ├── AmqpTestPublisher.java
+│   │   ├── AmqpTestConsumer.java
+│   │   ├── DBUtils.java
+│   │   └── Assertions.java
 │   └── src/main/resources/
-│       ├── bybit-spot/
-│       ├── bybit-linear/
-│       └── crypto-scout/
+│       ├── bybit-spot/          # Mock data (tickers, klines, orderbooks, trades)
+│       ├── bybit-linear/        # Mock data (tickers, klines, orderbooks, liquidations)
+│       ├── crypto-scout/        # Mock data (fgi, lpl, btcPriceRisk, btcRiskPrice)
+│       └── podman/              # RabbitMQ and TimescaleDB configs for tests
 │
-├── crypto-scout-client/       # Data collection
-│   ├── src/main/java/.../client/
-│   │   ├── AmqpPublisher.java
-│   │   ├── AbstractBybitStreamConsumer.java
-│   │   └── CmcParserConsumer.java
-│   └── podman-compose.yml
+├── crypto-scout-client/         # Data collection service
+│   ├── src/main/java/.../
+│   │   ├── Client.java          # Launcher
+│   │   ├── client/
+│   │   │   ├── AmqpPublisher.java
+│   │   │   ├── AbstractBybitStreamConsumer.java
+│   │   │   ├── BybitSpotBtcUsdtConsumer.java
+│   │   │   ├── BybitSpotEthUsdtConsumer.java
+│   │   │   ├── BybitLinearBtcUsdtConsumer.java
+│   │   │   ├── BybitLinearEthUsdtConsumer.java
+│   │   │   └── CmcParserConsumer.java
+│   │   ├── config/              # AmqpConfig, WebConfig, CmcApiConfig
+│   │   └── module/              # CoreModule, WebModule, ClientModule, BybitSpotModule, BybitLinearModule, CmcParserModule
+│   ├── podman-compose.yml
+│   └── Dockerfile
 │
-├── crypto-scout-collector/    # Data persistence
-│   ├── src/main/java/.../collector/
-│   │   ├── StreamService.java
-│   │   ├── BybitStreamService.java
-│   │   ├── CryptoScoutService.java
-│   │   └── db/
-│   │       ├── BybitSpotRepository.java
-│   │       └── BybitLinearRepository.java
-│   ├── script/                # SQL scripts
-│   └── podman-compose.yml
+├── crypto-scout-collector/      # Data persistence service
+│   ├── src/main/java/.../
+│   │   ├── Collector.java       # Launcher
+│   │   ├── collector/
+│   │   │   ├── StreamService.java
+│   │   │   ├── BybitStreamService.java
+│   │   │   ├── CryptoScoutService.java
+│   │   │   ├── DataService.java
+│   │   │   ├── AnalystService.java
+│   │   │   ├── AmqpPublisher.java
+│   │   │   ├── AmqpConsumer.java
+│   │   │   ├── HealthService.java
+│   │   │   ├── MovingAverageCalculator.java
+│   │   │   ├── PayloadParser.java
+│   │   │   └── db/
+│   │   │       ├── CollectorDataSource.java
+│   │   │       ├── StreamOffsetsRepository.java
+│   │   │       ├── BybitSpotRepository.java
+│   │   │       ├── BybitLinearRepository.java
+│   │   │       ├── CryptoScoutRepository.java
+│   │   │       └── AnalystRepository.java
+│   │   ├── config/              # AmqpConfig, JdbcConfig, ServerConfig
+│   │   └── module/              # CoreModule, WebModule, CollectorModule
+│   ├── script/                  # SQL scripts (init.sql, bybit_spot_tables.sql, etc.)
+│   ├── podman-compose.yml
+│   └── Dockerfile
 │
-└── crypto-scout-analyst/      # Analysis service
-    ├── src/main/java/.../analyst/
+├── crypto-scout-analyst/        # Analysis service
+│   ├── src/main/java/.../
+│   │   ├── Analyst.java         # Launcher
+│   │   ├── stream/
+│   │   │   ├── StreamService.java
+│   │   │   ├── StreamPublisher.java
+│   │   │   ├── StreamIn.java
+│   │   │   ├── MessageSupplier.java
+│   │   │   ├── StreamPayload.java
+│   │   │   ├── BytesToPayloadTransformer.java
+│   │   │   └── AnalystTransformer.java
+│   │   ├── db/
+│   │   │   ├── AnalystDataSource.java
+│   │   │   └── StreamOffsetsRepository.java
+│   │   ├── config/              # AmqpConfig, JdbcConfig, ServerConfig
+│   │   └── module/              # CoreModule, WebModule, AnalystModule
+│   ├── script/init.sql
+│   ├── podman-compose.yml
+│   └── Dockerfile
+│
+└── crypto-scout-mq/             # RabbitMQ infrastructure
+    ├── rabbitmq/
+    │   ├── definitions.json     # Exchange/queue/stream definitions
+    │   ├── rabbitmq.conf        # RabbitMQ configuration
+    │   └── enabled_plugins      # Stream plugin
+    ├── script/
+    ├── secret/
     └── podman-compose.yml
 ```
 
@@ -193,7 +252,7 @@ crypto-scout/
 ### Code Style
 - MIT License header (23 lines)
 - Package on line 25
-- Imports: java.* → third-party → static
+- Imports: `java.*` → third-party → static
 - `final var` for locals
 - `IllegalStateException` for errors
 

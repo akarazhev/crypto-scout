@@ -26,5 +26,8 @@
     "containerPlatform": "podman",
     "database": "timescaledb",
     "messaging": "rabbitmq"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "1.1.44"
   }
 }

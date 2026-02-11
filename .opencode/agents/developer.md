@@ -19,16 +19,17 @@ You are a senior Java developer specializing in the crypto-scout ecosystem - a p
 
 ## Project Overview
 
-**crypto-scout** is a Java 25 microservices ecosystem with six modules:
+**crypto-scout** is a Java 25 microservices ecosystem with five modules (the root aggregator manages 5 modules, crypto-scout-mq is infrastructure only):
 
-| Module | Purpose | Key Technologies |
-|--------|---------|------------------|
-| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j |
-| `crypto-scout-mq` | RabbitMQ infrastructure | RabbitMQ 4.1.4, Streams, AMQP |
-| `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data |
-| `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP |
-| `crypto-scout-collector` | Data persistence service | JDBC, TimescaleDB, HikariCP |
-| `crypto-scout-analyst` | Analysis service | ActiveJ, Streams consumer |
+| Module | Purpose | Key Technologies | Version |
+|--------|---------|------------------|---------|
+| `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j | 0.0.4 |
+| `crypto-scout-test` | Test support library | JUnit 6, Podman, Mock data | 0.0.1 |
+| `crypto-scout-client` | Data collection service | ActiveJ, WebSocket, HTTP | 0.0.1 |
+| `crypto-scout-collector` | Data persistence service | JDBC, TimescaleDB, HikariCP | 0.0.1 |
+| `crypto-scout-analyst` | Analysis service | ActiveJ, Streams consumer | 0.0.1 |
+
+Note: `crypto-scout-mq` is infrastructure-only (RabbitMQ) and not a Java module.
 
 ## Architecture
 
@@ -97,17 +98,17 @@ import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_
 ### Testing (JUnit 6/Jupiter)
 ```java
 final class ExampleTest {
-    
+
     @BeforeAll
     static void setUp() {
         PodmanCompose.up();
     }
-    
+
     @AfterAll
     static void tearDown() {
         PodmanCompose.down();
     }
-    
+
     @Test
     void shouldBehaviorReturnExpected() throws Exception {
         final var result = service.doSomething();
@@ -152,38 +153,6 @@ mvn test -Dtest=AmqpPublisherTest#shouldPublishPayloadToStream
 mvn clean
 ```
 
-## Module-Specific Guidelines
-
-### crypto-scout-test (Test Library)
-- Mock data fixtures in `src/main/resources/`
-- PodmanCompose for container lifecycle
-- StreamTestPublisher/Consumer for RabbitMQ Streams
-- AmqpTestPublisher/Consumer for AMQP
-- DBUtils for database operations
-
-### crypto-scout-client (Data Collection)
-- ActiveJ modules: CoreModule, WebModule, ClientModule, BybitSpotModule, BybitLinearModule, CmcParserModule
-- AmqpPublisher routes to streams based on provider
-- Health endpoint at `/health`
-- Module toggles: `bybit.stream.module.enabled`, `cmc.parser.module.enabled`
-
-### crypto-scout-collector (Data Persistence)
-- StreamService consumes from RabbitMQ Streams
-- BybitStreamService and CryptoScoutService for data processing
-- Repository pattern for database access
-- Offset management in `crypto_scout.stream_offsets` table
-
-### crypto-scout-analyst (Analysis)
-- Subscribes to streams for real-time analysis
-- Stream transformers and data processors
-- Async analysis pipeline with ActiveJ datastreams
-
-### jcryptolib (Core Library)
-- **BybitStream**: WebSocket streaming with resilience (circuit breaker, auto-reconnect)
-- **CmcParser**: REST API client with scheduling and rate limiting
-- **AnalystEngine**: Technical indicators (SMA, EMA, Bitcoin Risk)
-- **Payload/Provider/Source**: Core streaming abstractions
-
 ## Key Dependencies
 
 | Dependency | Version | Purpose |
@@ -196,6 +165,51 @@ mvn clean
 | PostgreSQL | 42.7.9 | Database driver |
 | HikariCP | 7.0.2 | Connection pooling |
 | JUnit | 6.1.0-M1 | Testing |
+| DSL-JSON | 2.0.2 | JSON parsing |
+| ta4j | 0.22.1 | Technical analysis |
+
+## Module-Specific Guidelines
+
+### jcryptolib (Core Library)
+- **Bybit Streaming**: WebSocket client with resilience (circuit breaker, auto-reconnect, ping/pong)
+- **CMC Parser**: REST API client with scheduling and rate limiting
+- **Analysis Engine**: Technical indicators (SMA, EMA, Bitcoin Risk)
+- **Resilience**: Circuit breaker, rate limiter, health checks
+- **Stream Abstractions**: Payload, Provider, Source, Statistic, RestMetrics
+- **Exceptions**: 10 exception types in `exception/` package
+- **Utils**: JsonUtils, ParserUtils, TimeUtils, ValueUtils, SecUtils
+
+### crypto-scout-test (Test Library)
+- Mock data fixtures in `src/main/resources/` (bybit-spot, bybit-linear, crypto-scout)
+- PodmanCompose for container lifecycle
+- StreamTestPublisher/Consumer for RabbitMQ Streams
+- AmqpTestPublisher/Consumer for AMQP
+- DBUtils for database operations
+- Assertions for custom test assertions
+
+### crypto-scout-client (Data Collection)
+- Launcher: `Client.java`
+- ActiveJ modules: CoreModule, WebModule, ClientModule, BybitSpotModule, BybitLinearModule, CmcParserModule
+- AmqpPublisher routes to streams based on provider (bybit-stream, crypto-scout-stream)
+- Health endpoint at `/health`
+- Bybit consumers: BybitSpotBtcUsdtConsumer, BybitSpotEthUsdtConsumer, BybitLinearBtcUsdtConsumer, BybitLinearEthUsdtConsumer
+- CmcParserConsumer for CoinMarketCap data
+
+### crypto-scout-collector (Data Persistence)
+- Launcher: `Collector.java`
+- StreamService consumes from RabbitMQ Streams with offset management
+- BybitStreamService and CryptoScoutService for data processing
+- Repository pattern: BybitSpotRepository, BybitLinearRepository, CryptoScoutRepository, AnalystRepository
+- Offset management in `crypto_scout.stream_offsets` table
+- AMQP consumer for control messages
+
+### crypto-scout-analyst (Analysis)
+- Launcher: `Analyst.java`
+- Stream processing with transformers: BytesToPayloadTransformer, AnalystTransformer
+- StreamPublisher for output
+- DataService for async processing
+- StreamIn and MessageSupplier for stream consumption
+- Database: StreamOffsetsRepository
 
 ## Your Responsibilities
 

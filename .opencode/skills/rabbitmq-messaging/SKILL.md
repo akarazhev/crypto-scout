@@ -34,9 +34,16 @@ Provide guidance for RabbitMQ Streams and AMQP messaging patterns used in the cr
       │   -client       │            │   -collector    │
       │  (Publisher)    │            │  (Consumer)     │
       └─────────────────┘            └─────────────────┘
+                                              │
+                                              ▼
+                                     ┌─────────────────┐
+                                     │ crypto-scout    │
+                                     │   -analyst      │
+                                     │  (Consumer)     │
+                                     └─────────────────┘
 ```
 
-### Queues
+### AMQP Queues
 | Queue | Purpose | Arguments |
 |-------|---------|-----------|
 | `collector-queue` | Command/control messages | lazy mode, TTL 6h, max 2500 |
@@ -51,13 +58,13 @@ Provide guidance for RabbitMQ Streams and AMQP messaging patterns used in the cr
 
 ## Streams Protocol (Port 5552)
 
-### Publisher Implementation
+### Publisher Implementation (crypto-scout-client)
 ```java
 public final class AmqpPublisher extends AbstractReactive implements ReactiveService {
     private volatile Environment environment;
     private volatile Producer bybitStream;
     private volatile Producer cryptoScoutStream;
-    
+
     @Override
     public Promise<Void> start() {
         return Promise.ofBlocking(executor, () -> {
@@ -67,27 +74,27 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 .username("crypto_scout_mq")
                 .password("password")
                 .build();
-            
+
             bybitStream = environment.producerBuilder()
                 .name("bybit-stream")
                 .stream("bybit-stream")
                 .build();
-            
+
             cryptoScoutStream = environment.producerBuilder()
                 .name("crypto-scout-stream")
                 .stream("crypto-scout-stream")
                 .build();
         });
     }
-    
+
     public Promise<Void> publish(final Payload<Map<String, Object>> payload) {
         final var producer = getProducer(payload.getProvider());
         final var settablePromise = new SettablePromise<Void>();
-        
+
         final var message = producer.messageBuilder()
             .addData(JsonUtils.object2Bytes(payload))
             .build();
-        
+
         producer.send(message, status -> {
             if (status.isConfirmed()) {
                 settablePromise.set(null);
@@ -97,34 +104,50 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 );
             }
         });
-        
+
         return settablePromise;
+    }
+
+    private Producer getProducer(final Provider provider) {
+        return switch (provider) {
+            case BYBIT -> bybitStream;
+            case CMC -> cryptoScoutStream;
+        };
     }
 }
 ```
 
-### Consumer Implementation with Offset Management
+### Consumer Implementation with Offset Management (crypto-scout-collector)
 ```java
 public final class StreamService extends AbstractReactive implements ReactiveService {
     private volatile Environment environment;
-    private volatile Consumer consumer;
-    
+    private volatile Consumer bybitConsumer;
+    private volatile Consumer cryptoScoutConsumer;
+
     @Override
     public Promise<Void> start() {
         return Promise.ofBlocking(executor, () -> {
             environment = AmqpConfig.getEnvironment();
-            
-            consumer = environment.consumerBuilder()
+
+            bybitConsumer = environment.consumerBuilder()
                 .stream("bybit-stream")
                 .noTrackingStrategy()
                 .subscriptionListener(this::updateOffset)
-                .messageHandler(this::handleMessage)
+                .messageHandler(this::handleBybitMessage)
+                .build();
+
+            cryptoScoutConsumer = environment.consumerBuilder()
+                .stream("crypto-scout-stream")
+                .noTrackingStrategy()
+                .subscriptionListener(this::updateOffset)
+                .messageHandler(this::handleCryptoScoutMessage)
                 .build();
         });
     }
-    
+
     private void updateOffset(final SubscriptionContext context) {
-        final var savedOffset = offsetRepository.getOffset("bybit-stream");
+        final var streamName = context.stream();
+        final var savedOffset = offsetRepository.getOffset(streamName);
         if (savedOffset.isPresent()) {
             context.offsetSpecification(
                 OffsetSpecification.offset(savedOffset.getAsLong() + 1)
@@ -133,26 +156,54 @@ public final class StreamService extends AbstractReactive implements ReactiveSer
             context.offsetSpecification(OffsetSpecification.first());
         }
     }
-    
-    private void handleMessage(final Context context, final Message message) {
+
+    private void handleBybitMessage(final Context context, final Message message) {
         final var payload = JsonUtils.bytes2Object(
-            message.getBodyAsBinary(), 
+            message.getBodyAsBinary(),
             Payload.class
         );
-        // Process and save with offset
-        service.save(payload, context.offset());
+        bybitStreamService.save(payload, context.offset());
+    }
+
+    private void handleCryptoScoutMessage(final Context context, final Message message) {
+        final var payload = JsonUtils.bytes2Object(
+            message.getBodyAsBinary(),
+            Payload.class
+        );
+        cryptoScoutService.save(payload, context.offset());
+    }
+}
+```
+
+### Stream Transformer Pattern (crypto-scout-analyst)
+```java
+public final class AnalystTransformer extends AbstractStreamTransformer<StreamPayload, StreamPayload> {
+    private final AnalystEngine engine;
+
+    @Override
+    protected StreamDataAcceptor<StreamPayload> onResumed(final StreamDataAcceptor<StreamPayload> output) {
+        return in -> {
+            try {
+                final var payload = in.payload();
+                final var result = engine.analyze(payload);
+                output.accept(new StreamPayload(in.stream(), in.offset(), result));
+            } catch (final Exception ex) {
+                LOGGER.error("Analysis failed", ex);
+                output.accept(new StreamPayload(in.stream(), in.offset(), null));
+            }
+        };
     }
 }
 ```
 
 ## AMQP Protocol (Port 5672)
 
-### Consumer Implementation
+### Consumer Implementation (crypto-scout-collector)
 ```java
 public final class AmqpConsumer extends AbstractReactive implements ReactiveService {
     private volatile Connection connection;
     private volatile Channel channel;
-    
+
     @Override
     public Promise<Void> start() {
         return Promise.ofBlocking(executor, () -> {
@@ -161,18 +212,18 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
             factory.setPort(5672);
             factory.setUsername("crypto_scout_mq");
             factory.setPassword("password");
-            
+
             connection = factory.newConnection();
             channel = connection.createChannel();
-            
+
             channel.basicQos(1);  // Fair dispatch
-            
+
             final var consumer = new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(
-                    String consumerTag, 
+                    String consumerTag,
                     Envelope envelope,
-                    AMQP.BasicProperties properties, 
+                    AMQP.BasicProperties properties,
                     byte[] body
                 ) throws IOException {
                     try {
@@ -184,20 +235,32 @@ public final class AmqpConsumer extends AbstractReactive implements ReactiveServ
                     }
                 }
             };
-            
+
             channel.basicConsume("collector-queue", false, consumer);
+        });
+    }
+
+    @Override
+    public Promise<Void> stop() {
+        return Promise.ofBlocking(executor, () -> {
+            if (channel != null && channel.isOpen()) {
+                channel.close();
+            }
+            if (connection != null && connection.isOpen()) {
+                connection.close();
+            }
         });
     }
 }
 ```
 
-### Publisher Implementation
+### Publisher Implementation (crypto-scout-collector)
 ```java
 public final class AmqpPublisher extends AbstractReactive implements ReactiveService {
     private volatile Connection connection;
     private volatile Channel channel;
-    
-    public Promise<Void> publish(final Map<String, Object> message, 
+
+    public Promise<Void> publish(final Map<String, Object> message,
                                   final String routingKey) {
         return Promise.ofBlocking(executor, () -> {
             final var bytes = JsonUtils.object2Bytes(message);
@@ -205,7 +268,7 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
                 .contentType("application/json")
                 .deliveryMode(2)  // Persistent
                 .build();
-            
+
             channel.basicPublish(
                 "crypto-scout-exchange",
                 routingKey,
@@ -219,12 +282,12 @@ public final class AmqpPublisher extends AbstractReactive implements ReactiveSer
 
 ## Payload Structure
 
-### Standard Payload Format
+### Standard Payload Format (jcryptolib)
 ```java
 public class Payload<T> {
-    private final Provider provider;  // CMC, BYBIT
-    private final Source source;      // PMST, PML, API
-    private final Event event;        // TICKERS, KLINE, TRADE
+    private final Provider provider;  // BYBIT, CMC
+    private final Source source;      // PMST, PML, API, etc.
+    private final Event event;        // TICKERS, KLINE, TRADE, etc.
     private final long timestamp;
     private final String symbol;      // BTCUSDT, ETHUSDT
     private final T data;
@@ -245,6 +308,24 @@ public class Payload<T> {
 }
 ```
 
+### Provider Enum
+```java
+public enum Provider {
+    BYBIT,    // Bybit exchange data
+    CMC       // CoinMarketCap data
+}
+```
+
+### Source Enum
+```java
+public enum Source {
+    PMST,     // Bybit public spot tickers
+    PML,      // Bybit public linear tickers
+    API,      // REST API data
+    // ... etc
+}
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -258,17 +339,35 @@ public class Payload<T> {
 | `AMQP_BYBIT_STREAM` | `bybit-stream` | Bybit stream name |
 | `AMQP_CRYPTO_SCOUT_STREAM` | `crypto-scout-stream` | CMC stream name |
 
-### Stream Retention Policy
+### Java Configuration Pattern
+```java
+final static class AmqpConfig {
+    static final String AMQP_RABBITMQ_HOST = System.getProperty("amqp.rabbitmq.host", "localhost");
+    static final int AMQP_RABBITMQ_PORT = Integer.parseInt(System.getProperty("amqp.rabbitmq.port", "5672"));
+    static final int AMQP_STREAM_PORT = Integer.parseInt(System.getProperty("amqp.stream.port", "5552"));
+    static final String AMQP_RABBITMQ_USERNAME = System.getProperty("amqp.rabbitmq.username", "crypto_scout_mq");
+    static final String AMQP_RABBITMQ_PASSWORD = System.getProperty("amqp.rabbitmq.password", "");
+}
+```
+
+### Stream Retention Policy (definitions.json)
 ```json
 {
-    "vhost": "/",
-    "name": "stream-retention",
-    "pattern": ".*-stream$",
-    "definition": {
-        "max-length-bytes": 2000000000,
-        "max-age": "1D",
-        "stream-max-segment-size-bytes": 100000000
-    }
+    "vhosts": [
+        {
+            "name": "/",
+            "policies": [
+                {
+                    "pattern": ".*-stream$",
+                    "definition": {
+                        "max-length-bytes": 2000000000,
+                        "max-age": "1D",
+                        "stream-max-segment-size-bytes": 100000000
+                    }
+                }
+            ]
+        }
+    ]
 }
 ```
 
@@ -305,7 +404,7 @@ producer.send(message, status -> {
             );
         }
     });
-    
+
     if (status.isConfirmed()) {
         settablePromise.set(null);
     } else {
@@ -316,13 +415,27 @@ producer.send(message, status -> {
 });
 ```
 
+### Offset Management Error Handling
+```java
+private void handleMessage(final Context context, final Message message) {
+    try {
+        final var payload = parsePayload(message);
+        service.save(payload, context.offset());
+    } catch (final Exception e) {
+        LOGGER.error("Failed to process message at offset {}", context.offset(), e);
+        // Don't ack - will retry on restart
+        // Or send to DLX based on error type
+    }
+}
+```
+
 ## Monitoring
 
 ### Health Checks
 ```java
 public boolean isReady() {
-    return environment != null && 
-           bybitStream != null && 
+    return environment != null &&
+           bybitStream != null &&
            cryptoScoutStream != null;
 }
 
@@ -331,10 +444,42 @@ curl http://localhost:8081/health
 # Returns: ok (200) or not-ready (503)
 ```
 
+### Stream Statistics
+```java
+// Check stream info
+podman exec crypto-scout-mq rabbitmq-streams stream_info bybit-stream
+
+# Management UI
+curl -u crypto_scout_mq:password http://localhost:15672/api/queues
+```
+
 ### Management UI
 - URL: http://localhost:15672
 - Monitor streams, queues, connections
 - View message rates and consumer counts
+
+## Test Utilities (crypto-scout-test)
+
+### Stream Test Publisher
+```java
+final var publisher = StreamTestPublisher.create("bybit-stream");
+publisher.start().get();
+publisher.publish(payload);
+```
+
+### Stream Test Consumer
+```java
+final var consumer = StreamTestConsumer.create("bybit-stream", handler);
+consumer.start().get();
+```
+
+### AMQP Test Utilities
+```java
+final var amqpPublisher = AmqpTestPublisher.create();
+amqpPublisher.publish(message, "collector-queue");
+
+final var amqpConsumer = AmqpTestConsumer.create("collector-queue", handler);
+```
 
 ## When to Use Me
 
@@ -346,3 +491,5 @@ Use this skill when:
 - Designing message payload structures
 - Setting up stream retention policies
 - Monitoring messaging health
+- Writing integration tests with messaging
+- Implementing stream transformers

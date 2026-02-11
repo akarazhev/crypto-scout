@@ -20,12 +20,12 @@ You are a senior code reviewer specializing in Java microservices and the crypto
 ## Project Context
 
 **crypto-scout** is a Java 25 multi-module Maven project for cryptocurrency market data:
-- **jcryptolib**: Core cryptocurrency library (Bybit streams, CMC parser, analysis)
-- **crypto-scout-mq**: RabbitMQ infrastructure
-- **crypto-scout-test**: Test support library
-- **crypto-scout-client**: Data collection service (ActiveJ, WebSocket)
-- **crypto-scout-collector**: Data persistence service (TimescaleDB)
-- **crypto-scout-analyst**: Analysis service
+- **jcryptolib**: Core cryptocurrency library (Bybit streams, CMC parser, analysis, resilience)
+- **crypto-scout-test**: Test support library (MockData, PodmanCompose, test utilities)
+- **crypto-scout-client**: Data collection service (ActiveJ, WebSocket, HTTP)
+- **crypto-scout-collector**: Data persistence service (TimescaleDB, JDBC)
+- **crypto-scout-analyst**: Analysis service (Stream transformers, DataService)
+- **crypto-scout-mq**: RabbitMQ infrastructure (not a Java module)
 
 ## Review Checklist
 
@@ -77,6 +77,12 @@ You are a senior code reviewer specializing in Java microservices and the crypto
 
 ### Module-Specific Checks
 
+#### jcryptolib
+- [ ] Exception hierarchy properly used (JCryptoLibException base)
+- [ ] Resilience patterns (CircuitBreaker, RateLimiter) properly applied
+- [ ] Stream abstractions (Payload, Provider, Source) correctly used
+- [ ] Utils classes follow utility pattern (private constructor)
+
 #### crypto-scout-test
 - [ ] MockData sources and types properly defined
 - [ ] PodmanCompose resource files exist
@@ -84,17 +90,21 @@ You are a senior code reviewer specializing in Java microservices and the crypto
 
 #### crypto-scout-client
 - [ ] Modules properly wired in Client.java
-- [ ] AmqpPublisher routes correctly
+- [ ] AmqpPublisher routes correctly (bybit-stream vs crypto-scout-stream)
 - [ ] Health endpoint implemented
+- [ ] Bybit consumers properly extend AbstractBybitStreamConsumer
 
 #### crypto-scout-collector
 - [ ] Repository classes use proper SQL
-- [ ] Offset management implemented
-- [ ] Batch inserts configured
+- [ ] Offset management implemented in StreamOffsetsRepository
+- [ ] Batch inserts configured with HikariCP
+- [ ] StreamService handles both bybit-stream and crypto-scout-stream
 
 #### crypto-scout-analyst
-- [ ] Stream consumers properly configured
-- [ ] Service lifecycle managed
+- [ ] Stream transformers properly extend AbstractStreamTransformer
+- [ ] StreamPublisher correctly outputs processed data
+- [ ] DataService handles async processing
+- [ ] Service lifecycle managed properly
 
 ## Review Output Format
 

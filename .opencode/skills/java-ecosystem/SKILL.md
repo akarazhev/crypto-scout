@@ -19,7 +19,7 @@ Provide comprehensive guidance for Java 25 development across the crypto-scout e
 ### Launcher Pattern (ActiveJ)
 ```java
 public final class Service extends Launcher {
-    
+
     @Override
     protected Module getModule() {
         return combine(
@@ -30,47 +30,51 @@ public final class Service extends Launcher {
             WebModule.create()
         );
     }
-    
+
     @Override
     protected void onStart() throws Exception {
         ConfigValidator.validate();
     }
-    
+
     @Override
     protected void run() throws Exception {
         awaitShutdown();
     }
-    
+
     public static void main(String[] args) throws Exception {
         new Service().launch(args);
     }
 }
 ```
 
-### Module Structure
-| Module | Purpose | Location |
-|--------|---------|----------|
+### Module Structure by Service
+
+| Module | Purpose | Services Using |
+|--------|---------|----------------|
 | CoreModule | Reactor and virtual thread executor | All services |
 | WebModule | HTTP server, clients, health routes | All services |
 | ClientModule | AMQP publisher lifecycle | crypto-scout-client |
 | CollectorModule | Repositories and services | crypto-scout-collector |
-| AnalystModule | Analysis services | crypto-scout-analyst |
+| AnalystModule | Analysis services and transformers | crypto-scout-analyst |
+| BybitSpotModule | Bybit spot WebSocket consumers | crypto-scout-client |
+| BybitLinearModule | Bybit linear WebSocket consumers | crypto-scout-client |
+| CmcParserModule | CoinMarketCap parser | crypto-scout-client |
 
 ### Reactive Service Pattern
 ```java
 public final class MyService extends AbstractReactive implements ReactiveService {
     private final Executor executor;
     private volatile Resource resource;
-    
+
     public static MyService create(NioReactor reactor, Executor executor) {
         return new MyService(reactor, executor);
     }
-    
+
     private MyService(NioReactor reactor, Executor executor) {
         super(reactor);
         this.executor = executor;
     }
-    
+
     @Override
     public Promise<Void> start() {
         return Promise.ofBlocking(executor, () -> {
@@ -78,7 +82,7 @@ public final class MyService extends AbstractReactive implements ReactiveService
             resource = createResource();
         });
     }
-    
+
     @Override
     public Promise<Void> stop() {
         return Promise.ofBlocking(executor, () -> {
@@ -86,6 +90,24 @@ public final class MyService extends AbstractReactive implements ReactiveService
             closeResource(resource);
             resource = null;
         });
+    }
+}
+```
+
+### Stream Transformer Pattern (Analyst)
+```java
+public final class AnalystTransformer extends AbstractStreamTransformer<StreamPayload, StreamPayload> {
+    @Override
+    protected StreamDataAcceptor<StreamPayload> onResumed(final StreamDataAcceptor<StreamPayload> output) {
+        return in -> {
+            try {
+                final var result = process(in);
+                output.accept(result);
+            } catch (final Exception ex) {
+                LOGGER.error("Processing failed", ex);
+                output.accept(new StreamPayload(in.stream(), in.offset(), null));
+            }
+        };
     }
 }
 ```
@@ -148,22 +170,51 @@ try {
 }
 ```
 
+## Exception Hierarchy (jcryptolib)
+
+```
+JCryptoLibException (base)
+├── ApiException
+├── CmcApiException
+├── StreamException
+├── CircuitBreakerException
+├── RateLimiterException
+├── HealthCheckException
+├── ResilienceException
+└── ConfigurationException
+```
+
+Usage:
+```java
+// In jcryptolib
+try {
+    // operation
+} catch (final SomeException e) {
+    throw new StreamException("Message", e);
+}
+
+// In services
+} catch (final SQLException e) {
+    throw new IllegalStateException("Database operation failed", e);
+}
+```
+
 ## Testing Patterns
 
 ### JUnit 6 (Jupiter)
 ```java
 final class MyServiceTest {
-    
+
     @BeforeAll
     static void setUp() {
         PodmanCompose.up();
     }
-    
+
     @AfterAll
     static void tearDown() {
         PodmanCompose.down();
     }
-    
+
     @Test
     void shouldServiceStartSuccessfully() throws Exception {
         final var service = createTestService();
@@ -176,11 +227,11 @@ final class MyServiceTest {
 ```java
 // Load test fixtures
 final var spotKlines = MockData.get(
-    MockData.Source.BYBIT_SPOT, 
+    MockData.Source.BYBIT_SPOT,
     MockData.Type.KLINE_1
 );
 final var fgi = MockData.get(
-    MockData.Source.CRYPTO_SCOUT, 
+    MockData.Source.CRYPTO_SCOUT,
     MockData.Type.FGI
 );
 ```
@@ -192,6 +243,46 @@ static final int PORT = Integer.parseInt(System.getProperty("port.key", "5552"))
 static final Duration TIMEOUT = Duration.ofMinutes(Long.getLong("timeout.key", 3L));
 ```
 
+## Key Classes Reference
+
+### jcryptolib
+| Class | Purpose |
+|-------|---------|
+| `BybitStream` | WebSocket streaming with resilience |
+| `BybitParser` | REST API data fetching |
+| `CmcParser` | CoinMarketCap data parser |
+| `AnalystEngine` | Technical analysis indicators |
+| `Payload<T>` | Stream data container |
+| `CircuitBreaker` | Resilience pattern |
+| `RateLimiter` | Rate limiting |
+| `JsonUtils` | JSON serialization |
+
+### crypto-scout-client
+| Class | Purpose |
+|-------|---------|
+| `Client` | Service launcher |
+| `AmqpPublisher` | RabbitMQ Streams publisher |
+| `AbstractBybitStreamConsumer` | Base for Bybit consumers |
+| `CmcParserConsumer` | CMC data consumer |
+
+### crypto-scout-collector
+| Class | Purpose |
+|-------|---------|
+| `Collector` | Service launcher |
+| `StreamService` | Stream consumer orchestrator |
+| `BybitStreamService` | Bybit data processor |
+| `CryptoScoutService` | CMC data processor |
+| `*Repository` | Database access |
+
+### crypto-scout-analyst
+| Class | Purpose |
+|-------|---------|
+| `Analyst` | Service launcher |
+| `StreamService` | Stream processing orchestrator |
+| `DataService` | Async data processing |
+| `AnalystTransformer` | Stream transformer |
+| `StreamPublisher` | Output publisher |
+
 ## When to Use Me
 
 Use this skill when:
@@ -202,3 +293,5 @@ Use this skill when:
 - Following error handling and logging conventions
 - Writing JUnit 6 tests with proper lifecycle
 - Configuring services via system properties
+- Implementing stream transformers
+- Working with jcryptolib abstractions

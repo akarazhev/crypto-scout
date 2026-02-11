@@ -17,18 +17,16 @@ Provide guidance for building, testing, and packaging the crypto-scout multi-mod
 
 ```
 crypto-scout/
-├── pom.xml                    # Root aggregator POM
-├── jcryptolib/
-│   └── pom.xml               # Core cryptocurrency library
-├── crypto-scout-test/
-│   └── pom.xml               # Test library
-├── crypto-scout-client/
-│   └── pom.xml               # Data collection service
-├── crypto-scout-collector/
-│   └── pom.xml               # Data persistence service
-└── crypto-scout-analyst/
-    └── pom.xml               # Analysis service
+├── pom.xml                      # Root aggregator POM (version 0.0.1)
+│   └── modules:
+│       ├── jcryptolib (0.0.4)   # Library JAR
+│       ├── crypto-scout-test (0.0.1)    # Test library JAR
+│       ├── crypto-scout-client (0.0.1)  # Fat JAR service
+│       ├── crypto-scout-collector (0.0.1) # Fat JAR service
+│       └── crypto-scout-analyst (0.0.1)   # Fat JAR service
 ```
+
+Note: `crypto-scout-mq` is infrastructure-only and not a Java/Maven module.
 
 ## Build Commands
 
@@ -91,7 +89,7 @@ cd crypto-scout-client && mvn clean package -DskipTests
     <artifactId>crypto-scout</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>jcryptolib</module>
         <module>crypto-scout-test</module>
@@ -102,7 +100,7 @@ cd crypto-scout-client && mvn clean package -DskipTests
 </project>
 ```
 
-### Module POM Structure
+### Library POM (jcryptolib, crypto-scout-test)
 ```xml
 <project>
     <parent>
@@ -110,17 +108,63 @@ cd crypto-scout-client && mvn clean package -DskipTests
         <artifactId>crypto-scout</artifactId>
         <version>0.0.1</version>
     </parent>
-    
-    <artifactId>crypto-scout-client</artifactId>
+
+    <artifactId>jcryptolib</artifactId>
+    <version>0.0.4</version>
     <packaging>jar</packaging>
-    
+
     <properties>
         <java.version>25</java.version>
         <maven.compiler.release>25</maven.compiler.release>
         <activej.version>6.0-rc2</activej.version>
-        <stream-client.version>1.4.0</stream-client.version>
+        <dsl-json.version>2.0.2</dsl-json.version>
+        <ta4j-core.version>0.22.1</ta4j-core.version>
+        <junit-jupiter.version>6.1.0-M1</junit-jupiter.version>
     </properties>
-    
+
+    <build>
+        <plugins>
+            <!-- Compiler plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>25</release>
+                </configuration>
+            </plugin>
+
+            <!-- Jar plugin for libraries -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+### Service POM (client, collector, analyst)
+```xml
+<project>
+    <parent>
+        <groupId>com.github.akarazhev.cryptoscout</groupId>
+        <artifactId>crypto-scout</artifactId>
+        <version>0.0.1</version>
+    </parent>
+
+    <artifactId>crypto-scout-client</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
+        <activej.version>6.0-rc2</activej.version>
+        <jcryptolib.version>0.0.4</jcryptolib.version>
+    </properties>
+
     <build>
         <plugins>
             <!-- Compiler plugin -->
@@ -132,7 +176,7 @@ cd crypto-scout-client && mvn clean package -DskipTests
                     <release>25</release>
                 </configuration>
             </plugin>
-            
+
             <!-- Shade plugin for fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -150,6 +194,7 @@ cd crypto-scout-client && mvn clean package -DskipTests
                                     <mainClass>com.github.akarazhev.cryptoscout.Client</mainClass>
                                 </transformer>
                             </transformers>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
                         </configuration>
                     </execution>
                 </executions>
@@ -161,41 +206,63 @@ cd crypto-scout-client && mvn clean package -DskipTests
 
 ## Key Dependencies by Module
 
-### crypto-scout-test
-- `jcryptolib` - JSON utilities
-- `junit-jupiter` - JUnit 6 testing
-- `stream-client` - RabbitMQ Streams
-- `amqp-client` - RabbitMQ AMQP
-- `postgresql` - PostgreSQL driver
+### jcryptolib (0.0.4)
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| activej-datastream | 6.0-rc2 | Async data streams |
+| activej-http | 6.0-rc2 | HTTP client/server |
+| dsl-json | 2.0.2 | JSON serialization |
+| ta4j-core | 0.22.1 | Technical analysis |
+| slf4j-api | 2.1.0-alpha1 | Logging API |
+| logback-classic | 1.5.27 | Logging backend |
+| junit-jupiter | 6.1.0-M1 | Testing |
+| mockito | 5.21.0 | Mocking |
 
-### crypto-scout-client
-- `jcryptolib` - JSON utilities, clients
-- `activej-servicegraph` - DI and lifecycle
-- `activej-jmx` - JMX monitoring
-- `stream-client` - RabbitMQ Streams
+### crypto-scout-test (0.0.1)
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| jcryptolib | 0.0.4 | JSON utilities |
+| junit-jupiter | 6.1.0-M1 | JUnit 6 testing |
+| stream-client | 1.4.0 | RabbitMQ Streams |
+| amqp-client | 5.28.0 | RabbitMQ AMQP |
+| postgresql | 42.7.9 | PostgreSQL driver |
 
-### crypto-scout-collector
-- `jcryptolib` - JSON utilities
-- `activej-servicegraph` - DI and lifecycle
-- `activej-jmx` - JMX monitoring
-- `activej-datastream` - Data streaming
-- `stream-client` - RabbitMQ Streams
-- `amqp-client` - RabbitMQ AMQP
-- `postgresql` - PostgreSQL driver
-- `HikariCP` - Connection pooling
+### crypto-scout-client (0.0.1)
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| jcryptolib | 0.0.4 | JSON utilities, clients |
+| activej-servicegraph | 6.0-rc2 | DI and lifecycle |
+| activej-jmx | 6.0-rc2 | JMX monitoring |
+| stream-client | 1.4.0 | RabbitMQ Streams |
 
-### crypto-scout-analyst
-- Same as crypto-scout-collector
+### crypto-scout-collector (0.0.1)
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| jcryptolib | 0.0.4 | JSON utilities |
+| activej-servicegraph | 6.0-rc2 | DI and lifecycle |
+| activej-jmx | 6.0-rc2 | JMX monitoring |
+| activej-datastream | 6.0-rc2 | Data streaming |
+| stream-client | 1.4.0 | RabbitMQ Streams |
+| amqp-client | 5.28.0 | RabbitMQ AMQP |
+| postgresql | 42.7.9 | PostgreSQL driver |
+| HikariCP | 7.0.2 | Connection pooling |
+| crypto-scout-test | 0.0.1 | Test utilities |
+
+### crypto-scout-analyst (0.0.1)
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| Same as crypto-scout-collector |
 
 ## Build Artifacts
 
 ### Output Locations
-| Module | Artifact | Location |
-|--------|----------|----------|
-| crypto-scout-test | JAR library | `target/crypto-scout-test-0.0.1.jar` |
-| crypto-scout-client | Fat JAR | `target/crypto-scout-client-0.0.1.jar` |
-| crypto-scout-collector | Fat JAR | `target/crypto-scout-collector-0.0.1.jar` |
-| crypto-scout-analyst | Fat JAR | `target/crypto-scout-analyst-0.0.1.jar` |
+| Module | Artifact | Type | Location |
+|--------|----------|------|----------|
+| jcryptolib | JAR library | Library | `target/jcryptolib-0.0.4.jar` |
+| crypto-scout-test | JAR library | Library | `target/crypto-scout-test-0.0.1.jar` |
+| crypto-scout-client | Fat JAR | Service | `target/crypto-scout-client-0.0.1.jar` |
+| crypto-scout-collector | Fat JAR | Service | `target/crypto-scout-collector-0.0.1.jar` |
+| crypto-scout-analyst | Fat JAR | Service | `target/crypto-scout-analyst-0.0.1.jar` |
 
 ### Running Fat JARs
 ```bash
@@ -246,3 +313,4 @@ Use this skill when:
 - Configuring Maven plugins
 - Understanding dependency management
 - Packaging services for deployment
+- Managing version updates

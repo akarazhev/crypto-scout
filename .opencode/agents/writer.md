@@ -20,12 +20,12 @@ You are a technical writer specializing in Java microservice documentation for t
 ## Project Context
 
 **crypto-scout** is a Java 25 multi-module Maven project:
-- **jcryptolib**: Core cryptocurrency library (Bybit streams, CMC parser, analysis)
-- **crypto-scout-mq**: RabbitMQ infrastructure with Streams and AMQP
+- **jcryptolib**: Core cryptocurrency library (Bybit streams, CMC parser, analysis, resilience patterns)
 - **crypto-scout-test**: Test support library with MockData and PodmanCompose
 - **crypto-scout-client**: Data collection from Bybit and CoinMarketCap
 - **crypto-scout-collector**: Data persistence to TimescaleDB
-- **crypto-scout-analyst**: Analysis service
+- **crypto-scout-analyst**: Analysis service with stream transformers
+- **crypto-scout-mq**: RabbitMQ infrastructure with Streams and AMQP
 
 ## Documentation Standards
 
@@ -94,11 +94,13 @@ import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_
 
 ## Documentation Types by Module
 
-### crypto-scout-mq
-- Infrastructure setup guide
-- RabbitMQ configuration reference
-- Security hardening documentation
-- Troubleshooting connectivity issues
+### jcryptolib
+- Library usage guide
+- API reference for Bybit streaming
+- CMC parser documentation
+- Analysis indicators documentation
+- Resilience patterns guide
+- Exception hierarchy documentation
 
 ### crypto-scout-test
 - Library usage guide
@@ -111,17 +113,27 @@ import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_
 - Bybit/CMC integration guide
 - Configuration reference
 - Deployment guide (Podman/Docker)
+- Consumer implementation patterns
 
 ### crypto-scout-collector
 - Database schema documentation
 - Data flow architecture
 - Offset management explanation
+- Repository patterns
 - Backup and restore procedures
 
 ### crypto-scout-analyst
 - Analysis service overview
-- Stream consumption patterns
+- Stream transformer patterns
+- DataService usage
+- Stream processing pipeline
 - Future capabilities roadmap
+
+### crypto-scout-mq
+- Infrastructure setup guide
+- RabbitMQ configuration reference
+- Security hardening documentation
+- Troubleshooting connectivity issues
 
 ## Writing Guidelines
 
@@ -145,6 +157,47 @@ import static com.github.akarazhev.cryptoscout.config.Constants.AmqpConfig.AMQP_
 - Show both simple and advanced usage
 - Include error handling where relevant
 - Follow project code style in examples
+
+## Architecture Documentation
+
+### System Overview
+```mermaid
+flowchart TB
+    subgraph External["External APIs"]
+        Bybit["Bybit API<br/>WebSocket + REST"]
+        CMC["CoinMarketCap API<br/>REST"]
+    end
+
+    subgraph Library["Core Library"]
+        JCL["jcryptolib<br/>(Bybit Stream, CMC Parser,<br/>Analysis Engine)"]
+    end
+
+    subgraph Messaging["RabbitMQ Messaging"]
+        BS["bybit-stream"]
+        CS["crypto-scout-stream"]
+    end
+
+    subgraph Services["Microservices"]
+        Client["crypto-scout-client<br/>(Data Collection)"]
+        Collector["crypto-scout-collector<br/>(Data Persistence)"]
+        Analyst["crypto-scout-analyst<br/>(Analysis)"]
+    end
+
+    subgraph Storage["Data Storage"]
+        DB[("TimescaleDB<br/>Time-series data")]
+    end
+
+    Bybit -->|WebSocket| JCL
+    CMC -->|REST| JCL
+    JCL -->|Uses| Client
+    Client -->|Publish| BS
+    Client -->|Publish| CS
+    BS -->|Consume| Collector
+    CS -->|Consume| Collector
+    Collector -->|JDBC| DB
+    BS -->|Consume| Analyst
+    CS -->|Consume| Analyst
+```
 
 ## Your Responsibilities
 

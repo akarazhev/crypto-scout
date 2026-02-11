@@ -1,7 +1,6 @@
 ---
 name: podman-orchestration
 description: Podman Compose orchestration for crypto-scout services including RabbitMQ, TimescaleDB, and microservices
-description: Podman Compose orchestration for crypto-scout services including RabbitMQ, TimescaleDB, and microservices
 license: MIT
 compatibility: opencode
 metadata:
@@ -68,6 +67,8 @@ services:
     hostname: crypto_scout_mq
     ports:
       - "127.0.0.1:15672:15672"  # Management UI (localhost only)
+      - "5672:5672"              # AMQP
+      - "5552:5552"              # Streams
     volumes:
       - "./data/rabbitmq:/var/lib/rabbitmq"
       - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro"
@@ -84,6 +85,12 @@ services:
       retries: 5
       start_period: 30s
 ```
+
+**Key Files:**
+- `rabbitmq/definitions.json` - Exchanges, queues, streams configuration
+- `rabbitmq/rabbitmq.conf` - RabbitMQ server configuration
+- `rabbitmq/enabled_plugins` - Stream plugin enabled
+- `secret/rabbitmq.env` - Erlang cookie
 
 ### crypto-scout-collector-db (TimescaleDB)
 ```yaml
@@ -106,6 +113,69 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+```
+
+**SQL Scripts:**
+- `script/init.sql` - Schema initialization
+- `script/bybit_spot_tables.sql` - Spot market tables
+- `script/bybit_linear_tables.sql` - Linear market tables
+- `script/crypto_scout_tables.sql` - CMC/analysis tables
+- `script/analyst_tables.sql` - Analysis tables
+
+### crypto-scout-client (Data Collection Service)
+```yaml
+services:
+  crypto-scout-client:
+    image: localhost/crypto-scout-client:latest
+    container_name: crypto-scout-client
+    build:
+      context: ../crypto-scout-client
+      dockerfile: Dockerfile
+    env_file:
+      - ./secret/client.env
+    networks:
+      - crypto-scout-bridge
+    depends_on:
+      - crypto-scout-mq
+    restart: unless-stopped
+```
+
+### crypto-scout-collector (Data Persistence Service)
+```yaml
+services:
+  crypto-scout-collector:
+    image: localhost/crypto-scout-collector:latest
+    container_name: crypto-scout-collector
+    build:
+      context: ../crypto-scout-collector
+      dockerfile: Dockerfile
+    env_file:
+      - ./secret/collector.env
+    networks:
+      - crypto-scout-bridge
+    depends_on:
+      - crypto-scout-mq
+      - crypto-scout-collector-db
+    restart: unless-stopped
+```
+
+### crypto-scout-analyst (Analysis Service)
+```yaml
+services:
+  crypto-scout-analyst:
+    image: localhost/crypto-scout-analyst:latest
+    container_name: crypto-scout-analyst
+    build:
+      context: ../crypto-scout-analyst
+      dockerfile: Dockerfile
+    env_file:
+      - ./secret/analyst.env
+    networks:
+      - crypto-scout-bridge
+    depends_on:
+      - crypto-scout-mq
+      - crypto-scout-collector-db
+    restart: unless-stopped
 ```
 
 ## Container Security Hardening
@@ -141,9 +211,17 @@ mem_reservation: "128m"
 
 ### Start Services
 ```bash
-# Start all services
+# Create network first
+podman network create crypto-scout-bridge
+
+# Start infrastructure (RabbitMQ, TimescaleDB)
 cd crypto-scout-mq && podman-compose up -d
+cd crypto-scout-collector && podman-compose up -d crypto-scout-collector-db
+
+# Start services
+cd crypto-scout-client && podman-compose up -d
 cd crypto-scout-collector && podman-compose up -d
+cd crypto-scout-analyst && podman-compose up -d
 
 # Start specific service
 podman-compose up -d crypto-scout-mq
@@ -160,12 +238,17 @@ podman ps
 # Check logs
 podman logs -f crypto-scout-mq
 podman logs -f crypto-scout-client
+podman logs -f crypto-scout-collector
+podman logs -f crypto-scout-analyst
 
 # Check health status
 podman inspect --format='{{.State.Health.Status}}' crypto-scout-mq
 
 # View compose status
 podman-compose ps
+
+# Resource usage
+podman stats
 ```
 
 ### Stop Services
@@ -182,7 +265,7 @@ podman-compose stop crypto-scout-client
 
 ## Secret Management
 
-### Environment Files
+### Environment Files Structure
 ```bash
 # crypto-scout-mq/secret/rabbitmq.env
 RABBITMQ_ERLANG_COOKIE=strong_random_string
@@ -192,7 +275,17 @@ POSTGRES_DB=crypto_scout
 POSTGRES_USER=crypto_scout_db
 POSTGRES_PASSWORD=strong_password
 
+# crypto-scout-client/secret/client.env
+AMQP_RABBITMQ_PASSWORD=mq_password
+BYBIT_API_KEY=your_api_key
+BYBIT_API_SECRET=your_api_secret
+CMC_API_KEY=your_cmc_api_key
+
 # crypto-scout-collector/secret/collector.env
+AMQP_RABBITMQ_PASSWORD=mq_password
+JDBC_DATASOURCE_PASSWORD=db_password
+
+# crypto-scout-analyst/secret/analyst.env
 AMQP_RABBITMQ_PASSWORD=mq_password
 JDBC_DATASOURCE_PASSWORD=db_password
 ```
@@ -202,7 +295,9 @@ JDBC_DATASOURCE_PASSWORD=db_password
 # Copy example files
 cp secret/rabbitmq.env.example secret/rabbitmq.env
 cp secret/timescaledb.env.example secret/timescaledb.env
+cp secret/client.env.example secret/client.env
 cp secret/collector.env.example secret/collector.env
+cp secret/analyst.env.example secret/analyst.env
 
 # Set permissions
 chmod 600 secret/*.env
@@ -222,12 +317,13 @@ networks:
 ```
 
 ### Service Discovery
-| Service | Hostname | Ports |
-|---------|----------|-------|
-| RabbitMQ | crypto-scout-mq | 5672 (AMQP), 5552 (Streams), 15672 (Mgmt) |
-| TimescaleDB | crypto-scout-collector-db | 5432 (PostgreSQL) |
-| Client | crypto-scout-client | 8081 (HTTP internal) |
-| Collector | crypto-scout-collector | 8081 (HTTP internal) |
+| Service | Hostname | Ports | Internal Access |
+|---------|----------|-------|-----------------|
+| RabbitMQ | crypto-scout-mq | 5672 (AMQP), 5552 (Streams), 15672 (Mgmt) | All services |
+| TimescaleDB | crypto-scout-collector-db | 5432 (PostgreSQL) | collector, analyst |
+| Client | crypto-scout-client | 8081 (HTTP internal) | Health checks |
+| Collector | crypto-scout-collector | 8081 (HTTP internal) | Health checks |
+| Analyst | crypto-scout-analyst | 8081 (HTTP internal) | Health checks |
 
 ## Troubleshooting
 
@@ -235,10 +331,13 @@ networks:
 ```bash
 # Check logs
 podman logs crypto-scout-mq
+podman logs crypto-scout-collector-db
 
 # Check for port conflicts
 lsof -i :5672
 lsof -i :5432
+lsof -i :5552
+lsof -i :15672
 
 # Verify network exists
 podman network ls
@@ -265,6 +364,18 @@ podman exec crypto-scout-collector ping crypto-scout-collector-db
 podman inspect crypto-scout-mq --format='{{.NetworkSettings.Networks}}'
 ```
 
+### Database Issues
+```bash
+# Connect to database
+podman exec -it crypto-scout-collector-db psql -U crypto_scout_db -d crypto_scout
+
+# List tables
+\dt crypto_scout.*
+
+# Check table counts
+SELECT COUNT(*) FROM crypto_scout.bybit_spot_tickers;
+```
+
 ## When to Use Me
 
 Use this skill when:
@@ -275,3 +386,4 @@ Use this skill when:
 - Troubleshooting container issues
 - Scaling or modifying service configurations
 - Setting up CI/CD pipelines with Podman
+- Managing service dependencies
