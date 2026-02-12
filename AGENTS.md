@@ -28,12 +28,17 @@ The MCP server is configured in `.opencode/package.json`:
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "headers": {
-        "CONTEXT7_API_KEY": "ctx7sk-4cec80b8-d947-4ff4-a29a-d00bea5a2fac"
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
       },
       "enabled": true
     }
   }
 }
+```
+
+**Note:** The API key is loaded from the `CONTEXT7_API_KEY` environment variable. Set it before running OpenCode:
+```bash
+export CONTEXT7_API_KEY="your-api-key-here"
 ```
 
 ### Usage Guidelines
