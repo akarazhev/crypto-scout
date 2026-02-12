@@ -41,6 +41,8 @@ The MCP server is configured in `.opencode/package.json`:
 export CONTEXT7_API_KEY="your-api-key-here"
 ```
 
+**Important:** The MCP server must be configured in your **global OpenCode config** (`~/.config/opencode/opencode.json`) to be active. The project's `.opencode/package.json` serves as documentation and reference for the expected configuration. See the root project's AGENTS.md for the complete global configuration.
+
 ### Usage Guidelines
 
 1. **Library Documentation**: Use `resolve-library-id` followed by `get-library-docs` to fetch the latest documentation for:
