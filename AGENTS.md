@@ -6,6 +6,49 @@ This document provides guidelines for agentic coding contributors to the crypto-
 
 **crypto-scout** is a Java 25 multi-module Maven ecosystem for cryptocurrency market data collection, persistence, and analysis:
 
+## MCP Server Configuration
+
+This project uses the **Context7 MCP server** for enhanced code intelligence and documentation retrieval.
+
+### Available MCP Tools
+
+When working with this codebase, you can use the following MCP tools via the context7 server:
+
+- **resolve-library-id**: Resolve a library name to its Context7 library ID
+- **get-library-docs**: Retrieve up-to-date documentation for a library by its ID
+
+### Configuration
+
+The MCP server is configured in `.opencode/package.json`:
+
+```json
+{
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-4cec80b8-d947-4ff4-a29a-d00bea5a2fac"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Usage Guidelines
+
+1. **Library Documentation**: Use `resolve-library-id` followed by `get-library-docs` to fetch the latest documentation for:
+   - ActiveJ framework APIs
+   - RabbitMQ Stream Client
+   - PostgreSQL/JDBC drivers
+   - ta4j technical analysis library
+   - DSL-JSON serialization
+
+2. **Code Context**: When implementing features across modules, retrieve relevant library docs to ensure correct API usage.
+
+3. **Best Practices**: Always verify against the latest documentation versions available through the MCP server.
+
 | Module | Purpose | Technology | Version | Java Files |
 |--------|---------|------------|---------|------------|
 | `jcryptolib` | Core cryptocurrency library | ActiveJ, DSL-JSON, ta4j | 0.0.4 | ~70 |
