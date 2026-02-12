@@ -28,7 +28,7 @@
     "messaging": "rabbitmq"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "1.1.44"
+    "@opencode-ai/plugin": "1.1.60"
   },
   "mcp": {
     "context7": {
